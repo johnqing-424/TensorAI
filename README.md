@@ -1,0 +1,97 @@
+# RAGFlow 聊天前端
+
+这是一个基于React和TypeScript构建的前端应用，用于与RAGFlow API进行交互，提供类似ChatGPT的聊天体验。它支持基于知识库的问答，并可以展示引用来源。
+
+## 功能特点
+
+- 📱 响应式UI设计，支持移动端和桌面端
+- 🔑 API密钥认证
+- 💬 流式响应的打字效果
+- 📚 支持显示引用的知识库来源
+- 📝 支持多会话管理
+- 🤖 支持多个聊天助手选择
+
+## 安装与运行
+
+### 前置条件
+
+- Node.js 14.0 或更高版本
+- npm 或 yarn
+
+### 安装依赖
+
+```bash
+npm install
+# 或者
+yarn install
+```
+
+### 配置环境变量
+
+创建一个`.env.local`文件在项目根目录，并添加：
+
+```
+REACT_APP_API_BASE_URL=http://your-ragflow-api-url
+```
+
+将`your-ragflow-api-url`替换为您的RAGFlow API地址。
+
+### 启动开发服务器
+
+```bash
+npm start
+# 或者
+yarn start
+```
+
+应用将在http://localhost:3000上运行。
+
+### 构建生产版本
+
+```bash
+npm run build
+# 或者
+yarn build
+```
+
+构建的静态文件将位于`build`目录中。
+
+## 使用指南
+
+1. 第一次访问应用时，您需要输入API密钥进行认证
+2. 认证成功后，应用将加载可用的聊天助手列表
+3. 选择一个聊天助手开始对话
+4. 您可以创建新的会话或选择现有会话继续对话
+5. 发送消息和查看回复
+6. 查看引用面板了解回答的信息来源
+
+## 技术栈
+
+- React 19
+- TypeScript 4
+- Fetch API 用于网络请求
+- CSS3 用于样式
+
+## 项目结构
+
+```
+src/
+  api/          - API调用相关
+  components/   - UI组件
+  context/      - 状态管理
+  types/        - TypeScript类型定义
+  utils/        - 工具函数
+  App.tsx       - 主应用组件
+```
+
+## 注意事项
+
+- 请确保您拥有有效的RAGFlow API密钥
+- API密钥仅存储在浏览器的localStorage中，不会发送到除指定API外的任何地方
+
+## 未来计划
+
+- 添加黑暗模式支持
+- 增加导出聊天历史功能
+- 支持语音输入和文件上传
+- 改进移动端体验

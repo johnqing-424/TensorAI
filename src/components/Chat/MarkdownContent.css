@@ -1,0 +1,168 @@
+.ragflow-markdown-content-wrapper section.think {
+  padding-left: 10px;
+  color: #8b8b8b;
+  border-left: 2px solid #d5d3d3;
+  margin-bottom: 10px;
+  font-size: 12px;
+}
+
+.ragflow-markdown-content-wrapper blockquote {
+  padding-left: 10px;
+  border-left: 4px solid #ccc;
+}
+
+.ragflow-reference-popover-wrapper {
+  max-width: 50vw;
+}
+
+.ragflow-reference-chunk-image {
+  width: 10vw;
+  object-fit: contain;
+  cursor: pointer;
+}
+
+.ragflow-reference-inner-chunk-image {
+  display: block;
+  object-fit: contain;
+  max-width: 100%;
+  max-height: 6vh;
+  cursor: pointer;
+}
+
+.ragflow-reference-image-preview {
+  max-width: 45vw;
+  max-height: 45vh;
+}
+
+.ragflow-chunk-content-text {
+  max-height: 45vh;
+  overflow-y: auto;
+  line-height: 1.6;
+  color: #333;
+}
+
+.ragflow-document-link {
+  padding: 0;
+  color: #1890ff;
+  text-decoration: none;
+}
+
+.ragflow-document-link:hover {
+  color: #40a9ff;
+  text-decoration: underline;
+}
+
+.ragflow-reference-icon {
+  padding: 0 6px;
+  color: #1890ff;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.ragflow-reference-icon:hover {
+  color: #40a9ff;
+}
+
+.ragflow-cursor {
+  display: inline-block;
+  width: 1px;
+  height: 16px;
+  background-color: black;
+  animation: blink 0.6s infinite;
+  vertical-align: text-top;
+}
+
+@keyframes blink {
+  0% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+.ragflow-file-thumbnail {
+  display: inline-block;
+  max-width: 40px;
+  max-height: 40px;
+  object-fit: contain;
+}
+
+/* Popover样式优化 */
+.ant-popover {
+  z-index: 1050;
+}
+
+.ant-popover-content {
+  max-width: 50vw;
+}
+
+.ant-popover-inner {
+  padding: 12px;
+  border-radius: 6px;
+  box-shadow: 0 6px 16px 0 rgba(0, 0, 0, 0.08), 0 3px 6px -4px rgba(0, 0, 0, 0.12), 0 9px 28px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* 引用Popover特定样式 */
+.ragflow-reference-popover .ant-popover-content {
+  max-width: 50vw;
+}
+
+.ragflow-reference-popover .ant-popover-inner {
+  padding: 16px;
+}
+
+/* 图片Popover特定样式 */
+.ragflow-image-popover .ant-popover-content {
+  max-width: 60vw;
+  max-height: 60vh;
+}
+
+.ragflow-image-popover .ant-popover-inner {
+  padding: 8px;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .ragflow-reference-popover-wrapper {
+    max-width: 90vw;
+  }
+
+  .ragflow-reference-chunk-image {
+    width: 20vw;
+  }
+
+  .ragflow-reference-image-preview {
+    max-width: 85vw;
+    max-height: 40vh;
+  }
+
+  .ragflow-chunk-content-text {
+    max-height: 30vh;
+  }
+}
+
+/* 深色主题支持 */
+@media (prefers-color-scheme: dark) {
+  .ragflow-markdown-content-wrapper section.think {
+    color: #a0a0a0;
+    border-left-color: #4a4a4a;
+  }
+
+  .ragflow-markdown-content-wrapper blockquote {
+    border-left-color: #666;
+  }
+
+  .ragflow-chunk-content-text {
+    color: #e0e0e0;
+  }
+
+  .ragflow-cursor {
+    background-color: white;
+  }
+}
