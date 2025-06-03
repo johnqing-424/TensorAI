@@ -70,8 +70,10 @@ const replaceThinkToSection = (text: string) => {
     return text.replace(/<think>([\s\S]*?)<\/think>/g, '<section class="think">$1</section>');
 };
 
-const showImage = (docType: string) => {
-    return ['pdf', 'doc', 'docx', 'ppt', 'pptx'].includes(docType?.toLowerCase() || '');
+const showImage = (docType: any) => {
+    // 确保docType是字符串类型，如果不是则转换为空字符串
+    const docTypeStr = typeof docType === 'string' ? docType : '';
+    return ['pdf', 'doc', 'docx', 'ppt', 'pptx'].includes(docTypeStr.toLowerCase());
 };
 
 // To be compatible with the old index matching mode

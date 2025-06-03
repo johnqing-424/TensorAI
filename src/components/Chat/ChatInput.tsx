@@ -8,7 +8,10 @@ const ChatInput: React.FC = () => {
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (currentMessage.trim() && !isTyping) {
-            sendMessage(currentMessage);
+            // 保存当前消息，防止被清空
+            const messageToSend = currentMessage;
+            // 发送消息，确保会话创建
+            sendMessage(messageToSend);
         }
     };
 
@@ -63,4 +66,4 @@ const ChatInput: React.FC = () => {
     );
 };
 
-export default ChatInput; 
+export default ChatInput;

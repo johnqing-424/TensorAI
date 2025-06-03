@@ -23,6 +23,8 @@ interface ChatContextType {
     fetchChatSessions: (chatId: string) => Promise<void>;
     createChatSession: (chatId: string, name?: string) => Promise<void>;
     selectSession: (session: ChatSession) => void;
+    deleteSession: (sessionId: string) => Promise<void>;
+    renameSession: (sessionId: string, name: string) => Promise<void>;
 
     // 消息管理
     messages: ChatMessage[];
@@ -152,29 +154,39 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     // 设置API密钥
     const setApiKey = (key: string) => {
-        console.log('ChatContext: 设置API密钥...');
-        if (!key || key.trim() === '') {
-            console.error('ChatContext: 尝试设置空API密钥');
-            return;
-        }
-
         try {
-            apiClient.setApiKey(key);
-            console.log('ChatContext: API客户端密钥已更新');
+            console.log('ChatContext: 设置API密钥');
 
-            // 确保localStorage也更新了
-            localStorage.setItem('ragflow_api_key', key);
-            console.log('ChatContext: localStorage密钥已更新');
+            // 确保API密钥格式正确（添加Bearer前缀如果没有，但避免重复添加）
+            let formattedKey = key;
+            if (!formattedKey.startsWith('Bearer ')) {
+                formattedKey = `Bearer ${formattedKey}`;
+            }
+
+            // 检查是否有重复的Bearer前缀
+            if (formattedKey.startsWith('Bearer Bearer ')) {
+                formattedKey = formattedKey.replace('Bearer Bearer ', 'Bearer ');
+                console.log('ChatContext: 修复了重复的Bearer前缀');
+            }
+
+            // 设置API密钥到客户端
+            apiClient.setApiKey(formattedKey);
+
+            // 更新本地存储
+            localStorage.setItem('ragflow_api_key', formattedKey);
 
             // 更新状态
-            setApiKeyState(key);
-            console.log('ChatContext: 状态密钥已更新');
+            setApiKeyState(formattedKey);
+            setIsAuthenticated(true);
 
-            clearApiError();
-            console.log('ChatContext: API密钥设置完成，状态已更新为已认证');
+            console.log('ChatContext: API密钥设置成功');
         } catch (error) {
-            console.error('ChatContext: 设置API密钥时出错:', error);
-            setApiError(`设置API密钥失败: ${(error as Error).message}`);
+            console.error('ChatContext: 设置API密钥失败', error);
+            // 清除无效的密钥
+            apiClient.clearApiKey();
+            localStorage.removeItem('ragflow_api_key');
+            setApiKeyState('');
+            setIsAuthenticated(false);
         }
     };
 
@@ -442,14 +454,132 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setMessages(session.messages || []);
     };
 
+    // 删除会话
+    const deleteSession = async (sessionId: string) => {
+        if (!isAuthenticated || !sessionId) return;
+
+        clearApiError();
+        try {
+            const response = await apiClient.deleteSession(sessionId);
+            if (response.code === 0) {
+                // 从会话列表中移除被删除的会话
+                setChatSessions(prev => prev.filter(session => session.id !== sessionId));
+
+                // 如果删除的是当前会话，清空当前会话
+                if (currentSession?.id === sessionId) {
+                    setCurrentSession(null);
+                    setMessages([]);
+                }
+
+                console.log('会话删除成功');
+            } else {
+                console.error('删除会话失败:', response.message);
+                setApiError(`删除会话失败: ${response.message}`);
+            }
+        } catch (error) {
+            console.error('删除会话出错:', error);
+            setApiError(`删除会话出错: ${(error as Error).message}`);
+        }
+    };
+
+    // 重命名会话
+    const renameSession = async (sessionId: string, name: string) => {
+        if (!isAuthenticated || !sessionId || !name.trim()) return;
+
+        clearApiError();
+        try {
+            const response = await apiClient.renameSession(sessionId, name);
+            if (response.code === 0 && response.data) {
+                // 更新会话列表中的会话名称
+                setChatSessions(prev => prev.map(session =>
+                    session.id === sessionId ? { ...session, name } : session
+                ));
+
+                // 如果重命名的是当前会话，更新当前会话
+                if (currentSession?.id === sessionId) {
+                    setCurrentSession(prev => prev ? { ...prev, name } : null);
+                }
+
+                console.log('会话重命名成功');
+            } else {
+                console.error('重命名会话失败:', response.message);
+                setApiError(`重命名会话失败: ${response.message}`);
+            }
+        } catch (error) {
+            console.error('重命名会话出错:', error);
+            setApiError(`重命名会话出错: ${(error as Error).message}`);
+        }
+    };
+
     // 发送消息，带错误处理和用户反馈
     const sendMessage = async (message: string) => {
         if (!isAuthenticated || !selectedChatAssistant || !message.trim()) return;
 
+        // 保存用户消息，防止在异步操作过程中丢失
+        const originalMessage = message;
+
         const userMessage: ChatMessage = {
             role: 'user',
-            content: message,
+            content: originalMessage,
         };
+
+        // 使用本地变量跟踪会话，避免依赖React状态的即时更新
+        let activeSession = currentSession;
+
+        // 如果没有当前会话，先创建一个新会话
+        if (!activeSession) {
+            console.log("没有当前会话，先创建一个新会话再发送消息");
+            try {
+                // 直接创建会话并等待完成
+                const response = await apiClient.createChatSession(selectedChatAssistant.id, "新会话");
+                if (response.code === 0 && response.data) {
+                    const newSession = response.data;
+                    console.log("成功创建新会话:", newSession);
+                    // 更新本地变量和React状态
+                    activeSession = newSession;
+                    setCurrentSession(newSession);
+                    setChatSessions(prev => [newSession, ...prev]);
+                    // 设置消息列表
+                    setMessages(newSession.messages || []);
+                } else {
+                    console.error('创建会话失败:', response.message);
+                    setApiError(`创建会话失败: ${response.message}`);
+                    return; // 如果创建会话失败，不继续发送消息
+                }
+            } catch (error) {
+                console.error('创建会话出错:', error);
+                setApiError(`创建会话出错: ${(error as Error).message}`);
+                return; // 如果创建会话出错，不继续发送消息
+            }
+
+            // 如果创建会话后本地变量仍为空，尝试从会话列表获取
+            if (!activeSession && selectedChatAssistant) {
+                console.log("创建会话后仍然没有activeSession，尝试获取会话列表");
+                const sessionsResponse = await apiClient.listChatSessions(selectedChatAssistant.id);
+
+                // 如果API返回成功且有会话
+                if (sessionsResponse.code === 0 && Array.isArray(sessionsResponse.data) && sessionsResponse.data.length > 0) {
+                    console.log("从API获取到会话列表，选择第一个会话", sessionsResponse.data[0]);
+                    // 更新本地变量和React状态
+                    activeSession = sessionsResponse.data[0];
+                    setCurrentSession(activeSession);
+                    setChatSessions(sessionsResponse.data);
+                    // TypeScript可能无法推断此处activeSession一定存在，但根据逻辑它确实存在
+                    setMessages(activeSession!.messages || []);
+                } else {
+                    console.error('无法创建或获取会话');
+                    setApiError('无法创建或获取会话，请刷新页面重试');
+                    return; // 如果无法获取会话，不继续发送消息
+                }
+            }
+        }
+
+        // 最终检查确保有会话ID
+        if (!activeSession?.id) {
+            console.error('没有有效的会话ID，无法发送消息');
+            setApiError('没有有效的会话ID，请刷新页面重试');
+            return;
+        }
 
         // 添加用户消息到列表 - 使用函数式更新确保状态一致性
         setMessages(prev => [...prev, userMessage]);
@@ -457,16 +587,17 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setIsTyping(true);
         clearApiError();
 
+        // 此时activeSession一定存在且有id，因为我们已经进行了检查
         // 准备请求
         const request = {
             question: message,
-            session_id: currentSession?.id,
+            session_id: activeSession.id, // 使用本地变量而不是React状态
         };
 
         // 收集的响应内容
         let responseContent = '';
         let responseReference: Reference | null = null;
-        let sessionId = currentSession?.id || '';
+        let sessionId = activeSession.id; // 使用本地变量而不是React状态
 
         // 错误重试计数器
         let messageRetryCount = 0;
@@ -700,6 +831,8 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         fetchChatSessions,
         createChatSession,
         selectSession,
+        deleteSession,
+        renameSession,
         messages,
         currentMessage,
         setCurrentMessage,
@@ -714,4 +847,4 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
 
     return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;
-}; 
+};

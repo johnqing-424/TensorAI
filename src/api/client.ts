@@ -5,7 +5,7 @@ class ApiClient {
     private apiKey: string | null;
     private maxRetries: number = 2;
     private retryDelay: number = 2000;
-    private connectionTimeout: number = 10000;
+    private connectionTimeout: number = 30000; // 从20秒增加到30秒
     private requestQueue: Map<string, number> = new Map();
     private isNetworkOnline: boolean = navigator.onLine;
     private errorCount: Map<string, number> = new Map();
@@ -31,8 +31,20 @@ class ApiClient {
 
     // 设置API密钥
     setApiKey(apiKey: string) {
-        this.apiKey = apiKey;
-        localStorage.setItem('ragflow_api_key', apiKey);
+        // 确保API密钥格式正确（添加Bearer前缀如果没有，但避免重复添加）
+        let formattedKey = apiKey;
+        if (!formattedKey.startsWith('Bearer ')) {
+            formattedKey = `Bearer ${formattedKey}`;
+        }
+
+        // 检查是否有重复的Bearer前缀
+        if (formattedKey.startsWith('Bearer Bearer ')) {
+            formattedKey = formattedKey.replace('Bearer Bearer ', 'Bearer ');
+            console.log('ApiClient: 修复了重复的Bearer前缀');
+        }
+
+        this.apiKey = formattedKey;
+        localStorage.setItem('ragflow_api_key', formattedKey);
     }
 
     // 获取API密钥
@@ -101,7 +113,7 @@ class ApiClient {
 
         const url = `${this.baseUrl}${endpoint}`;
         const requestHeaders: HeadersInit = {
-            'Authorization': `Bearer ${this.apiKey}`,
+            ...(this.apiKey ? { 'Authorization': this.apiKey } : {}), // 条件添加Authorization头
             ...headers,
         };
 
@@ -115,7 +127,10 @@ class ApiClient {
         while (retries <= this.maxRetries) {
             try {
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), this.connectionTimeout);
+                const timeoutId = setTimeout(() => {
+                    console.log(`请求超时，正在中止请求: ${url}`);
+                    controller.abort();
+                }, this.connectionTimeout);
 
                 console.log(`发送请求: ${method} ${url}`);
                 const response = await fetch(url, {
@@ -161,10 +176,16 @@ class ApiClient {
                         lastError.message.includes('aborted') ||
                         lastError.message.includes('ERR_NAME_NOT_RESOLVED'));
 
-                // 如果是超时终止的请求，不再重试
+                // 如果是超时终止的请求，提供更详细的错误信息
                 if (lastError.name === 'AbortError') {
-                    console.log(`请求超时: ${url}`);
-                    break;
+                    console.log(`请求被中止: ${url}，可能是由于超时`);
+                    // 不立即中断，允许重试
+                    if (retries >= this.maxRetries) {
+                        return {
+                            code: 408,
+                            message: '请求超时，请检查网络连接和服务器状态'
+                        };
+                    }
                 }
 
                 // 检查网络状态
@@ -221,6 +242,24 @@ class ApiClient {
         return this.request(
             `/api/v1/chats/${chatId}/sessions?page=${page}&page_size=${pageSize}`,
             'GET'
+        );
+    }
+
+    // 重命名会话
+    async renameSession(sessionId: string, name: string) {
+        return this.request<ChatSession>(
+            `/v1/conversation/set`,
+            'POST',
+            { conversation_id: sessionId, name, is_new: false }
+        );
+    }
+
+    // 删除会话
+    async deleteSession(sessionId: string) {
+        return this.request<boolean>(
+            `/v1/conversation/rm`,
+            'POST',
+            { conversation_ids: [sessionId] }
         );
     }
 
@@ -285,7 +324,7 @@ class ApiClient {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${this.apiKey}`,
+                        ...(this.apiKey ? { 'Authorization': this.apiKey } : {}), // 条件添加Authorization头
                         // 添加Keep-Alive标头以维持连接
                         'Connection': 'keep-alive',
                         'Keep-Alive': 'timeout=60, max=1000',
@@ -471,7 +510,10 @@ class ApiClient {
 
         try {
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 8000); // 8秒超时
+            const timeoutId = setTimeout(() => {
+                console.log('连接测试超时，正在中止请求');
+                controller.abort();
+            }, 25000); // 从15秒增加到25秒
 
             // 尝试发送一个简单请求到健康检查端点
             let response;
@@ -508,7 +550,12 @@ class ApiClient {
                 return false;
             }
         } catch (error) {
-            console.error('API连接测试出错:', error);
+            const err = error as Error;
+            if (err.name === 'AbortError') {
+                console.error('API连接测试超时');
+            } else {
+                console.error('API连接测试出错:', error);
+            }
             this.lastConnectionResult = false;
             return false;
         }
@@ -516,4 +563,4 @@ class ApiClient {
 }
 
 // 导出单例实例
-export const apiClient = new ApiClient(); 
+export const apiClient = new ApiClient();
