@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useLayoutEffect, ReactNode, useRef } from 'react';
-import { apiClient } from '../api/client';
+import { apiClient } from '../services';
 import { ChatAssistant, ChatMessage, ChatSession, Reference } from '../types';
 
 interface ChatContextType {

@@ -1,18 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ChatProvider } from './context/ChatContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import ApiKeyForm from './components/Auth/ApiKeyForm';
 import ChatLayout from './components/Layout/ChatLayout';
 import './App.css';
-import { apiClient } from './api/client';
+import { apiClient } from './services';
 
-// 清除所有存储的数据，强制重新登录
+// 清除所有存储的数据，重新登录
 const clearAllData = () => {
-  console.log('强制清除所有本地存储数据');
+  console.log('清除所有本地存储数据');
   localStorage.removeItem('ragflow_api_key');
   localStorage.removeItem('ragflow_appid');
   apiClient.clearApiKey();
-  // 刷新页面，强制重新加载应用
+  // 刷新页面，重新加载应用
   window.location.reload();
 };
 
@@ -25,6 +25,8 @@ const AppContent = React.memo(() => {
   const [debug, setDebug] = useState<string[]>([]);
   const [hasNavigated, setHasNavigated] = useState(false);
   const [isLoading, setIsLoading] = useState(true); // 添加加载状态
+  const [showMenu, setShowMenu] = useState(false); // 控制菜单显示
+  const menuRef = useRef<HTMLDivElement>(null); // 菜单引用
 
   const addDebug = (message: string) => {
     console.log(`[App] ${message}`);
@@ -98,6 +100,31 @@ const AppContent = React.memo(() => {
     addDebug(`认证状态: ${token ? '已认证' : '未认证'}`);
   }, [token]);
 
+  // 添加点击外部关闭菜单的处理函数
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setShowMenu(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  // 导航到设置页面
+  const goToSettings = () => {
+    navigate('/profile-setting');
+    setShowMenu(false);
+  };
+
+  // 切换菜单显示状态
+  const toggleMenu = () => {
+    setShowMenu(prev => !prev);
+  };
+
   // 如果正在加载，显示空白内容
   if (isLoading) {
     return <div className="app-loading"></div>;
@@ -108,16 +135,35 @@ const AppContent = React.memo(() => {
       <div className="app-container">
         {token ? <ChatLayout /> : <ApiKeyForm />}
 
-        {/* 强制注销按钮 */}
-        <div className="force-logout-container">
-          <button
-            className="force-logout-button"
-            onClick={clearAllData}
-            title="强制注销并清除所有数据"
-          >
-            强制注销
-          </button>
-        </div>
+        {/* 用户头像和下拉菜单 */}
+        {token && (
+          <div className="user-avatar-container" ref={menuRef}>
+            <button
+              className="user-avatar-button"
+              onClick={toggleMenu}
+              title="用户菜单"
+            >
+              <div className="user-avatar">
+                {/* 这里可以放用户头像，暂时使用文字 */}
+                <span>用户</span>
+              </div>
+            </button>
+
+            {showMenu && (
+              <div className="user-menu">
+                <div className="user-menu-item" onClick={goToSettings}>
+                  <span className="menu-icon">⚙️</span>
+                  <span>设置</span>
+                </div>
+                <div className="user-menu-item" onClick={clearAllData}>
+                  <span className="menu-icon">🚪</span>
+                  <span>退出登录</span>
+                </div>
+                {/* 后期可以在这里添加更多菜单项 */}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </ChatProvider>
   );
