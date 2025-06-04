@@ -2,7 +2,8 @@ import { ApiResponse, ChatCompletion, ChatCompletionRequest, ChatSession, Stream
 
 class ApiClient {
     private baseUrl: string;
-    private apiKey: string | null;
+    private token: string | null;
+    private appid: string | null = 'process'; // 默认应用ID
     private maxRetries: number = 2;
     private retryDelay: number = 2000;
     private connectionTimeout: number = 30000; // 从20秒增加到30秒
@@ -14,9 +15,23 @@ class ApiClient {
     private connectionTestInterval: number = 10000; // 10秒内不重复测试连接
 
     constructor() {
-        // 从环境变量获取API地址，如果没有则使用默认地址
-        this.baseUrl = process.env.REACT_APP_API_BASE_URL || 'http://192.168.1.131';
-        this.apiKey = localStorage.getItem('ragflow_api_key');
+        // 首先从localStorage读取API地址，然后是环境变量，最后是默认值
+        const storedApiUrl = localStorage.getItem('ragflow_api_url');
+        // 在开发模式下使用相对路径，以便与代理配置一起工作
+        const isLocalDev = process.env.NODE_ENV === 'development';
+
+        if (isLocalDev) {
+            // 开发环境下使用本地代理绕过CORS
+            this.baseUrl = 'http://localhost:3001/proxy';
+            console.log(`API客户端初始化（开发模式），使用代理URL: ${this.baseUrl}`);
+        } else {
+            // 生产环境使用完整URL
+            this.baseUrl = storedApiUrl || process.env.REACT_APP_API_BASE_URL || 'http://192.168.1.131:8080';
+            console.log(`API客户端初始化，基础URL: ${this.baseUrl}`);
+        }
+
+        this.token = localStorage.getItem('ragflow_api_key');
+        this.appid = localStorage.getItem('ragflow_appid') || 'process';
 
         // 监听网络状态变化
         window.addEventListener('online', this.handleNetworkChange);
@@ -29,32 +44,34 @@ class ApiClient {
         console.log(`网络状态变化: ${this.isNetworkOnline ? '在线' : '离线'}`);
     };
 
-    // 设置API密钥
+    // 设置API Token
     setApiKey(apiKey: string) {
-        // 确保API密钥格式正确（添加Bearer前缀如果没有，但避免重复添加）
-        let formattedKey = apiKey;
-        if (!formattedKey.startsWith('Bearer ')) {
-            formattedKey = `Bearer ${formattedKey}`;
+        if (apiKey) {
+            console.log('设置API密钥');
+            this.token = apiKey;
+            localStorage.setItem('ragflow_api_key', apiKey);
         }
-
-        // 检查是否有重复的Bearer前缀
-        if (formattedKey.startsWith('Bearer Bearer ')) {
-            formattedKey = formattedKey.replace('Bearer Bearer ', 'Bearer ');
-            console.log('ApiClient: 修复了重复的Bearer前缀');
-        }
-
-        this.apiKey = formattedKey;
-        localStorage.setItem('ragflow_api_key', formattedKey);
     }
 
-    // 获取API密钥
+    // 设置应用ID
+    setAppId(appid: string) {
+        this.appid = appid;
+        localStorage.setItem('ragflow_appid', appid);
+    }
+
+    // 获取API Token
     getApiKey(): string | null {
-        return this.apiKey;
+        return this.token;
     }
 
-    // 清除API密钥
+    // 获取应用ID
+    getAppId(): string | null {
+        return this.appid;
+    }
+
+    // 清除API Token
     clearApiKey() {
-        this.apiKey = null;
+        this.token = null;
         localStorage.removeItem('ragflow_api_key');
     }
 
@@ -99,7 +116,7 @@ class ApiClient {
         body?: any,
         headers: Record<string, string> = {}
     ): Promise<ApiResponse<T>> {
-        if (!this.apiKey || this.apiKey.trim() === '') {
+        if (!this.token || this.token.trim() === '') {
             console.error('未提供API密钥或API密钥为空');
             return { code: 401, message: '未提供API密钥' };
         }
@@ -113,7 +130,11 @@ class ApiClient {
 
         const url = `${this.baseUrl}${endpoint}`;
         const requestHeaders: HeadersInit = {
-            ...(this.apiKey ? { 'Authorization': this.apiKey } : {}), // 条件添加Authorization头
+            'token': this.token, // 使用token头
+            'appid': this.appid || 'process', // 添加appid头
+            // 添加CORS相关请求头
+            'Origin': window.location.origin,
+            'Access-Control-Request-Method': method,
             ...headers,
         };
 
@@ -138,6 +159,9 @@ class ApiClient {
                     headers: requestHeaders,
                     body: body ? JSON.stringify(body) : undefined,
                     signal: controller.signal,
+                    // 添加CORS设置
+                    mode: 'cors',
+                    credentials: 'same-origin',
                     // 添加缓存控制
                     cache: 'no-store'
                 });
@@ -213,77 +237,195 @@ class ApiClient {
         };
     }
 
-    // 获取聊天助手列表
-    async listChatAssistants(page: number = 1, pageSize: number = 30) {
+    // 用户登录
+    async login(mobile: string, code: string, useDirect = false) {
         try {
-            const response = await this.request('/api/v1/chats', 'GET');
-            return response;
+            console.log(`尝试登录，手机号: ${mobile.substring(0, 3)}****${mobile.substring(mobile.length - 4)}`);
+
+            // 尝试多个API服务器地址
+            const apiServers = [
+                'http://192.168.1.131:8080',  // 原始服务器
+                'http://localhost:8080',      // 本地8080端口
+                'http://127.0.0.1:8080',      // 另一个本地地址
+                'http://192.168.1.131:9380',  // Python API服务器
+                'http://localhost:9380',      // 本地Python API服务器
+                'http://127.0.0.1:9380'       // 另一个本地Python API地址
+            ];
+
+            let url;
+            let successServer = null;
+
+            // 如果是开发环境并且不是直接模式，使用相对路径
+            if (process.env.NODE_ENV === 'development' && !useDirect) {
+                // 使用完整的API地址，而不是相对路径
+                url = `${this.baseUrl}/login`;
+                console.log(`使用API地址进行登录请求: ${url}`);
+            } else {
+                // 对于直接模式或生产环境，轮询所有服务器直到成功
+                for (const server of apiServers) {
+                    url = `${server}/api/login`;
+                    console.log(`尝试连接API服务器: ${url}`);
+
+                    try {
+                        // 先测试服务器连通性
+                        const testResponse = await fetch(`${server}/api/login`, {
+                            method: 'HEAD',
+                            mode: 'cors',
+                            cache: 'no-store'
+                        });
+
+                        if (testResponse.status !== 404) {
+                            successServer = server;
+                            console.log(`找到可用的API服务器: ${server}`);
+                            break;
+                        }
+                    } catch (error: any) {
+                        console.log(`服务器 ${server} 连接失败: ${error.message}`);
+                    }
+                }
+
+                if (!successServer) {
+                    console.error('所有API服务器连接失败');
+                    return {
+                        code: 503,
+                        message: '无法连接到API服务器，请检查网络连接或服务器状态'
+                    };
+                }
+
+                url = `${successServer}/api/login`;
+            }
+
+            console.log(`发送登录请求: POST ${url}`);
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'appid': this.appid || 'process',
+                    // 添加CORS相关请求头
+                    'Origin': window.location.origin,
+                    'Access-Control-Request-Method': 'POST',
+                },
+                body: JSON.stringify({ mobile, code }),
+                // 重要：允许跨域请求携带凭证
+                mode: 'cors',
+                credentials: 'same-origin',
+                cache: 'no-store'
+            });
+
+            let responseData;
+            try {
+                const responseText = await response.text();
+                console.log('登录响应文本:', responseText);
+                try {
+                    responseData = JSON.parse(responseText);
+                    console.log('登录响应JSON:', responseData);
+                } catch (e) {
+                    console.error('解析响应JSON失败:', responseText);
+                    return {
+                        code: 500,
+                        message: `解析响应失败: ${responseText}`
+                    };
+                }
+            } catch (e) {
+                console.error('读取响应失败:', e);
+                return {
+                    code: 500,
+                    message: '读取响应失败'
+                };
+            }
+
+            if (!response.ok) {
+                return {
+                    code: response.status,
+                    message: responseData?.message || `请求失败：${response.statusText}`
+                };
+            }
+
+            // 检查响应结构
+            if (responseData.code === 0 && responseData.data) {
+                // 如果找到可用服务器，将其保存为默认服务器
+                if (successServer) {
+                    this.setBaseUrl(successServer);
+                }
+
+                // 直接使用API返回的token，不添加Bearer前缀
+                this.setApiKey(responseData.data);
+                return responseData;
+            }
+
+            return responseData;
         } catch (error) {
-            console.error('API客户端: 获取聊天助手列表出错', error);
+            console.error('API客户端: 登录失败', error);
             return {
                 code: 500,
-                message: `获取聊天助手列表出错: ${(error as Error).message || '未知错误'}`,
+                message: `登录失败: ${(error as Error).message || '未知错误'}`
+            };
+        }
+    }
+
+    // 获取会话列表
+    async listChatSessions() {
+        try {
+            const response = await this.request('/sessions', 'GET');
+            return response;
+        } catch (error) {
+            console.error('API客户端: 获取会话列表失败', error);
+            return {
+                code: 500,
+                message: `获取会话列表失败: ${(error as Error).message || '未知错误'}`,
                 data: []
             };
         }
     }
 
     // 创建聊天会话
-    async createChatSession(chatId: string, name: string = '新会话') {
+    async createChatSession(name: string = '新会话') {
+        // 根据API文档，请求体应该只包含name字段
         return this.request<ChatSession>(
-            `/api/v1/chats/${chatId}/sessions`,
+            '/sessions',
             'POST',
             { name }
         );
     }
 
-    // 获取聊天会话列表
-    async listChatSessions(chatId: string, page: number = 1, pageSize: number = 30) {
-        return this.request(
-            `/api/v1/chats/${chatId}/sessions?page=${page}&page_size=${pageSize}`,
-            'GET'
-        );
-    }
-
-    // 重命名会话
-    async renameSession(sessionId: string, name: string) {
-        return this.request<ChatSession>(
-            `/v1/conversation/set`,
-            'POST',
-            { conversation_id: sessionId, name, is_new: false }
-        );
-    }
-
     // 删除会话
-    async deleteSession(sessionId: string) {
+    async deleteSession(sessionIds: string[]) {
         return this.request<boolean>(
-            `/v1/conversation/rm`,
-            'POST',
-            { conversation_ids: [sessionId] }
+            '/sessions',
+            'DELETE',
+            { ids: sessionIds }
+        );
+    }
+
+    // 获取消息记录
+    async getMessages(sessionId: string) {
+        return this.request(
+            `/messages?sessionId=${sessionId}`,
+            'GET'
         );
     }
 
     // 发送聊天消息（非流式）
     async sendChatMessage(
-        chatId: string,
-        request: ChatCompletionRequest
+        sessionId: string,
+        message: string
     ): Promise<ApiResponse<ChatCompletion>> {
         return this.request<ChatCompletion>(
-            `/api/v1/chats/${chatId}/completions`,
+            '/messages',
             'POST',
-            { ...request, stream: false }
+            { sessionId, message }
         );
     }
 
     // 发送聊天消息（流式）
     async streamChatMessage(
-        chatId: string,
-        request: ChatCompletionRequest,
+        sessionId: string,
+        message: string,
         onChunkReceived: (chunk: ApiResponse<StreamChatResponse>) => void,
         onComplete: () => void,
         onError: (error: Error) => void
     ): Promise<void> {
-        if (!this.apiKey) {
+        if (!this.token) {
             onError(new Error('未提供API密钥'));
             return;
         }
@@ -295,12 +437,12 @@ class ApiClient {
 
         // 进行请求节流
         try {
-            await this.throttleRequest(`/api/v1/chats/${chatId}/completions`);
+            await this.throttleRequest('/messages/stream');
         } catch (e) {
             console.error('请求节流出错:', e);
         }
 
-        const url = `${this.baseUrl}/api/v1/chats/${chatId}/completions`;
+        const url = `${this.baseUrl}/messages/stream`;
         let retries = 0;
 
         const attemptStreamRequest = async () => {
@@ -324,13 +466,20 @@ class ApiClient {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        ...(this.apiKey ? { 'Authorization': this.apiKey } : {}), // 条件添加Authorization头
+                        'token': this.token || '',
+                        'appid': this.appid || 'process',
+                        'Accept': 'text/event-stream',
                         // 添加Keep-Alive标头以维持连接
                         'Connection': 'keep-alive',
                         'Keep-Alive': 'timeout=60, max=1000',
+                        // 添加CORS相关请求头
+                        'Origin': window.location.origin,
+                        'Access-Control-Request-Method': 'POST',
                     },
-                    body: JSON.stringify({ ...request, stream: true }),
+                    body: JSON.stringify({ sessionId, message }),
                     signal: controller.signal,
+                    mode: 'cors',
+                    credentials: 'include',
                     cache: 'no-store'
                 });
 
@@ -348,12 +497,6 @@ class ApiClient {
                         errorMessage = errorData.message || `请求失败：${response.statusText}`;
                     } catch (e) {
                         errorMessage = `请求失败：${response.statusText || response.status}`;
-                    }
-
-                    // 检查特定的错误类型
-                    if (errorMessage.includes('list index out of range')) {
-                        errorMessage = '后端索引越界错误：消息或引用数组不匹配';
-                        console.log('检测到后端索引越界错误，这通常在没有现有会话时发生');
                     }
 
                     throw new Error(errorMessage);
@@ -406,21 +549,10 @@ class ApiClient {
                                 const jsonStr = line.slice(5).trim();
                                 const chunk = JSON.parse(jsonStr);
 
-                                // 检查错误响应
-                                if (chunk.code !== 0) {
-                                    // 如果是索引错误，特殊处理
-                                    if (chunk.message && chunk.message.includes('list index out of range')) {
-                                        console.error('流式响应中的索引越界错误');
-                                        throw new Error('后端索引越界错误：消息或引用数组不匹配');
-                                    } else {
-                                        console.error('流式响应错误:', chunk.message);
-                                    }
-                                }
-
                                 onChunkReceived(chunk);
 
-                                // 判断是否是最后一个块
-                                if (chunk.data === true) {
+                                // 判断是否是完成事件
+                                if (line.includes('event:complete')) {
                                     if (readTimeoutId) clearTimeout(readTimeoutId);
                                     onComplete();
                                     return;
@@ -428,6 +560,11 @@ class ApiClient {
                             } catch (e) {
                                 console.error('解析数据块错误:', e);
                             }
+                        } else if (line.startsWith('event:complete')) {
+                            // 处理完成事件
+                            if (readTimeoutId) clearTimeout(readTimeoutId);
+                            onComplete();
+                            return;
                         }
                     }
                 }
@@ -440,13 +577,10 @@ class ApiClient {
                 }
 
                 const err = error as Error;
-
-                // 详细记录错误类型和信息
                 console.error(`流式请求错误 (${err.name}): ${err.message}`);
 
                 // 检查是否是AbortError
                 if (err.name === 'AbortError') {
-                    // 这可能是由于超时或者用户取消导致的
                     console.warn('流式请求被中止 (可能是超时或用户取消)');
                 }
 
@@ -459,12 +593,6 @@ class ApiClient {
                 // 检查网络状态
                 if (!this.checkNetworkStatus()) {
                     onError(new Error('网络连接中断'));
-                    return;
-                }
-
-                // 特殊处理索引越界错误
-                if (err.message && err.message.includes('list index out of range')) {
-                    onError(new Error('后端索引越界错误：消息或引用数组不匹配'));
                     return;
                 }
 
@@ -505,7 +633,7 @@ class ApiClient {
             return this.lastConnectionResult;
         }
 
-        console.log('测试API连接...');
+        console.log(`测试API连接... URL: ${this.baseUrl}/api/sessions`);
         this.lastConnectionTest = now;
 
         try {
@@ -513,39 +641,43 @@ class ApiClient {
             const timeoutId = setTimeout(() => {
                 console.log('连接测试超时，正在中止请求');
                 controller.abort();
-            }, 25000); // 从15秒增加到25秒
+            }, 25000); // 25秒超时
 
-            // 尝试发送一个简单请求到健康检查端点
-            let response;
-            try {
-                // 优先尝试健康检查端点
-                response = await fetch(`${this.baseUrl}/api/v1/health`, {
-                    method: 'HEAD',
-                    signal: controller.signal,
-                    headers: {
-                        'Cache-Control': 'no-cache',
-                    }
-                });
-            } catch (error) {
-                console.log('健康检查端点不可访问，尝试根端点...');
-                // 如果健康检查端点不存在，尝试访问根地址
-                response = await fetch(`${this.baseUrl}/api/v1`, {
-                    method: 'HEAD',
-                    signal: controller.signal,
-                    headers: {
-                        'Cache-Control': 'no-cache',
-                    }
-                });
+            // 准备请求头
+            const headers: HeadersInit = {
+                'Content-Type': 'application/json',
+                'Cache-Control': 'no-cache',
+            };
+
+            // 只有当token存在时才添加到请求头
+            if (this.token) {
+                headers['token'] = this.token;
             }
+
+            // 只有当appid存在时才添加到请求头
+            if (this.appid) {
+                headers['appid'] = this.appid;
+            }
+
+            // 尝试发送一个POST请求到API端点，不用HEAD方法
+            console.log('正在尝试连接到API服务器...');
+            const response = await fetch(`${this.baseUrl}/login`, {
+                method: 'POST',
+                signal: controller.signal,
+                headers,
+                mode: 'cors',
+                body: JSON.stringify({ mobile: '10000000000', code: '123456' }),
+                credentials: 'same-origin'
+            });
 
             clearTimeout(timeoutId);
 
-            if (response.ok) {
+            if (response.status !== 404) {
                 console.log('API连接测试成功');
                 this.lastConnectionResult = true;
                 return true;
             } else {
-                console.error(`API连接测试失败: HTTP ${response.status}`);
+                console.error(`API连接测试失败: HTTP ${response.status} (${response.statusText})`);
                 this.lastConnectionResult = false;
                 return false;
             }
@@ -553,10 +685,104 @@ class ApiClient {
             const err = error as Error;
             if (err.name === 'AbortError') {
                 console.error('API连接测试超时');
+            } else if (err.name === 'TypeError' && err.message.includes('Failed to fetch')) {
+                console.error(`API连接失败: 无法连接到 ${this.baseUrl} (服务器可能未运行或URL不正确)`);
             } else {
                 console.error('API连接测试出错:', error);
             }
             this.lastConnectionResult = false;
+            return false;
+        }
+    }
+
+    // 设置API地址
+    setBaseUrl(url: string) {
+        if (url && url.trim() !== '') {
+            this.baseUrl = url;
+            localStorage.setItem('ragflow_api_url', url);
+            console.log(`API基础URL已更新: ${url}`);
+            return true;
+        }
+        return false;
+    }
+
+    // 发送短信验证码
+    async sendVerificationCode(mobile: string) {
+        try {
+            console.log(`尝试发送验证码到: ${mobile.substring(0, 3)}****${mobile.substring(mobile.length - 4)}`);
+
+            // 创建特殊请求，不需要token验证
+            // 根据登录API测试，应该使用/api前缀
+            const apiUrl = this.baseUrl; // 使用当前配置的API地址
+            const url = `${apiUrl}/api/sendCode`;
+
+            const headers = {
+                'Content-Type': 'application/json',
+                'appid': this.appid || 'process',
+                // 添加CORS相关请求头
+                'Origin': window.location.origin,
+                'Access-Control-Request-Method': 'POST',
+            };
+
+            console.log('发送验证码请求:', url);
+            const response = await fetch(url, {
+                method: 'POST',
+                headers,
+                body: JSON.stringify({ mobile }),
+                // 重要：允许跨域请求携带凭证
+                mode: 'cors',
+                credentials: 'include',
+                cache: 'no-store'
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                let errorData;
+                try {
+                    errorData = JSON.parse(errorText);
+                } catch (e) {
+                    errorData = { message: errorText || response.statusText };
+                }
+
+                return {
+                    code: response.status,
+                    message: errorData.message || `请求失败：${response.statusText}`,
+                };
+            }
+
+            const data = await response.json();
+            console.log('验证码发送响应:', data);
+            return data;
+        } catch (error) {
+            console.error('API客户端: 发送验证码失败', error);
+            return {
+                code: 500,
+                message: `发送验证码失败: ${(error as Error).message || '未知错误'}`
+            };
+        }
+    }
+
+    // 直接测试API连接
+    async testDirectApi() {
+        try {
+            console.log('尝试直接测试API连接...');
+
+            // 使用完整的URL测试，绕过可能的代理问题
+            const directUrl = 'http://192.168.1.131:8080/api/sessions';
+            console.log(`测试URL: ${directUrl}`);
+
+            const response = await fetch(directUrl, {
+                method: 'HEAD',
+                headers: {
+                    'Cache-Control': 'no-cache',
+                    'appid': this.appid || 'process'
+                }
+            });
+
+            console.log(`直接API测试响应: ${response.status} ${response.statusText}`);
+            return response.ok;
+        } catch (error) {
+            console.error('直接API测试失败:', error);
             return false;
         }
     }

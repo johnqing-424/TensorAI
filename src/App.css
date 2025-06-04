@@ -1328,27 +1328,6 @@ body {
   }
 }
 
-/* 初始渲染前隐藏整个页面 */
-html {
-  visibility: hidden;
-}
-
-/* 初始加载容器 */
-.initial-loading {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background-color: #f5f7fa;
-  z-index: 10000;
-  visibility: visible !important;
-}
-
 /* 助手的知识库样式 */
 .assistant-datasets {
   font-size: 0.8rem;
@@ -1406,4 +1385,14 @@ html {
 .debug-button:hover {
   opacity: 1;
   background-color: #212121;
+}
+
+/* 应用初始加载状态 */
+.app-loading {
+  width: 100vw;
+  height: 100vh;
+  background-color: #f5f7fa;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }

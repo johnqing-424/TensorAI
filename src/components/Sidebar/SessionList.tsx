@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useChatContext } from '../../context/ChatContext';
 import { ChatSession } from '../../types';
+import { functionIcons } from '../Layout/NavigationBar';
 
 const SessionList: React.FC = () => {
     const {
@@ -48,25 +49,36 @@ const SessionList: React.FC = () => {
         }
     }, [isRenaming]);
 
-    // 格式化日期
-    const formatDate = (dateStr: string): string => {
-        try {
-            const date = new Date(dateStr);
-            return date.toLocaleDateString('zh-CN', {
-                month: 'short',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-        } catch (error) {
-            return dateStr;
+    // 获取会话对应的功能ID
+    const getSessionFunctionId = (session: ChatSession): string => {
+        // 根据会话名称判断所属功能
+        const name = session.name || '';
+        if (name.includes('流程') || name.includes('制度') || name.includes('AI 搜索')) {
+            return 'process';
+        } else if (name.includes('产品') || name.includes('技术') || name.includes('帮我写作')) {
+            return 'product';
+        } else if (name.includes('大模型') || name.includes('AI 调理')) {
+            return 'model';
+        } else if (name.includes('更多')) {
+            return 'more';
         }
+        return 'default'; // 默认无功能
     };
 
-    // 创建一个新会话
-    const handleCreateSession = () => {
-        if (selectedChatAssistant) {
-            createChatSession(selectedChatAssistant.id, '新对话');
+    // 格式化日期
+    const formatDate = (dateStr: string) => {
+        const date = new Date(dateStr);
+        const now = new Date();
+        const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+
+        if (diffDays === 0) {
+            return '今天';
+        } else if (diffDays === 1) {
+            return '昨天';
+        } else if (diffDays < 7) {
+            return `${diffDays}天前`;
+        } else {
+            return `${date.getMonth() + 1}月${date.getDate()}日`;
         }
     };
 
@@ -125,95 +137,47 @@ const SessionList: React.FC = () => {
 
     return (
         <div className="session-list-container">
-            <div className="session-list-header">
-                <h3>对话历史</h3>
-                <button
-                    className="new-session-button"
-                    onClick={handleCreateSession}
-                    title="新建会话"
-                >
-                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round">
-                        <line x1="12" y1="5" x2="12" y2="19"></line>
-                        <line x1="5" y1="12" x2="19" y2="12"></line>
-                    </svg>
-                </button>
-            </div>
-
             <div className="session-list">
                 {loadingSessions ? (
                     <div className="loading-indicator">加载中...</div>
                 ) : chatSessions.length === 0 ? (
                     <div className="empty-sessions">
-                        <p>没有历史会话</p>
-                        <button onClick={handleCreateSession}>开始新对话</button>
+                        <div className="empty-text">暂无历史对话</div>
                     </div>
                 ) : (
-                    chatSessions.map((session) => (
-                        <div
-                            key={session.id}
-                            className={`session-item ${currentSession?.id === session.id ? 'active' : ''}`}
-                            onClick={() => handleSelectSession(session)}
-                        >
-                            {isRenaming && activeSessionId === session.id ? (
-                                <form onSubmit={handleRenameSubmit} className="rename-form">
-                                    <input
-                                        ref={renameInputRef}
-                                        type="text"
-                                        value={newSessionName}
-                                        onChange={(e) => setNewSessionName(e.target.value)}
-                                        onBlur={handleRenameCancel}
-                                        className="rename-input"
-                                        onClick={(e) => e.stopPropagation()}
-                                    />
-                                    <button type="submit" className="rename-submit" onClick={(e) => e.stopPropagation()}>
-                                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round">
-                                            <polyline points="20 6 9 17 4 12"></polyline>
+                    <div className="session-groups">
+                        {chatSessions.map((session) => {
+                            const functionId = getSessionFunctionId(session);
+                            return (
+                                <div
+                                    key={session.id}
+                                    className={`session-item ${currentSession?.id === session.id ? 'active' : ''}`}
+                                    onClick={() => handleSelectSession(session)}
+                                >
+                                    <div className="session-icon" style={{
+                                        color: functionId !== 'default' ?
+                                            functionIcons[functionId as keyof typeof functionIcons]?.color :
+                                            '#8E8EA0'
+                                    }}>
+                                        {functionId !== 'default' ?
+                                            functionIcons[functionId as keyof typeof functionIcons]?.icon :
+                                            '💬'}
+                                    </div>
+                                    <div className="session-name">{session.name || '新对话'}</div>
+                                    <button
+                                        className="delete-btn"
+                                        onClick={(e) => handleDeleteSession(session.id)}
+                                        title="删除对话"
+                                    >
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"
+                                                stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                                         </svg>
                                     </button>
-                                </form>
-                            ) : (
-                                <div className="session-item-content">
-                                    <div className="session-name">
-                                        {session.name || '未命名会话'}
-                                    </div>
-                                    <div className="session-date">
-                                        {formatDate(session.update_date)}
-                                    </div>
-                                    <div className="session-actions">
-                                        <button
-                                            className="session-action-button"
-                                            onClick={(e) => handleToggleDropdown(e, session.id)}
-                                            title="会话操作"
-                                        >
-                                            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round">
-                                                <circle cx="12" cy="12" r="1"></circle>
-                                                <circle cx="12" cy="5" r="1"></circle>
-                                                <circle cx="12" cy="19" r="1"></circle>
-                                            </svg>
-                                        </button>
-                                        {dropdownMenuId === session.id && (
-                                            <div className="dropdown-menu" ref={dropdownMenuRef}>
-                                                <div className="dropdown-item" onClick={() => handleStartRename(session.id)}>
-                                                    <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round">
-                                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                                                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                                                    </svg>
-                                                    重命名
-                                                </div>
-                                                <div className="dropdown-item delete" onClick={() => handleDeleteSession(session.id)}>
-                                                    <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round">
-                                                        <polyline points="3 6 5 6 21 6"></polyline>
-                                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                                                    </svg>
-                                                    删除
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
                                 </div>
-                            )}
-                        </div>
-                    ))
+                            );
+                        })}
+                    </div>
                 )}
             </div>
 
@@ -243,20 +207,72 @@ const SessionList: React.FC = () => {
                     position: relative;
                 }
                 
-                .session-action-button {
-                    background: none;
-                    border: none;
+                .session-item {
+                    display: flex;
+                    align-items: center;
+                    padding: 8px 16px;
+                    margin-bottom: 6px;
+                    border-radius: 8px;
                     cursor: pointer;
-                    padding: 4px;
+                    transition: background-color 0.2s;
+                    position: relative;
+                }
+                
+                .session-item:hover {
+                    background-color: rgba(0, 0, 0, 0.05);
+                }
+                
+                .session-item.active {
+                    background-color: rgba(51, 112, 255, 0.1);
+                }
+                
+                .session-icon {
+                    width: 28px;
+                    height: 28px;
+                    border-radius: 6px;
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    opacity: 0.6;
-                    transition: opacity 0.2s;
+                    margin-right: 10px;
+                    font-size: 16px;
+                    flex-shrink: 0;
                 }
                 
-                .session-action-button:hover {
-                    opacity: 1;
+                .loading-indicator {
+                    text-align: center;
+                    padding: 20px;
+                    color: #888;
+                }
+                
+                .empty-sessions {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    height: 200px;
+                    padding: 20px;
+                    text-align: center;
+                }
+                
+                .empty-icon {
+                    font-size: 32px;
+                    margin-bottom: 12px;
+                }
+                
+                .empty-text {
+                    color: #888;
+                    font-size: 14px;
+                    margin-bottom: 16px;
+                }
+                
+                .start-chat-btn {
+                    background-color: #3370ff;
+                    color: white;
+                    border: none;
+                    border-radius: 6px;
+                    padding: 8px 16px;
+                    font-size: 14px;
+                    cursor: pointer;
                 }
                 
                 .dropdown-menu {
@@ -264,19 +280,20 @@ const SessionList: React.FC = () => {
                     right: 0;
                     top: 100%;
                     background: white;
-                    border-radius: 4px;
-                    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+                    border-radius: 6px;
+                    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
                     z-index: 1000;
                     min-width: 120px;
                     overflow: hidden;
                 }
                 
                 .dropdown-item {
-                    padding: 8px 12px;
+                    padding: 8px 16px;
+                    font-size: 14px;
+                    color: #333;
+                    cursor: pointer;
                     display: flex;
                     align-items: center;
-                    cursor: pointer;
-                    transition: background-color 0.2s;
                 }
                 
                 .dropdown-item:hover {
@@ -285,42 +302,78 @@ const SessionList: React.FC = () => {
                 
                 .dropdown-item svg {
                     margin-right: 8px;
-                }
-                
-                .dropdown-item.delete {
-                    color: #e53935;
-                }
-                
-                .dropdown-item.delete svg {
-                    stroke: #e53935;
+                    width: 16px;
+                    height: 16px;
                 }
                 
                 .rename-form {
+                    position: absolute;
+                    left: 0;
+                    top: 0;
+                    right: 0;
+                    bottom: 0;
                     display: flex;
                     align-items: center;
-                    width: 100%;
-                    padding: 4px 8px;
+                    padding: 0 8px;
+                    background-color: white;
+                    border-radius: 8px;
+                    z-index: 10;
                 }
                 
                 .rename-input {
                     flex: 1;
+                    padding: 6px 8px;
                     border: 1px solid #ddd;
                     border-radius: 4px;
-                    padding: 4px 8px;
                     font-size: 14px;
+                    outline: none;
                 }
                 
-                .rename-submit {
+                .rename-actions {
+                    display: flex;
+                    gap: 4px;
+                    margin-left: 8px;
+                }
+                
+                .rename-actions button {
                     background: none;
                     border: none;
                     cursor: pointer;
-                    color: #4caf50;
-                    padding: 4px;
-                    margin-left: 4px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 24px;
+                    height: 24px;
+                    border-radius: 4px;
+                    color: #666;
                 }
                 
-                .rename-submit svg {
-                    stroke: #4caf50;
+                .rename-actions button:hover {
+                    background-color: #f0f0f0;
+                }
+                
+                .delete-btn {
+                    background: none;
+                    border: none;
+                    padding: 4px;
+                    border-radius: 4px;
+                    color: #888;
+                    opacity: 0;
+                    cursor: pointer;
+                    margin-left: 8px;
+                    transition: opacity 0.2s;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+                
+                .session-item:hover .delete-btn {
+                    opacity: 1;
+                }
+                
+                .delete-btn:hover {
+                    color: #f44336;
+                    background-color: rgba(244, 67, 54, 0.1);
                 }
             `}</style>
         </div>

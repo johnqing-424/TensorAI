@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAGFlow API 测试工具</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            margin-top: 0;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+
+        textarea {
+            min-height: 100px;
+            font-family: monospace;
+        }
+
+        button {
+            background: #4285f4;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .response {
+            margin-top: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            background: #f9f9f9;
+        }
+
+        .status {
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-weight: 500;
+            margin-bottom: 10px;
+            display: inline-block;
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .log {
+            font-family: monospace;
+            white-space: pre-wrap;
+            word-break: break-word;
+            background: #f5f5f5;
+            padding: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+        }
+
+        .url-params {
+            display: none;
+            margin-top: 10px;
+        }
+
+        .header-item {
+            display: flex;
+            margin-bottom: 5px;
+        }
+
+        .header-item button {
+            margin-left: 10px;
+            background: #f44336;
+            padding: 0 10px;
+        }
+
+        .add-header {
+            margin-top: 5px;
+            background: #4caf50;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>RAGFlow API 测试工具</h1>
+
+        <div class="form-group">
+            <label for="url">基础URL</label>
+            <input type="text" id="url" value="http://192.168.1.131:8080" placeholder="例如: http://192.168.1.131:8080">
+        </div>
+
+        <div class="form-group">
+            <label for="endpoint">API端点</label>
+            <input type="text" id="endpoint" value="/login" placeholder="例如: /api/login 或 /login">
+        </div>
+
+        <div class="form-group">
+            <label for="method">请求方法</label>
+            <select id="method">
+                <option value="GET">GET</option>
+                <option value="POST" selected>POST</option>
+                <option value="PUT">PUT</option>
+                <option value="DELETE">DELETE</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="headers">请求头</label>
+            <div id="headers-list">
+                <div class="header-item">
+                    <input type="text" placeholder="Header名称" value="Content-Type">
+                    <input type="text" placeholder="Header值" value="application/json">
+                    <button type="button" onclick="removeHeader(this)">-</button>
+                </div>
+                <div class="header-item">
+                    <input type="text" placeholder="Header名称" value="appid">
+                    <input type="text" placeholder="Header值" value="process">
+                    <button type="button" onclick="removeHeader(this)">-</button>
+                </div>
+            </div>
+            <button type="button" class="add-header" onclick="addHeader()">添加请求头</button>
+        </div>
+
+        <div class="form-group">
+            <label for="body">请求体 (JSON)</label>
+            <textarea id="body" placeholder="例如: { 'mobile': '13612345678', 'code': 'token-zjts' }">
+{
+    "mobile": "13612345678",
+    "code": "token-zjts"
+}
+</textarea>
+        </div>
+
+        <button onclick="sendRequest()">发送请求</button>
+
+        <div class="response" id="response" style="display: none;">
+            <h3>响应</h3>
+            <div class="status" id="status"></div>
+            <div class="log" id="headers-log"></div>
+            <h4>响应内容</h4>
+            <div class="log" id="response-log"></div>
+        </div>
+
+        <div class="log" id="request-log" style="margin-top: 20px;"></div>
+    </div>
+
+    <script>
+        function addHeader() {
+            const container = document.getElementById('headers-list');
+            const div = document.createElement('div');
+            div.className = 'header-item';
+            div.innerHTML = `
+                <input type="text" placeholder="Header名称">
+                <input type="text" placeholder="Header值">
+                <button type="button" onclick="removeHeader(this)">-</button>
+            `;
+            container.appendChild(div);
+        }
+
+        function removeHeader(button) {
+            const headerItem = button.parentElement;
+            headerItem.remove();
+        }
+
+        function log(message, id) {
+            const logElement = document.getElementById(id);
+            logElement.textContent += message + '\n';
+        }
+
+        function clearLog(id) {
+            const logElement = document.getElementById(id);
+            logElement.textContent = '';
+        }
+
+        async function sendRequest() {
+            const url = document.getElementById('url').value.trim();
+            const endpoint = document.getElementById('endpoint').value.trim();
+            const method = document.getElementById('method').value;
+
+            // 收集请求头
+            const headers = {};
+            const headerItems = document.querySelectorAll('#headers-list .header-item');
+            headerItems.forEach(item => {
+                const inputs = item.querySelectorAll('input');
+                if (inputs[0].value.trim()) {
+                    headers[inputs[0].value.trim()] = inputs[1].value;
+                }
+            });
+
+            // 解析请求体
+            let body;
+            const bodyText = document.getElementById('body').value.trim();
+            if (bodyText) {
+                try {
+                    body = JSON.parse(bodyText);
+                } catch (e) {
+                    alert('JSON解析错误: ' + e.message);
+                    return;
+                }
+            }
+
+            // 清除日志
+            clearLog('request-log');
+            clearLog('headers-log');
+            clearLog('response-log');
+
+            // 构建完整URL
+            const fullUrl = url + endpoint;
+
+            // 记录请求信息
+            log(`发送 ${method} 请求到: ${fullUrl}`, 'request-log');
+            log('请求头:', 'request-log');
+            for (const [key, value] of Object.entries(headers)) {
+                log(`  ${key}: ${value}`, 'request-log');
+            }
+
+            if (body) {
+                log('请求体:', 'request-log');
+                log(JSON.stringify(body, null, 2), 'request-log');
+            }
+
+            try {
+                const options = {
+                    method,
+                    headers,
+                    cache: 'no-store'
+                };
+
+                if (body && (method !== 'GET' && method !== 'HEAD')) {
+                    options.body = JSON.stringify(body);
+                }
+
+                // 发送请求
+                const response = await fetch(fullUrl, options);
+
+                // 显示响应状态
+                const statusElement = document.getElementById('status');
+                statusElement.textContent = `${response.status} ${response.statusText}`;
+                statusElement.className = 'status ' + (response.ok ? 'success' : 'error');
+
+                // 显示响应头
+                log('响应头:', 'headers-log');
+                response.headers.forEach((value, key) => {
+                    log(`  ${key}: ${value}`, 'headers-log');
+                });
+
+                // 显示响应内容
+                const contentType = response.headers.get('content-type');
+                const text = await response.text();
+
+                if (contentType && contentType.includes('application/json')) {
+                    try {
+                        const json = JSON.parse(text);
+                        log(JSON.stringify(json, null, 2), 'response-log');
+
+                        // 如果是登录成功响应，保存token
+                        if (json.code === 0 && json.data && endpoint.includes('login')) {
+                            localStorage.setItem('ragflow_api_key', json.data);
+                            log('\n成功: Token已保存到localStorage!', 'response-log');
+                        }
+                    } catch (e) {
+                        log(text, 'response-log');
+                    }
+                } else {
+                    log(text, 'response-log');
+                }
+            } catch (error) {
+                log(`请求错误: ${error.message}`, 'response-log');
+                document.getElementById('status').textContent = 'Error';
+                document.getElementById('status').className = 'status error';
+            }
+
+            document.getElementById('response').style.display = 'block';
+        }
+    </script>
+</body>
+
+</html>

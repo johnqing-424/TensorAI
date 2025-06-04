@@ -1,6 +1,52 @@
-# RAGFlow 聊天前端
+# RAGFlow Chat
 
-这是一个基于React和TypeScript构建的前端应用，用于与RAGFlow API进行交互，提供类似ChatGPT的聊天体验。它支持基于知识库的问答，并可以展示引用来源。
+前端聊天界面用于RAGFlow系统。
+
+## 开发环境设置
+
+### 安装依赖
+
+```bash
+npm install
+```
+
+### 启动开发服务器
+
+有两种方式启动开发环境：
+
+#### 1. 一键启动（推荐）
+
+同时启动CORS代理和React开发服务器：
+
+```bash
+npm run dev
+```
+
+这个命令会同时启动：
+- CORS代理服务器（在端口3001上）
+- React开发服务器（在端口3000上）
+
+#### 2. 分开启动
+
+如果需要分别控制两个服务，可以在不同的终端中运行：
+
+```bash
+# 终端1：启动CORS代理
+npm run start:proxy
+
+# 终端2：启动React开发服务器
+npm start
+```
+
+### 构建生产版本
+
+```bash
+npm run build
+```
+
+## 环境配置
+
+如需修改API端点或其他配置，请编辑`.env.local`文件。
 
 ## 功能特点
 
@@ -18,14 +64,6 @@
 - Node.js 14.0 或更高版本
 - npm 或 yarn
 
-### 安装依赖
-
-```bash
-npm install
-# 或者
-yarn install
-```
-
 ### 配置环境变量
 
 创建一个`.env.local`文件在项目根目录，并添加：
@@ -35,26 +73,6 @@ REACT_APP_API_BASE_URL=http://your-ragflow-api-url
 ```
 
 将`your-ragflow-api-url`替换为您的RAGFlow API地址。
-
-### 启动开发服务器
-
-```bash
-npm start
-# 或者
-yarn start
-```
-
-应用将在http://localhost:3000上运行。
-
-### 构建生产版本
-
-```bash
-npm run build
-# 或者
-yarn build
-```
-
-构建的静态文件将位于`build`目录中。
 
 ## 使用指南
 

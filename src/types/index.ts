@@ -46,13 +46,18 @@ export interface Reference {
 // 聊天会话类型
 export interface ChatSession {
     id: string;
-    chat_id: string;
     name: string;
-    messages: ChatMessage[];
-    create_date: string;
-    create_time: number;
-    update_date: string;
-    update_time: number;
+    messages: {
+        role: "user" | "assistant" | "system";
+        content: string;
+        metadata?: any | null;
+        reference?: string | null;
+    }[];
+    create_time?: number;
+    update_time?: number;
+    chat_id?: string;
+    create_date?: string;
+    update_date?: string;
 }
 
 // 数据集/知识库类型
