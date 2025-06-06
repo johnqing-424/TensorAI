@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useChatContext } from '../../context/ChatContext';
 import { ChatSession } from '../../types';
 import { functionIcons } from '../Layout/NavigationBar';
+import { useNavigate } from 'react-router-dom';
 
 const SessionList: React.FC = () => {
     const {
@@ -24,6 +25,7 @@ const SessionList: React.FC = () => {
     // 引用
     const renameInputRef = useRef<HTMLInputElement>(null);
     const dropdownMenuRef = useRef<HTMLDivElement>(null);
+    const navigate = useNavigate();
 
     // 点击外部关闭下拉菜单
     useEffect(() => {
@@ -51,18 +53,22 @@ const SessionList: React.FC = () => {
 
     // 获取会话对应的功能ID
     const getSessionFunctionId = (session: ChatSession): string => {
-        // 根据会话名称判断所属功能
-        const name = session.name || '';
-        if (name.includes('流程') || name.includes('制度') || name.includes('AI 搜索')) {
-            return 'process';
-        } else if (name.includes('产品') || name.includes('技术') || name.includes('帮我写作')) {
+        // 根据会话名称或其他特征判断功能ID
+        const name = session.name.toLowerCase();
+
+        // 调整判断逻辑，确保与后端ChatConfig.java中的定义一致
+        if (name.includes('模型') || name.includes('大模型') || name.includes('知识')) {
+            // 大模型专业知识查询 - 对应后端的product
             return 'product';
-        } else if (name.includes('大模型') || name.includes('AI 调理')) {
-            return 'model';
-        } else if (name.includes('更多')) {
+        } else if (name.includes('数据') || name.includes('分析')) {
+            // 数据分析 - 对应后端的data
+            return 'data';
+        } else if (name.includes('其他') || name.includes('more')) {
             return 'more';
+        } else {
+            // 默认为流程制度检索 - 对应后端的process
+            return 'process';
         }
-        return 'default'; // 默认无功能
     };
 
     // 格式化日期
@@ -84,7 +90,14 @@ const SessionList: React.FC = () => {
 
     // 选择一个会话
     const handleSelectSession = (session: ChatSession) => {
+        // 获取会话对应的应用ID
+        const appId = selectedChatAssistant?.id || getSessionFunctionId(session);
+
+        // 先选择会话
         selectSession(session);
+
+        // 导航到具体会话的URL
+        navigate(`/${appId}/${session.id}`);
     };
 
     // 显示下拉菜单

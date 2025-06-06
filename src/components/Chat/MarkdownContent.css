@@ -166,3 +166,37 @@
     background-color: white;
   }
 }
+
+/* 修复内容溢出导致的水平滚动条 */
+.ragflow-markdown-content-wrapper {
+  max-width: 100%;
+  overflow-x: hidden;
+  word-wrap: break-word;
+  word-break: break-word;
+}
+
+.ragflow-markdown-content-wrapper pre {
+  max-width: 100%;
+  overflow-x: auto;
+  white-space: pre-wrap;
+}
+
+.ragflow-markdown-content-wrapper img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* 确保代码块在移动设备上不会溢出 */
+.ragflow-markdown-content-wrapper code {
+  max-width: 100%;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+}
+
+/* 表格溢出处理 */
+.ragflow-markdown-content-wrapper table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  white-space: nowrap;
+}

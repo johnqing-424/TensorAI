@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useLayoutEffect, ReactNode, useRef } from 'react';
 import { apiClient } from '../services';
-import { ChatAssistant, ChatMessage, ChatSession, Reference } from '../types';
+import { ChatAssistant, ChatMessage, ChatSession, Reference, ApiResponse, ChatCompletion, StreamChatResponse } from '../types';
 
 interface ChatContextType {
     // 身份验证状态
@@ -213,7 +213,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 const sessions = Array.isArray(response.data) ? response.data : [];
 
                 // 类型转换确保符合ChatSession类型
-                const validSessions = sessions.map(session => {
+                const validSessions = sessions.map((session: any) => {
                     // 添加缺失字段的默认值
                     if (!session.chat_id && session.id) {
                         session.chat_id = 'default_chat_id';
@@ -233,7 +233,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 setChatSessions(validSessions);
 
                 // 如果之前选中的会话不在新列表中，重置当前会话
-                if (currentSession && !validSessions.find(s => s.id === currentSession.id)) {
+                if (currentSession && !validSessions.find((s: ChatSession) => s.id === currentSession.id)) {
                     setCurrentSession(null);
                     setMessages([]);
                 }
@@ -320,25 +320,41 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     // 获取会话消息
     const getSessionMessages = async (sessionId: string) => {
         try {
+            console.log(`尝试获取会话[${sessionId}]的消息`);
             const response = await apiClient.getMessages(sessionId);
+
+            console.log('获取会话消息响应:', response);
 
             if (response.code === 0 && response.data) {
                 console.log('获取会话消息成功:', response.data);
 
-                // 如果是数组类型的响应
-                if (Array.isArray(response.data) && response.data.length > 0) {
-                    const formattedMessages = response.data.map(msg => ({
-                        role: msg.role,
-                        content: msg.content,
-                        timestamp: msg.timestamp || Date.now(),
-                        reference: msg.reference || null
-                    }));
+                // 检查消息数据格式
+                if (Array.isArray(response.data)) {
+                    console.log(`收到${response.data.length}条消息`);
 
-                    // 如果是当前会话，更新消息列表
+                    // 详细打印每条消息的结构，以便调试
+                    response.data.forEach((msg, index) => {
+                        console.log(`消息 #${index}:`, JSON.stringify(msg));
+                    });
+
+                    // 确保格式转换正确
+                    const formattedMessages = response.data.map((msg: any) => {
+                        return {
+                            role: msg.role || "user", // 确保角色有效
+                            content: msg.content || "",
+                            timestamp: Date.now(),
+                            reference: msg.reference || null
+                        };
+                    });
+
+                    console.log("格式化后的消息:", formattedMessages);
+
+                    // 更新当前消息列表
+                    setMessages(formattedMessages);
+                    console.log("消息列表已更新", formattedMessages.length);
+
+                    // 更新当前会话中的消息
                     if (currentSession && currentSession.id === sessionId) {
-                        setMessages(formattedMessages);
-
-                        // 更新会话中的消息
                         setCurrentSession(prev => {
                             if (!prev) return null;
                             return {
@@ -346,9 +362,10 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                                 messages: formattedMessages
                             };
                         });
+                        console.log("当前会话消息已更新");
                     }
 
-                    // 同时更新会话列表中的相应会话
+                    // 更新会话列表中的对应会话
                     setChatSessions(prev => {
                         return prev.map(s => {
                             if (s.id === sessionId) {
@@ -360,14 +377,18 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                             return s;
                         });
                     });
+                    console.log("会话列表已更新");
+                } else {
+                    console.warn("返回的消息不是数组格式:", typeof response.data);
                 }
             } else {
-                console.error('获取会话消息失败:', response.message);
-                setApiError(`获取会话消息失败: ${response.message}`);
+                console.error(`获取会话[${sessionId}]消息失败:`, response.message || '未知错误');
+                setApiError(`获取会话消息失败: ${response.message || '未知错误'}`);
             }
         } catch (error) {
-            console.error('获取会话消息异常:', error);
-            setApiError(`获取会话消息异常: ${(error as Error).message}`);
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            console.error(`获取会话[${sessionId}]消息异常:`, errorMessage, error);
+            setApiError(`获取会话消息异常: ${errorMessage}`);
         }
     };
 
@@ -430,7 +451,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             await apiClient.streamChatMessage(
                 sessionId,
                 message,
-                (partialResponse) => {
+                (partialResponse: ApiResponse<StreamChatResponse>) => {
                     if (partialResponse && partialResponse.data) {
                         responseText = partialResponse.data.answer || '';
 
@@ -481,7 +502,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     // 完成后取消输入状态
                     setIsTyping(false);
                 },
-                (error) => {
+                (error: Error) => {
                     // 消息发送失败
                     console.error('发送消息失败:', error.message);
                     setApiError(`发送消息失败: ${error.message}`);
@@ -613,14 +634,15 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             // 获取聊天助手
             fetchChatAssistants();
 
-            // 获取会话列表
-            fetchChatSessions();
-
             // 尝试从本地存储恢复选中的助手ID
             const savedAssistantId = localStorage.getItem('ragflow_selected_assistant');
             if (savedAssistantId) {
                 // 尝试恢复固定功能菜单的选中状态
                 if (['process', 'product', 'model', 'more'].includes(savedAssistantId)) {
+                    // 设置API客户端的appid
+                    console.log(`恢复API客户端appid: ${savedAssistantId}`);
+                    apiClient.setAppId(savedAssistantId);
+
                     // 创建一个临时助手对象
                     const tempAssistant: ChatAssistant = {
                         id: savedAssistantId,
@@ -654,6 +676,9 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
                     console.log('从本地存储恢复选中的固定功能:', tempAssistant.name);
                     setSelectedChatAssistant(tempAssistant);
+
+                    // 获取会话列表，使用恢复的appid
+                    fetchChatSessions();
                 } else {
                     // 在下一个tick执行，确保chatAssistants已经加载
                     setTimeout(() => {
@@ -662,8 +687,24 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                         if (assistant) {
                             console.log('从本地存储恢复选中的助手:', assistant.name);
                             setSelectedChatAssistant(assistant);
+
+                            // 获取会话列表
+                            fetchChatSessions();
                         }
                     }, 100);
+                }
+
+                // 尝试恢复选中的会话
+                const savedSessionId = localStorage.getItem('ragflow_selected_session');
+                if (savedSessionId) {
+                    // 延迟执行，确保会话列表已加载
+                    setTimeout(() => {
+                        const session = chatSessions.find(s => s.id === savedSessionId);
+                        if (session) {
+                            console.log('从本地存储恢复选中的会话:', session.name);
+                            selectSession(session);
+                        }
+                    }, 200);
                 }
             }
         }
@@ -677,6 +718,15 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         // 保存选中的助手ID到本地存储，以便刷新页面后恢复
         if (assistant) {
             localStorage.setItem('ragflow_selected_assistant', assistant.id);
+
+            // 设置API客户端的appid
+            if (['process', 'product', 'model', 'more'].includes(assistant.id)) {
+                console.log(`设置API客户端appid: ${assistant.id}`);
+                apiClient.setAppId(assistant.id);
+            }
+
+            // 重新获取会话列表，使用新的appid
+            fetchChatSessions();
         } else {
             localStorage.removeItem('ragflow_selected_assistant');
         }
@@ -693,10 +743,9 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         // 保存选中的会话ID到本地存储
         localStorage.setItem('ragflow_selected_session', session.id);
 
-        // 获取会话消息（如果需要）
-        if (!session.messages || session.messages.length === 0) {
-            getSessionMessages(session.id);
-        }
+        // 无论是否有消息，都重新获取会话消息
+        // 因为后端消息状态可能已更新
+        getSessionMessages(session.id);
     };
 
     const value: ChatContextType = {

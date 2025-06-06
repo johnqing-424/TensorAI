@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import { Reference, ReferenceChunk } from '../../types';
 import { useDocumentThumbnails } from '../../hooks/useDocumentThumbnails';
 import { Button, Flex, Popover } from 'antd';
@@ -28,9 +28,9 @@ import './MarkdownContent.css';
  * - lodash/fp
  */
 import { InfoCircleOutlined } from '@ant-design/icons';
-import Markdown from 'react-markdown';
+import ReactMarkdown from 'react-markdown';
 import reactStringReplace from 'react-string-replace';
-import SyntaxHighlighter from 'react-syntax-highlighter';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import rehypeKatex from 'rehype-katex';
 import rehypeRaw from 'rehype-raw';
 import remarkGfm from 'remark-gfm';
@@ -39,6 +39,7 @@ import { visitParents } from 'unist-util-visit-parents';
 import DOMPurify from 'dompurify';
 import classNames from 'classnames';
 import { pipe } from 'lodash/fp';
+import { vs } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 import 'katex/dist/katex.min.css';
 
@@ -162,62 +163,110 @@ const MarkdownContent: React.FC<MarkdownContentProps> = ({
     content,
     loading
 }) => {
-    // 提取文档ID列表
+    const [showPopover, setShowPopover] = useState<{
+        visible: boolean;
+        index: number | null;
+        position: { top: number; left: number } | null;
+    }>({
+        visible: false,
+        index: null,
+        position: null,
+    });
+
+    // 添加引用标记正则表达式
+    const reg = /\(\((\d+)\)\)/g;
+    const curReg = /\[\[(\d+)\]\]/g;
+
+    // 添加调试日志
+    useEffect(() => {
+        if (!content) {
+            console.warn("MarkdownContent: 内容为空");
+        } else if (content.length < 50) {
+            console.log("MarkdownContent: 内容 =", content);
+        } else {
+            console.log("MarkdownContent: 内容长度 =", content.length);
+        }
+
+        if (reference && reference.chunks && reference.chunks.length > 0) {
+            console.log("MarkdownContent: 包含引用，共", reference.chunks.length, "个片段");
+        }
+    }, [content, reference]);
+
+    // 提前声明所需的文档ID，即使reference可能为空
     const documentIds = useMemo(() => {
-        if (!reference || !reference.doc_aggs || !Array.isArray(reference.doc_aggs)) {
-            return [];
+        if (reference && reference.chunks) {
+            return Array.from(new Set(reference.chunks.map(chunk => chunk.document_id)));
         }
-        return reference.doc_aggs
-            .filter(doc => doc && doc.doc_id && typeof doc.doc_id === 'string')
-            .map(doc => doc.doc_id);
-    }, [reference?.doc_aggs]);
+        return [];
+    }, [reference]);
 
-    // 使用hook获取文档缩略图
-    const { thumbnails: hookThumbnails, loading: thumbnailsLoading, error: thumbnailsError } = useDocumentThumbnails(documentIds);
+    // 无条件使用Hook
+    const documentThumbnails = useDocumentThumbnails(documentIds);
 
-    // 合并缩略图数据，优先使用doc_aggs中的url
-    const fileThumbnails = useMemo(() => {
-        const thumbnails: { [key: string]: string } = { ...hookThumbnails };
-
-        // 如果doc_aggs中有url，优先使用
-        reference?.doc_aggs?.forEach(doc => {
-            if (doc && doc.doc_id && doc.url) {
-                thumbnails[doc.doc_id] = doc.url;
-            }
-        });
-
-        return thumbnails;
-    }, [reference?.doc_aggs, hookThumbnails]);
-
-    const contentWithCursor = useMemo(() => {
-        let text = content;
-        if (text === '') {
-            text = '搜索中...';
-        }
-        const nextText = replaceTextByOldReg(text);
-        return pipe(replaceThinkToSection, preprocessLaTeX)(nextText);
+    // 预处理引用内容
+    const processedContent = useMemo(() => {
+        if (!content) return '';
+        let processedText = content;
+        // 处理LaTeX
+        processedText = preprocessLaTeX(processedText);
+        // 替换think标签
+        processedText = replaceThinkToSection(processedText);
+        // 替换旧版引用
+        processedText = replaceTextByOldReg(processedText);
+        return processedText;
     }, [content]);
 
-    const handleDocumentButtonClick = useCallback(
-        (
-            documentId: string,
-            chunk: ReferenceChunk,
-            isPdf: boolean,
-            documentUrl?: string,
-        ) =>
-            () => {
-                if (!isPdf) {
-                    if (!documentUrl) {
-                        return;
-                    }
-                    window.open(documentUrl, '_blank');
-                } else {
-                    clickDocumentButton?.(documentId, chunk);
-                }
-            },
-        [clickDocumentButton],
-    );
+    // 创建引用标记处理函数
+    const handleReferenceClick = useCallback((index: number, event: MouseEvent) => {
+        if (!reference || !reference.chunks || index >= reference.chunks.length) return;
 
+        const target = event.currentTarget as HTMLElement;
+        if (!target) return;
+
+        const rect = target.getBoundingClientRect();
+
+        setShowPopover({
+            visible: true,
+            index,
+            position: {
+                top: rect.top + window.scrollY,
+                left: rect.left + window.scrollX
+            }
+        });
+    }, [reference]);
+
+    // 处理关闭弹窗
+    const handlePopoverClose = useCallback(() => {
+        setShowPopover({
+            visible: false,
+            index: null,
+            position: null
+        });
+    }, []);
+
+    // 处理文档点击事件
+    const handleDocumentClick = useCallback((documentId: string, chunk: any) => {
+        if (clickDocumentButton) {
+            clickDocumentButton(documentId, chunk);
+        }
+    }, [clickDocumentButton]);
+
+    // 格式化代码渲染
+    const formatCode = useCallback((code: string, language: string) => {
+        try {
+            return language ? (
+                <SyntaxHighlighter language={language} style={vs}>
+                    {code}
+                </SyntaxHighlighter>
+            ) : (
+                <code className="language-text">{code}</code>
+            );
+        } catch (error) {
+            return <code className="language-text">{code}</code>;
+        }
+    }, []);
+
+    // 添加rehypeWrapReference函数
     const rehypeWrapReference = () => {
         return function wrapTextTransform(tree: any) {
             visitParents(tree, 'text', (node, ancestors) => {
@@ -235,268 +284,92 @@ const MarkdownContent: React.FC<MarkdownContentProps> = ({
         };
     };
 
-    const getReferenceInfo = useCallback(
-        (chunkIndex: number) => {
-            // 验证引用数据的基本结构
-            if (!reference || !reference.chunks || !Array.isArray(reference.chunks)) {
-                console.warn('引用数据结构无效:', reference);
-                return {
-                    documentUrl: '',
-                    fileThumbnail: '',
-                    fileExtension: '',
-                    imageId: '',
-                    chunkItem: null,
-                    documentId: '',
-                    document: null,
-                };
-            }
-
-            const chunks = reference.chunks;
-
-            // 详细的索引验证和调试信息
-            console.log(`getReferenceInfo调用: 索引=${chunkIndex}, chunks长度=${chunks.length}`);
-
-            // 检查索引是否超出范围
-            if (chunkIndex < 0 || chunkIndex >= chunks.length) {
-                console.warn(`Chunk索引 ${chunkIndex} 超出范围 [0, ${chunks.length - 1}]`);
-                return {
-                    documentUrl: '',
-                    fileThumbnail: '',
-                    fileExtension: '',
-                    imageId: '',
-                    chunkItem: null,
-                    documentId: '',
-                    document: null,
-                };
-            }
-
-            const chunkItem = chunks[chunkIndex];
-
-            // 验证chunk项的有效性
-            if (!chunkItem || typeof chunkItem !== 'object') {
-                console.warn(`Chunk索引 ${chunkIndex} 对应的项无效:`, chunkItem);
-                return {
-                    documentUrl: '',
-                    fileThumbnail: '',
-                    fileExtension: '',
-                    imageId: '',
-                    chunkItem: null,
-                    documentId: '',
-                    document: null,
-                };
-            }
-
-            // 查找对应的文档信息
-            const document = reference?.doc_aggs?.find(
-                (x) => x && x.doc_id === chunkItem.document_id,
-            );
-
-            const documentId = document?.doc_id || '';
-            const documentUrl = document?.url || '';
-            const fileThumbnail = documentId ? (fileThumbnails[documentId] || '') : '';
-            const fileExtension = documentId && document?.doc_name ? getExtension(document.doc_name) : '';
-            const imageId = chunkItem?.image_id || '';
-
-            return {
-                documentUrl,
-                fileThumbnail,
-                fileExtension,
-                imageId,
-                chunkItem,
-                documentId,
-                document,
-            };
-        },
-        [reference?.chunks, reference?.doc_aggs, fileThumbnails],
-    );
-
-    const getPopoverContent = useCallback(
-        (chunkIndex: number) => {
-            const {
-                documentUrl,
-                fileThumbnail,
-                fileExtension,
-                imageId,
-                chunkItem,
-                documentId,
-                document,
-            } = getReferenceInfo(chunkIndex);
-
-            // 调试信息
-            console.log('Popover content for chunk', chunkIndex, ':', {
-                chunkItem,
-                documentId,
-                imageId,
-                content: chunkItem?.content,
-                hasReference: !!reference,
-                chunksLength: reference?.chunks?.length || 0,
-                docAggsLength: reference?.doc_aggs?.length || 0,
-                thumbnailsLoading,
-                thumbnailsError,
-                fileThumbnailsCount: Object.keys(fileThumbnails).length
-            });
-
-            // 如果没有chunk项，显示详细的错误信息
-            if (!chunkItem) {
-                const errorMessage = !reference ? '引用数据为空' :
-                    !reference.chunks ? '引用块数据缺失' :
-                        chunkIndex >= reference.chunks.length ? `引用索引超出范围 (${chunkIndex}/${reference.chunks.length})` :
-                            '引用信息不可用';
-
-                return (
-                    <div className="ragflow-reference-popover-wrapper">
-                        <div className="ragflow-chunk-content-text">
-                            {errorMessage}
-                        </div>
-                        {process.env.NODE_ENV === 'development' && (
-                            <div className="text-xs text-gray-500 mt-2">
-                                调试信息: 索引={chunkIndex}, 引用={!!reference ? '存在' : '不存在'}
-                            </div>
-                        )}
-                    </div>
-                );
-            }
-
-            // 验证chunk内容的有效性
-            if (chunkItem.content === null || chunkItem.content === undefined ||
-                (typeof chunkItem.content === 'string' && chunkItem.content.trim() === '')) {
-                return (
-                    <div className="ragflow-reference-popover-wrapper">
-                        <div className="ragflow-chunk-content-text">
-                            引用内容为空
-                        </div>
-                        {process.env.NODE_ENV === 'development' && (
-                            <div className="text-xs text-gray-500 mt-2">
-                                调试信息: content={chunkItem.content === null ? 'null' :
-                                    chunkItem.content === undefined ? 'undefined' : '空字符串'}
-                            </div>
-                        )}
-                    </div>
-                );
-            }
-
-            if (typeof chunkItem.content !== 'string') {
-                return (
-                    <div className="ragflow-reference-popover-wrapper">
-                        <div className="ragflow-chunk-content-text">
-                            引用内容格式错误
-                        </div>
-                        {process.env.NODE_ENV === 'development' && (
-                            <div className="text-xs text-gray-500 mt-2">
-                                调试信息: content类型={typeof chunkItem.content}
-                            </div>
-                        )}
-                    </div>
-                );
-            }
-
+    // 添加renderReference函数
+    const renderReference = useCallback((text: string) => {
+        // 基本实现，用于传递给rehype插件
+        let replacedText = reactStringReplace(text, reg, (match, i) => {
+            const index = parseInt(match, 10);
             return (
-                <div key={chunkItem?.id} className="flex gap-2 ragflow-reference-popover-wrapper">
-                    {imageId && (
-                        <ImageWithPopover id={imageId} />
-                    )}
-                    <div className={'space-y-2 max-w-[40vw]'}>
-                        <div
-                            dangerouslySetInnerHTML={{
-                                __html: DOMPurify.sanitize(chunkItem?.content ?? '暂无内容'),
-                            }}
-                            className="ragflow-chunk-content-text"
-                        />
-                        {documentId && (
-                            <Flex gap={'small'} align="center">
-                                {fileThumbnail ? (
-                                    <img
-                                        src={fileThumbnail}
-                                        alt="File thumbnail"
-                                        className="ragflow-file-thumbnail"
-                                        onError={(e) => {
-                                            const target = e.target as HTMLImageElement;
-                                            target.style.display = 'none';
-                                            // 可以在这里添加一个fallback图标
-                                        }}
-                                        loading="lazy"
-                                    />
-                                ) : (
-                                    <FileIcon extension={fileExtension} />
-                                )}
-                                <Button
-                                    type="link"
-                                    className="ragflow-document-link text-wrap"
-                                    onClick={handleDocumentButtonClick(
-                                        documentId,
-                                        chunkItem,
-                                        fileExtension === 'pdf',
-                                        documentUrl,
-                                    )}
+                <span
+                    key={i}
+                    className="ragflow-reference-icon"
+                    onClick={(e) => handleReferenceClick(index, e as any)}
+                >
+                    📄
+                </span>
+            );
+        });
+
+        // 处理光标标记
+        replacedText = reactStringReplace(replacedText, curReg, (match, i) => (
+            <span className="ragflow-cursor" key={i}></span>
+        ));
+
+        return replacedText;
+    }, [handleReferenceClick]);
+
+    const renderReferencePopover = () => {
+        if (!showPopover.visible || showPopover.index === null || !reference || !reference.chunks) {
+            return null;
+        }
+
+        const chunk = reference.chunks[showPopover.index];
+        if (!chunk) return null;
+
+        return (
+            <Popover
+                open={showPopover.visible}
+                title={`引用: ${chunk.document_name || '未知文档'}`}
+                content={
+                    <div className="ragflow-reference-popover-wrapper">
+                        {chunk.doc_type && showImage(chunk.doc_type) ? (
+                            <div className="ragflow-reference-chunk-image">
+                                <ImageWithPopover id={chunk.image_id} />
+                                <div
+                                    className="ragflow-document-link"
+                                    onClick={() => handleDocumentClick(chunk.document_id, chunk)}
                                 >
-                                    {document?.doc_name}
-                                </Button>
-                            </Flex>
+                                    查看原文
+                                </div>
+                            </div>
+                        ) : (
+                            <>
+                                <div className="ragflow-chunk-content-text">
+                                    {chunk.content || '内容为空'}
+                                </div>
+                                <div
+                                    className="ragflow-document-link"
+                                    onClick={() => handleDocumentClick(chunk.document_id, chunk)}
+                                >
+                                    查看原文
+                                </div>
+                            </>
                         )}
                     </div>
+                }
+                trigger="click"
+                placement="top"
+                onOpenChange={(visible) => {
+                    if (!visible) handlePopoverClose();
+                }}
+                overlayClassName="ragflow-reference-popover"
+                getPopupContainer={(triggerNode) => triggerNode.parentNode as HTMLElement}
+            >
+                <div style={{ position: 'fixed', left: showPopover.position?.left, top: showPopover.position?.top }}>
+                    <span className="ragflow-reference-icon">📄</span>
                 </div>
-            );
-        },
-        [getReferenceInfo, handleDocumentButtonClick],
-    );
+            </Popover>
+        );
+    };
 
-    const renderReference = useCallback(
-        (text: string) => {
-            let replacedText = reactStringReplace(text, reg, (match, i) => {
-                const chunkIndex = getChunkIndex(match);
-
-                const { documentUrl, fileExtension, imageId, chunkItem, documentId } =
-                    getReferenceInfo(chunkIndex);
-
-                const docType = chunkItem?.doc_type || '';
-
-                return showImage(docType) ? (
-                    <Image
-                        key={i}
-                        id={imageId}
-                        className="ragflow-reference-inner-chunk-image"
-                        onClick={
-                            documentId && chunkItem
-                                ? handleDocumentButtonClick(
-                                    documentId,
-                                    chunkItem,
-                                    fileExtension === 'pdf',
-                                    documentUrl,
-                                )
-                                : () => { }
-                        }
-                    />
-                ) : (
-                    <Popover
-                        content={getPopoverContent(chunkIndex)}
-                        key={i}
-                        trigger="hover"
-                        placement="top"
-                        mouseEnterDelay={0.3}
-                        mouseLeaveDelay={0.1}
-                        overlayClassName="ragflow-reference-popover"
-                        getPopupContainer={(triggerNode) => triggerNode.parentElement || document.body}
-                        destroyTooltipOnHide
-                        fresh
-                    >
-                        <InfoCircleOutlined className="ragflow-reference-icon" />
-                    </Popover>
-                );
-            });
-
-            // 处理光标标记
-            replacedText = reactStringReplace(replacedText, curReg, (match, i) => (
-                <span className="ragflow-cursor" key={i}></span>
-            ));
-
-            return replacedText;
-        },
-        [getPopoverContent, getReferenceInfo, handleDocumentButtonClick],
-    );
+    // 处理空内容情况
+    if (!content && !loading) {
+        return <div className="empty-content">[无内容]</div>;
+    }
 
     return (
         <div className="ragflow-markdown-content-wrapper">
-            <Markdown
+            <ReactMarkdown
                 rehypePlugins={[rehypeWrapReference, rehypeKatex, rehypeRaw]}
                 remarkPlugins={[remarkGfm, remarkMath]}
                 components={{
@@ -522,8 +395,9 @@ const MarkdownContent: React.FC<MarkdownContentProps> = ({
                     },
                 } as any}
             >
-                {contentWithCursor}
-            </Markdown>
+                {processedContent}
+            </ReactMarkdown>
+            {renderReferencePopover()}
         </div>
     );
 };

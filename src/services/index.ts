@@ -3,4 +3,5 @@
  */
 
 // 导出API客户端
-export { apiClient } from './api/client'; 
+export { default as apiClient } from './api/client';
+export { ApiClient } from './api/client'; 

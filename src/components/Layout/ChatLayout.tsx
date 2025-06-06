@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useChatContext } from '../../context/ChatContext';
-import { useNavigate, useLocation, Routes, Route, Navigate } from 'react-router-dom';
+import { useNavigate, useLocation, Routes, Route, Navigate, useParams } from 'react-router-dom';
 import AssistantList from '../Sidebar/AssistantList';
 import SessionList from '../Sidebar/SessionList';
 import ChatHistory from '../Chat/ChatHistory';
@@ -96,11 +96,15 @@ const ChatLayout: React.FC = () => {
         toggleSidebar,
         createChatSession,
         currentSession,
-        selectChatAssistant
+        selectChatAssistant,
+        chatSessions,
+        selectSession
     } = useChatContext();
 
     const navigate = useNavigate();
     const location = useLocation();
+    // 获取路由参数
+    const params = useParams<{ appId?: string; sessionId?: string }>();
 
     // 输入框内容状态
     const [inputValue, setInputValue] = useState<string>('');
@@ -171,6 +175,58 @@ const ChatLayout: React.FC = () => {
         }
     }, [location.pathname]);
 
+    // 根据URL参数加载会话
+    useEffect(() => {
+        const { appId, sessionId } = params;
+
+        if (appId && sessionId && chatSessions.length > 0) {
+            console.log(`从URL加载会话: appId=${appId}, sessionId=${sessionId}`);
+
+            // 查找匹配的会话
+            const session = chatSessions.find(s => s.id === sessionId);
+            if (session) {
+                // 选择对应的应用
+                const matchingAssistant = {
+                    id: appId,
+                    name: functionTitles[appId as FunctionIdType] || appId,
+                    description: '',
+                    create_date: new Date().toISOString(),
+                    update_date: new Date().toISOString(),
+                    avatar: '',
+                    datasets: [],
+                    llm: {
+                        model_name: '',
+                        temperature: 0.7,
+                        top_p: 0.9,
+                        presence_penalty: 0,
+                        frequency_penalty: 0
+                    },
+                    prompt: {
+                        similarity_threshold: 0.7,
+                        keywords_similarity_weight: 0.5,
+                        top_n: 3,
+                        variables: [],
+                        rerank_model: '',
+                        empty_response: '',
+                        opener: '',
+                        prompt: ''
+                    },
+                    status: 'active'
+                };
+
+                // 如果是有效的功能ID，选择对应的助手
+                if (Object.keys(functionTitles).includes(appId)) {
+                    selectChatAssistant(matchingAssistant);
+                }
+
+                // 选择会话
+                selectSession(session);
+            } else {
+                console.log(`未找到会话: ${sessionId}`);
+            }
+        }
+    }, [params, chatSessions, selectChatAssistant, selectSession]);
+
     // 动态样式，根据API错误状态调整页面位置
     const layoutStyle = {
         marginTop: apiError ? '40px' : '0',
@@ -186,7 +242,14 @@ const ChatLayout: React.FC = () => {
 
     // 处理创建新会话
     const handleCreateNewChat = () => {
-        createChatSession('新对话');
+        const appId = selectedChatAssistant?.id || 'process';
+
+        createChatSession('新对话').then(newSession => {
+            if (newSession) {
+                // 导航到新会话的URL
+                navigate(`/${appId}/${newSession.id}`);
+            }
+        });
     };
 
     // 处理选择功能
@@ -227,13 +290,16 @@ const ChatLayout: React.FC = () => {
             selectChatAssistant(matchingAssistant);
         }
 
-        // 导航到对应功能的路由
-        navigate(functionRoutes[functionId]);
-
-        // 创建对应功能的会话（如果已有助手选择）
-        setTimeout(() => {
-            createChatSession(functionTitles[functionId]);
-        }, 100);
+        // 创建对应功能的会话并导航到新会话页面
+        createChatSession(functionTitles[functionId]).then(newSession => {
+            if (newSession) {
+                // 导航到新会话的URL
+                navigate(`/${functionId}/${newSession.id}`);
+            } else {
+                // 如果创建失败，仍然导航到功能页面
+                navigate(functionRoutes[functionId]);
+            }
+        });
     };
 
     // 处理发送消息
@@ -436,15 +502,32 @@ const ChatLayout: React.FC = () => {
 
     // 渲染聊天页面
     const renderChatPage = () => {
+        // 如果没有选择会话，显示提示
+        if (!currentSession) {
+            return (
+                <div className="page chat-page">
+                    <div className="empty-state">
+                        <div className="empty-icon">💬</div>
+                        <h3>请选择聊天会话</h3>
+                        <p>请从左侧边栏选择一个会话开始对话，或者创建新会话。</p>
+                        <button
+                            className="start-chat-btn"
+                            onClick={handleCreateNewChat}
+                        >
+                            创建新会话
+                        </button>
+                    </div>
+                </div>
+            );
+        }
+
         return (
-            <div className="page chat-page">
+            <div className="page chat-page" style={{ width: '100%', boxSizing: 'border-box' }}>
                 <div className="chat-header">
                     <h2>{currentSession?.name || '新对话'}</h2>
                 </div>
 
-                <div className="chat-messages">
-                    <ChatHistory />
-                </div>
+                <ChatHistory />
 
                 <div className="chat-input-wrapper">
                     <ChatInputBox
@@ -519,6 +602,7 @@ const ChatLayout: React.FC = () => {
                     <Route path="/model" element={renderFunctionPage('model')} />
                     <Route path="/more" element={renderFunctionPage('more')} />
                     <Route path="/chat" element={renderChatPage()} />
+                    <Route path="/:appId/:sessionId" element={renderChatPage()} />
                     <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
             </div>

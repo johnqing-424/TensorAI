@@ -5,6 +5,7 @@ export interface ApiResponse<T> {
     code: number;
     message?: string;
     data?: T;
+    error?: any; // 添加error字段用于存储详细错误信息
 }
 
 // 聊天消息类型

@@ -4,14 +4,13 @@
     display: flex;
     height: 100vh;
     width: 100%;
-    overflow: hidden;
     position: relative;
-    background-color: #f7f7f8;
+    background-color: #fff;
 }
 
 .sidebar {
     width: 225px;
-    height: 100%;
+    height: 100vh;
     background-color: #f7f7f8;
     transition: width 0.3s ease;
     flex-shrink: 0;
@@ -20,11 +19,21 @@
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
     z-index: 100;
     border-right: 1px solid #eaebee;
+    position: fixed;
+    left: 0;
+    top: 0;
 }
 
 .sidebar-collapsed {
-    width: 0;
-    border: none;
+    width: 60px;
+    overflow: hidden;
+    flex-shrink: 0;
+    border-right: 1px solid #e0e0e0;
+}
+
+.sidebar-collapsed+.chat-container {
+    margin-left: 60px;
+    width: calc(100% - 60px);
 }
 
 .sidebar-inner {
@@ -53,27 +62,60 @@
     flex: 1;
     display: flex;
     flex-direction: column;
-    height: 100%;
-    background-color: #fff;
+    margin-left: 225px;
+    width: calc(100% - 225px);
+    min-height: 100vh;
     position: relative;
 }
 
 .chat-header {
-    padding: 16px 20px;
-    border-bottom: 1px solid #eaebee;
-    background-color: #fff;
-    z-index: 10;
+    padding: 0;
+    border-bottom: none;
     display: flex;
     align-items: center;
+    width: 100%;
+    position: sticky;
+    top: 0;
+    background-color: #fff;
+    z-index: 10;
+    box-sizing: border-box;
+    height: 60px;
+    margin: 0;
+}
+
+.chat-header h2 {
+    margin: 0;
+    padding: 0;
+    font-size: 18px;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 60px;
+}
+
+/* 当侧边栏收缩时，调整header左边距以避免与展开按钮重叠 */
+.sidebar-collapsed+.chat-container .chat-header {
+    padding-left: 0;
+}
+
+.sidebar-collapsed+.chat-container .chat-header h2 {
+    padding-left: 50px;
+}
+
+/* 当侧边栏展开时，确保header紧贴sidebar右侧 */
+.chat-container .chat-header {
+    padding-left: 0;
 }
 
 .chat-messages {
     flex: 1;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    margin: 0 auto;
     display: flex;
     flex-direction: column;
-    overflow-y: auto;
-    padding: 20px;
-    height: calc(100vh - 180px);
 }
 
 .chat-input-container {
@@ -82,9 +124,13 @@
     border-radius: 12px;
     padding: 12px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-    margin: 0;
-    max-width: 100%;
+    margin: 16px auto;
+    max-width: 768px;
     width: 100%;
+    position: sticky;
+    bottom: 20px;
+    box-sizing: border-box;
+    z-index: 10;
 }
 
 .chat-input {
@@ -200,13 +246,16 @@
 .chat-message {
     display: flex;
     margin-bottom: 24px;
-    padding-right: 10%;
+    max-width: 100%;
+    width: 100%;
+    box-sizing: border-box;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    justify-content: flex-start;
 }
 
 .chat-message.user {
-    flex-direction: row-reverse;
-    padding-right: 0;
-    padding-left: 10%;
+    justify-content: flex-end;
 }
 
 .message-avatar {
@@ -233,8 +282,13 @@
     border-radius: 8px;
     font-size: 14px;
     line-height: 1.6;
-    max-width: 85%;
+    max-width: 80%;
+    width: auto;
     color: #333;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    word-break: break-word;
+    overflow: hidden;
 }
 
 .chat-message.user .message-content {
@@ -547,26 +601,26 @@
     height: 100%;
     max-width: 900px;
     margin: 0 auto;
-}
-
-.chat-header h2 {
-    margin: 0;
-    font-size: 18px;
-    font-weight: 500;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .chat-input-wrapper {
-    padding: 0 20px;
-    max-width: 900px;
+    padding: 10px 20px 20px;
     margin: 0 auto;
     width: 100%;
+    background-color: #fff;
+    border-top: none;
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
 }
 
 /* 快捷导航栏 */
 .quick-nav {
     display: flex;
     padding: 10px 0;
-    border-bottom: 1px solid #eaebee;
+    border-bottom: none;
     background-color: #fff;
     margin-bottom: 10px;
     position: sticky;
@@ -619,16 +673,24 @@
 /* 修复可能的移动设备显示问题 */
 @media (max-width: 768px) {
     .sidebar {
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        left: 0;
+        position: fixed;
+        left: -300px;
+        width: 300px;
         z-index: 1000;
-        width: 200px;
+        transition: left 0.3s ease;
+        height: 100vh;
+    }
+
+    .sidebar.visible {
+        left: 0;
     }
 
     .chat-container {
-        padding-left: 0;
+        width: 100%;
+    }
+
+    .message-content {
+        max-width: 85%;
     }
 
     .feature-card {
@@ -657,4 +719,9 @@
     .feature-cards {
         gap: 10px;
     }
+}
+
+.sidebar-collapsed .chat-message {
+    width: 100%;
+    max-width: 100%;
 }
