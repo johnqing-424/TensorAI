@@ -14,13 +14,12 @@ const ChatMessage: React.FC<ChatMessageProps> = React.memo((
 ) => {
     const { role, content, isLoading, isError } = message;
 
-    // 添加调试日志
+    // 调试日志（仅在开发环境下启用）
     useEffect(() => {
-        console.log(`ChatMessage渲染: role=${role}, content=${content?.substring(0, 50)}${content?.length > 50 ? '...' : ''}`);
-        if (!content) {
-            console.warn("警告: 消息内容为空", message);
+        if (process.env.NODE_ENV === 'development' && !content && role === 'assistant') {
+            console.warn("警告: 助手消息内容为空", message);
         }
-    }, [message, role, content]);
+    }, [content, role, message.id]); // 只在必要时触发
 
     // 消息类型的CSS类名
     const messageClassName = useMemo(() => {

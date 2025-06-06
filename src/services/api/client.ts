@@ -185,8 +185,9 @@ class ApiClient {
         console.log(`API请求: ${method} ${endpoint}`);
         console.log(`请求头: token=${this.token.substring(0, 5)}..., appid=${currentAppId}`);
 
-        // 构建请求URL
-        const url = `${this.baseUrl}${endpoint}`;
+        // 构建请求URL，确保API路径正确
+        const apiEndpoint = endpoint.startsWith('/api/') ? endpoint : `/api${endpoint}`;
+        const url = `${this.baseUrl}${apiEndpoint}`;
 
         try {
             // 发送请求
@@ -232,38 +233,75 @@ class ApiClient {
         }
     }
 
-    // 用户登录
+    /**
+     * 用户登录方法
+     * @param mobile 手机号
+     * @param code 验证码
+     * @param useDirect 是否直接调用（跳过代理）
+     * @returns 登录结果
+     */
     async login(mobile: string, code: string, useDirect = false) {
         try {
+            // 注意：cors-proxy.js 中对登录路径有特殊处理，不需要 /api 前缀
             const loginEndpoint = "/login";
+            const url = `${this.baseUrl}${loginEndpoint}`;
 
-            const response = await this.request<string>(loginEndpoint, 'POST', {
+            console.log('发送登录请求:', {
+                url,
                 mobile,
                 code
             });
 
-            if (response.code === 0 && response.data) {
+            // 直接发送请求，不通过 request 方法以避免 token 检查
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    mobile,
+                    code
+                }),
+                cache: 'no-store'
+            });
+
+            console.log('登录响应状态:', response.status, response.statusText);
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('登录请求失败:', errorText);
+                throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`);
+            }
+
+            const result = await response.json();
+            console.log('登录响应数据:', result);
+
+            if (result.code === 0 && result.data) {
                 // 登录成功，保存token
-                this.setApiKey(response.data);
+                this.setApiKey(result.data);
                 return {
                     code: 0,
                     message: "登录成功",
-                    data: response.data
+                    data: result.data
                 };
             } else {
                 // 登录失败
                 return {
-                    code: response.code || 1,
-                    message: response.message || "登录失败，请检查手机号和验证码"
+                    code: result.code || 1,
+                    message: result.message || "登录失败，请检查手机号和验证码"
                 };
             }
         } catch (error) {
+            console.error('登录异常:', error);
             return {
                 code: -1,
                 message: `登录异常: ${error instanceof Error ? error.message : String(error)}`
             };
         }
     }
+
+
 
     // 获取会话列表
     async listChatSessions() {
@@ -375,8 +413,8 @@ class ApiClient {
                 buffer += chunk;
 
                 // 处理完整的SSE事件
-                const lines = buffer.split('\n\n');
-                buffer = lines.pop() || '';
+                const lines = buffer.split('\n');
+                buffer = lines.pop() || '';  // 最后一行可能不完整，保留到下一次
 
                 for (const line of lines) {
                     if (line.trim() === '') continue;
@@ -384,9 +422,21 @@ class ApiClient {
                     // 解析事件数据
                     if (line.startsWith('data:')) {
                         try {
-                            const data = line.substring(5).trim();
-                            const parsedData = JSON.parse(data);
-                            onChunkReceived(parsedData);
+                            const jsonStr = line.substring(5).trim();
+                            
+                            // 跳过空的或非JSON数据
+                            if (jsonStr === '' || jsonStr === 'true' || jsonStr === 'false') {
+                                continue;
+                            }
+                            
+                            // 尝试解析JSON，如果失败则跳过该数据块
+                            try {
+                                const parsedData = JSON.parse(jsonStr);
+                                onChunkReceived(parsedData);
+                            } catch (parseError: any) {
+                                 console.warn('跳过无效JSON数据:', jsonStr, '错误:', parseError.message);
+                                continue;
+                            }
                         } catch (e) {
                             console.error("解析SSE数据出错", e);
                         }

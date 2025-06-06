@@ -8,20 +8,12 @@ const ChatHistory: React.FC = () => {
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const [isVisible, setIsVisible] = useState(true);
 
-    // 调试日志 - 监听消息变化
+    // 调试日志 - 监听消息变化（仅在开发环境下启用）
     useEffect(() => {
-        console.log("ChatHistory: 消息列表更新", messages.length, messages);
-
-        // 增加更详细的日志
-        if (messages.length === 0) {
-            console.log("ChatHistory: 没有消息显示");
-        } else {
-            console.log("ChatHistory: 消息内容详情:");
-            messages.forEach((msg, idx) => {
-                console.log(`消息 #${idx} (${msg.role}): ${msg.content?.substring(0, 50)}${msg.content?.length > 50 ? '...' : ''}`);
-            });
+        if (process.env.NODE_ENV === 'development') {
+            console.log("ChatHistory: 消息列表更新", messages.length);
         }
-    }, [messages]);
+    }, [messages.length]); // 只监听消息数量变化，避免频繁重渲染
 
     const scrollToBottom = () => {
         // 使用 setTimeout 确保在 DOM 更新后执行滚动
@@ -47,7 +39,7 @@ const ChatHistory: React.FC = () => {
         }
 
         return () => observer.disconnect();
-    }, [messages, isVisible, scrollToBottom]);
+    }, []); // 移除不必要的依赖项，避免重复创建observer
 
     useEffect(() => {
         scrollToBottom();
@@ -76,18 +68,15 @@ const ChatHistory: React.FC = () => {
                 ) : (
                     <>
                         {/* 消息列表 */}
-                        {messages.map((message, index) => {
-                            console.log(`渲染消息 #${index}:`, message);
-                            return (
-                                <ChatMessage
-                                    key={`${index}-${Date.now()}`} // 确保每次都重新渲染
-                                    message={message}
-                                    isTyping={isTyping && index === messages.length - 1 && message.role === 'assistant'}
-                                    reference={message.role === 'assistant' && index === messages.length - 1 ? latestReference || undefined : undefined}
-                                    onDocumentClick={handleDocumentClick}
-                                />
-                            );
-                        })}
+                        {messages.map((message, index) => (
+                            <ChatMessage
+                                key={message.id || `message-${index}`} // 优先使用消息ID，避免不必要的重新渲染
+                                message={message}
+                                isTyping={isTyping && index === messages.length - 1 && message.role === 'assistant'}
+                                reference={message.role === 'assistant' && index === messages.length - 1 ? latestReference || undefined : undefined}
+                                onDocumentClick={handleDocumentClick}
+                            />
+                        ))}
                         {/* API错误提示 */}
                         {apiError && messages.length > 0 && (
                             <div className="api-error-banner">

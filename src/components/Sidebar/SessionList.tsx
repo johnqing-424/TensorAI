@@ -56,17 +56,17 @@ const SessionList: React.FC = () => {
         // 根据会话名称或其他特征判断功能ID
         const name = session.name.toLowerCase();
 
-        // 调整判断逻辑，确保与后端ChatConfig.java中的定义一致
+        // 调整判断逻辑，确保与NavigationBar.tsx中的FunctionIdType一致
         if (name.includes('模型') || name.includes('大模型') || name.includes('知识')) {
-            // 大模型专业知识查询 - 对应后端的product
+            // 大模型专业知识查询
+            return 'model';
+        } else if (name.includes('产品') || name.includes('技术')) {
+            // 产品技术检索
             return 'product';
-        } else if (name.includes('数据') || name.includes('分析')) {
-            // 数据分析 - 对应后端的data
-            return 'data';
         } else if (name.includes('其他') || name.includes('more')) {
             return 'more';
         } else {
-            // 默认为流程制度检索 - 对应后端的process
+            // 默认为流程制度检索
             return 'process';
         }
     };

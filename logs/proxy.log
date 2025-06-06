@@ -1,0 +1,3623 @@
+CORS代理服务器运行在 http://localhost:3001
+代理后端API: http://localhost:8080
+原始请求路径: /login
+处理后API路径: /api/login
+最终请求URL: http://localhost:8080/api/login
+请求方法: POST
+查询字符串: 
+代理请求: POST http://localhost:8080/api/login
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  'content-length': '40',
+  'sec-ch-ua-platform': '"Windows"',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'content-type': 'application/json',
+  'sec-ch-ua-mobile': '?0',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {}
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 08:56:40 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/sessions
+处理后API路径: /api/sessions
+最终请求URL: http://localhost:8080/api/sessions
+请求方法: GET
+查询字符串: 
+代理请求: GET http://localhost:8080/api/sessions
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 08:56:41 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/messages
+处理后API路径: /api/messages
+最终请求URL: http://localhost:8080/api/messages?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+请求方法: GET
+查询字符串: ?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+代理请求: GET http://localhost:8080/api/messages?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {
+  sessionId: 'ec3d1dd6428a11f0844d81792c3ddaf5'
+}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 08:56:41 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /messages/stream
+处理后API路径: /api/messages/stream
+最终请求URL: http://localhost:8080/api/messages/stream
+请求方法: POST
+查询字符串: 
+代理请求: POST http://localhost:8080/api/messages/stream
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  'content-length': '67',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  'sec-ch-ua-mobile': '?0',
+  accept: '*/*',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'text/event-stream' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 08:56:49 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /messages/stream
+处理后API路径: /api/messages/stream
+最终请求URL: http://localhost:8080/api/messages/stream
+请求方法: POST
+查询字符串: 
+代理请求: POST http://localhost:8080/api/messages/stream
+请求头: {
+  host: 'localhost:3001',
+  'user-agent': 'curl/8.5.0',
+  'content-type': 'application/json',
+  accept: 'text/event-stream',
+  token: 'token-zjts',
+  appid: 'process',
+  'content-length': '51'
+}
+查询参数: [Object: null prototype] {}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'text/event-stream' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:00:27 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /sessions
+处理后API路径: /api/sessions
+最终请求URL: http://localhost:8080/api/sessions
+请求方法: POST
+查询字符串: 
+代理请求: POST http://localhost:8080/api/sessions
+请求头: {
+  host: 'localhost:3001',
+  'user-agent': 'curl/8.5.0',
+  accept: '*/*',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  appid: 'process',
+  'content-length': '23'
+}
+查询参数: [Object: null prototype] {}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:01:19 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /sessions
+处理后API路径: /api/sessions
+最终请求URL: http://localhost:8080/api/sessions
+请求方法: GET
+查询字符串: 
+代理请求: GET http://localhost:8080/api/sessions
+请求头: {
+  host: 'localhost:3001',
+  'user-agent': 'curl/8.5.0',
+  accept: '*/*',
+  token: 'token-zjts',
+  appid: 'process'
+}
+查询参数: [Object: null prototype] {}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:01:43 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /messages/stream
+处理后API路径: /api/messages/stream
+最终请求URL: http://localhost:8080/api/messages/stream
+请求方法: POST
+查询字符串: 
+代理请求: POST http://localhost:8080/api/messages/stream
+请求头: {
+  host: 'localhost:3001',
+  'user-agent': 'curl/8.5.0',
+  'content-type': 'application/json',
+  accept: 'text/event-stream',
+  token: 'token-zjts',
+  appid: 'process',
+  'content-length': '67'
+}
+查询参数: [Object: null prototype] {}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'text/event-stream' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:01:57 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /messages/stream
+处理后API路径: /api/messages/stream
+最终请求URL: http://localhost:8080/api/messages/stream
+请求方法: POST
+查询字符串: 
+代理请求: POST http://localhost:8080/api/messages/stream
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  'content-length': '67',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  'sec-ch-ua-mobile': '?0',
+  accept: '*/*',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'text/event-stream' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:02:46 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/messages
+处理后API路径: /api/messages
+最终请求URL: http://localhost:8080/api/messages?sessionId=cc52ee656451429786f4b6b7d247abf3
+请求方法: GET
+查询字符串: ?sessionId=cc52ee656451429786f4b6b7d247abf3
+代理请求: GET http://localhost:8080/api/messages?sessionId=cc52ee656451429786f4b6b7d247abf3
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {
+  sessionId: 'cc52ee656451429786f4b6b7d247abf3'
+}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:04:51 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/messages
+处理后API路径: /api/messages
+最终请求URL: http://localhost:8080/api/messages?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+请求方法: GET
+查询字符串: ?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+代理请求: GET http://localhost:8080/api/messages?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {
+  sessionId: 'ec3d1dd6428a11f0844d81792c3ddaf5'
+}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:04:51 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/sessions
+处理后API路径: /api/sessions
+最终请求URL: http://localhost:8080/api/sessions
+请求方法: GET
+查询字符串: 
+代理请求: GET http://localhost:8080/api/sessions
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:08:38 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/messages
+处理后API路径: /api/messages
+最终请求URL: http://localhost:8080/api/messages?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+请求方法: GET
+查询字符串: ?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+代理请求: GET http://localhost:8080/api/messages?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {
+  sessionId: 'cfdafb3442b411f0844d81792c3ddaf5'
+}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:08:40 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /messages/stream
+处理后API路径: /api/messages/stream
+最终请求URL: http://localhost:8080/api/messages/stream
+请求方法: POST
+查询字符串: 
+代理请求: POST http://localhost:8080/api/messages/stream
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  'content-length': '67',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  'sec-ch-ua-mobile': '?0',
+  accept: '*/*',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'text/event-stream' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:11:35 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/sessions
+处理后API路径: /api/sessions
+最终请求URL: http://localhost:8080/api/sessions
+请求方法: GET
+查询字符串: 
+代理请求: GET http://localhost:8080/api/sessions
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:12:03 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/messages
+处理后API路径: /api/messages
+最终请求URL: http://localhost:8080/api/messages?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+请求方法: GET
+查询字符串: ?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+代理请求: GET http://localhost:8080/api/messages?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {
+  sessionId: 'cfdafb3442b411f0844d81792c3ddaf5'
+}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:12:03 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/sessions
+处理后API路径: /api/sessions
+最终请求URL: http://localhost:8080/api/sessions
+请求方法: GET
+查询字符串: 
+代理请求: GET http://localhost:8080/api/sessions
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'product',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {}
+转发token: token-zjts...
+转发appid: product
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:13:01 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/sessions
+处理后API路径: /api/sessions
+最终请求URL: http://localhost:8080/api/sessions
+请求方法: GET
+查询字符串: 
+代理请求: GET http://localhost:8080/api/sessions
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:13:03 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/sessions
+处理后API路径: /api/sessions
+最终请求URL: http://localhost:8080/api/sessions
+请求方法: GET
+查询字符串: 
+代理请求: GET http://localhost:8080/api/sessions
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'more',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {}
+转发token: token-zjts...
+转发appid: more
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:13:04 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/sessions
+处理后API路径: /api/sessions
+最终请求URL: http://localhost:8080/api/sessions
+请求方法: GET
+查询字符串: 
+代理请求: GET http://localhost:8080/api/sessions
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:13:06 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/messages
+处理后API路径: /api/messages
+最终请求URL: http://localhost:8080/api/messages?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+请求方法: GET
+查询字符串: ?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+代理请求: GET http://localhost:8080/api/messages?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {
+  sessionId: 'cfdafb3442b411f0844d81792c3ddaf5'
+}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:17:01 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/messages
+处理后API路径: /api/messages
+最终请求URL: http://localhost:8080/api/messages?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+请求方法: GET
+查询字符串: ?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+代理请求: GET http://localhost:8080/api/messages?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {
+  sessionId: 'cfdafb3442b411f0844d81792c3ddaf5'
+}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:17:57 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/messages
+处理后API路径: /api/messages
+最终请求URL: http://localhost:8080/api/messages?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+请求方法: GET
+查询字符串: ?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+代理请求: GET http://localhost:8080/api/messages?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {
+  sessionId: 'ec3d1dd6428a11f0844d81792c3ddaf5'
+}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:17:58 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/messages
+处理后API路径: /api/messages
+最终请求URL: http://localhost:8080/api/messages?sessionId=cc52ee656451429786f4b6b7d247abf3
+请求方法: GET
+查询字符串: ?sessionId=cc52ee656451429786f4b6b7d247abf3
+代理请求: GET http://localhost:8080/api/messages?sessionId=cc52ee656451429786f4b6b7d247abf3
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {
+  sessionId: 'cc52ee656451429786f4b6b7d247abf3'
+}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:17:58 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/messages
+处理后API路径: /api/messages
+最终请求URL: http://localhost:8080/api/messages?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+请求方法: GET
+查询字符串: ?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+代理请求: GET http://localhost:8080/api/messages?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {
+  sessionId: 'cfdafb3442b411f0844d81792c3ddaf5'
+}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:18:00 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /messages/stream
+处理后API路径: /api/messages/stream
+最终请求URL: http://localhost:8080/api/messages/stream
+请求方法: POST
+查询字符串: 
+代理请求: POST http://localhost:8080/api/messages/stream
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  'content-length': '87',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  'sec-ch-ua-mobile': '?0',
+  accept: '*/*',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'text/event-stream' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:21:29 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /login
+处理后API路径: /api/login
+最终请求URL: http://localhost:8080/api/login
+请求方法: POST
+查询字符串: 
+代理请求: POST http://localhost:8080/api/login
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  'content-length': '40',
+  'sec-ch-ua-platform': '"Windows"',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'content-type': 'application/json',
+  'sec-ch-ua-mobile': '?0',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {}
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:23:20 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/sessions
+处理后API路径: /api/sessions
+最终请求URL: http://localhost:8080/api/sessions
+请求方法: GET
+查询字符串: 
+代理请求: GET http://localhost:8080/api/sessions
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'model',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-dev',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {}
+转发token: token-dev...
+转发appid: model
+收到响应: 500 Internal Server Error
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:23:39 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/sessions
+处理后API路径: /api/sessions
+最终请求URL: http://localhost:8080/api/sessions
+请求方法: GET
+查询字符串: 
+代理请求: GET http://localhost:8080/api/sessions
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-dev',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {}
+转发token: token-dev...
+转发appid: process
+收到响应: 500 Internal Server Error
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:23:41 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/sessions
+处理后API路径: /api/sessions
+最终请求URL: http://localhost:8080/api/sessions
+请求方法: GET
+查询字符串: 
+代理请求: GET http://localhost:8080/api/sessions
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-dev',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {}
+转发token: token-dev...
+转发appid: process
+收到响应: 500 Internal Server Error
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:23:41 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /login
+处理后API路径: /api/login
+最终请求URL: http://localhost:8080/api/login
+请求方法: POST
+查询字符串: 
+代理请求: POST http://localhost:8080/api/login
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  'content-length': '40',
+  'sec-ch-ua-platform': '"Windows"',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'content-type': 'application/json',
+  'sec-ch-ua-mobile': '?0',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {}
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:26:54 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/sessions
+处理后API路径: /api/sessions
+最终请求URL: http://localhost:8080/api/sessions
+请求方法: GET
+查询字符串: 
+代理请求: GET http://localhost:8080/api/sessions
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:26:56 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/messages
+处理后API路径: /api/messages
+最终请求URL: http://localhost:8080/api/messages?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+请求方法: GET
+查询字符串: ?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+代理请求: GET http://localhost:8080/api/messages?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {
+  sessionId: 'cfdafb3442b411f0844d81792c3ddaf5'
+}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:26:56 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /messages/stream
+处理后API路径: /api/messages/stream
+最终请求URL: http://localhost:8080/api/messages/stream
+请求方法: POST
+查询字符串: 
+代理请求: POST http://localhost:8080/api/messages/stream
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  'content-length': '66',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  'sec-ch-ua-mobile': '?0',
+  accept: '*/*',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'text/event-stream' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:27:08 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/messages
+处理后API路径: /api/messages
+最终请求URL: http://localhost:8080/api/messages?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+请求方法: GET
+查询字符串: ?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+代理请求: GET http://localhost:8080/api/messages?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {
+  sessionId: 'ec3d1dd6428a11f0844d81792c3ddaf5'
+}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:28:44 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/messages
+处理后API路径: /api/messages
+最终请求URL: http://localhost:8080/api/messages?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+请求方法: GET
+查询字符串: ?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+代理请求: GET http://localhost:8080/api/messages?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {
+  sessionId: 'cfdafb3442b411f0844d81792c3ddaf5'
+}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:28:44 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /messages/stream
+处理后API路径: /api/messages/stream
+最终请求URL: http://localhost:8080/api/messages/stream
+请求方法: POST
+查询字符串: 
+代理请求: POST http://localhost:8080/api/messages/stream
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  'content-length': '67',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  'sec-ch-ua-mobile': '?0',
+  accept: '*/*',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'text/event-stream' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:29:04 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/messages
+处理后API路径: /api/messages
+最终请求URL: http://localhost:8080/api/messages?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+请求方法: GET
+查询字符串: ?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+代理请求: GET http://localhost:8080/api/messages?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {
+  sessionId: 'ec3d1dd6428a11f0844d81792c3ddaf5'
+}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:29:06 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/messages
+处理后API路径: /api/messages
+最终请求URL: http://localhost:8080/api/messages?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+请求方法: GET
+查询字符串: ?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+代理请求: GET http://localhost:8080/api/messages?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {
+  sessionId: 'cfdafb3442b411f0844d81792c3ddaf5'
+}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:29:06 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/messages
+处理后API路径: /api/messages
+最终请求URL: http://localhost:8080/api/messages?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+请求方法: GET
+查询字符串: ?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+代理请求: GET http://localhost:8080/api/messages?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {
+  sessionId: 'ec3d1dd6428a11f0844d81792c3ddaf5'
+}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:29:51 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/messages
+处理后API路径: /api/messages
+最终请求URL: http://localhost:8080/api/messages?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+请求方法: GET
+查询字符串: ?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+代理请求: GET http://localhost:8080/api/messages?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {
+  sessionId: 'cfdafb3442b411f0844d81792c3ddaf5'
+}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:29:51 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /messages/stream
+处理后API路径: /api/messages/stream
+最终请求URL: http://localhost:8080/api/messages/stream
+请求方法: POST
+查询字符串: 
+代理请求: POST http://localhost:8080/api/messages/stream
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  'content-length': '85',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  'sec-ch-ua-mobile': '?0',
+  accept: '*/*',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {}
+转发token: token-zjts...
+转发appid: process
+原始请求路径: /api/messages
+处理后API路径: /api/messages
+最终请求URL: http://localhost:8080/api/messages?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+请求方法: GET
+查询字符串: ?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+代理请求: GET http://localhost:8080/api/messages?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {
+  sessionId: 'ec3d1dd6428a11f0844d81792c3ddaf5'
+}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:30:09 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/messages
+处理后API路径: /api/messages
+最终请求URL: http://localhost:8080/api/messages?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+请求方法: GET
+查询字符串: ?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+代理请求: GET http://localhost:8080/api/messages?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {
+  sessionId: 'cfdafb3442b411f0844d81792c3ddaf5'
+}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:30:09 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/messages
+处理后API路径: /api/messages
+最终请求URL: http://localhost:8080/api/messages?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+请求方法: GET
+查询字符串: ?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+代理请求: GET http://localhost:8080/api/messages?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {
+  sessionId: 'ec3d1dd6428a11f0844d81792c3ddaf5'
+}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:30:11 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/messages
+处理后API路径: /api/messages
+最终请求URL: http://localhost:8080/api/messages?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+请求方法: GET
+查询字符串: ?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+代理请求: GET http://localhost:8080/api/messages?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {
+  sessionId: 'cfdafb3442b411f0844d81792c3ddaf5'
+}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:30:11 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /messages/stream
+处理后API路径: /api/messages/stream
+最终请求URL: http://localhost:8080/api/messages/stream
+请求方法: POST
+查询字符串: 
+代理请求: POST http://localhost:8080/api/messages/stream
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  'content-length': '85',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  'sec-ch-ua-mobile': '?0',
+  accept: '*/*',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'text/event-stream' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:30:26 GMT' ],
+  connection: [ 'close' ]
+}
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'text/event-stream' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:30:33 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/messages
+处理后API路径: /api/messages
+最终请求URL: http://localhost:8080/api/messages?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+请求方法: GET
+查询字符串: ?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+代理请求: GET http://localhost:8080/api/messages?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {
+  sessionId: 'ec3d1dd6428a11f0844d81792c3ddaf5'
+}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:30:52 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/messages
+处理后API路径: /api/messages
+最终请求URL: http://localhost:8080/api/messages?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+请求方法: GET
+查询字符串: ?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+代理请求: GET http://localhost:8080/api/messages?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {
+  sessionId: 'cfdafb3442b411f0844d81792c3ddaf5'
+}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:30:52 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/messages
+处理后API路径: /api/messages
+最终请求URL: http://localhost:8080/api/messages?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+请求方法: GET
+查询字符串: ?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+代理请求: GET http://localhost:8080/api/messages?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {
+  sessionId: 'ec3d1dd6428a11f0844d81792c3ddaf5'
+}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:31:03 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/messages
+处理后API路径: /api/messages
+最终请求URL: http://localhost:8080/api/messages?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+请求方法: GET
+查询字符串: ?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+代理请求: GET http://localhost:8080/api/messages?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {
+  sessionId: 'cfdafb3442b411f0844d81792c3ddaf5'
+}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:31:03 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/messages
+处理后API路径: /api/messages
+最终请求URL: http://localhost:8080/api/messages?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+请求方法: GET
+查询字符串: ?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+代理请求: GET http://localhost:8080/api/messages?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {
+  sessionId: 'ec3d1dd6428a11f0844d81792c3ddaf5'
+}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:31:06 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/messages
+处理后API路径: /api/messages
+最终请求URL: http://localhost:8080/api/messages?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+请求方法: GET
+查询字符串: ?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+代理请求: GET http://localhost:8080/api/messages?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {
+  sessionId: 'cfdafb3442b411f0844d81792c3ddaf5'
+}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:31:06 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/messages
+处理后API路径: /api/messages
+最终请求URL: http://localhost:8080/api/messages?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+请求方法: GET
+查询字符串: ?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+代理请求: GET http://localhost:8080/api/messages?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {
+  sessionId: 'ec3d1dd6428a11f0844d81792c3ddaf5'
+}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:31:08 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/messages
+处理后API路径: /api/messages
+最终请求URL: http://localhost:8080/api/messages?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+请求方法: GET
+查询字符串: ?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+代理请求: GET http://localhost:8080/api/messages?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {
+  sessionId: 'cfdafb3442b411f0844d81792c3ddaf5'
+}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:31:08 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/messages
+处理后API路径: /api/messages
+最终请求URL: http://localhost:8080/api/messages?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+请求方法: GET
+查询字符串: ?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+代理请求: GET http://localhost:8080/api/messages?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {
+  sessionId: 'ec3d1dd6428a11f0844d81792c3ddaf5'
+}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:31:10 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/messages
+处理后API路径: /api/messages
+最终请求URL: http://localhost:8080/api/messages?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+请求方法: GET
+查询字符串: ?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+代理请求: GET http://localhost:8080/api/messages?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {
+  sessionId: 'cfdafb3442b411f0844d81792c3ddaf5'
+}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:31:10 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/messages
+处理后API路径: /api/messages
+最终请求URL: http://localhost:8080/api/messages?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+请求方法: GET
+查询字符串: ?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+代理请求: GET http://localhost:8080/api/messages?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {
+  sessionId: 'ec3d1dd6428a11f0844d81792c3ddaf5'
+}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:31:12 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/messages
+处理后API路径: /api/messages
+最终请求URL: http://localhost:8080/api/messages?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+请求方法: GET
+查询字符串: ?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+代理请求: GET http://localhost:8080/api/messages?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {
+  sessionId: 'cfdafb3442b411f0844d81792c3ddaf5'
+}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:31:12 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/messages
+处理后API路径: /api/messages
+最终请求URL: http://localhost:8080/api/messages?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+请求方法: GET
+查询字符串: ?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+代理请求: GET http://localhost:8080/api/messages?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {
+  sessionId: 'ec3d1dd6428a11f0844d81792c3ddaf5'
+}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:31:15 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/messages
+处理后API路径: /api/messages
+最终请求URL: http://localhost:8080/api/messages?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+请求方法: GET
+查询字符串: ?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+代理请求: GET http://localhost:8080/api/messages?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {
+  sessionId: 'cfdafb3442b411f0844d81792c3ddaf5'
+}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:31:15 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/messages
+处理后API路径: /api/messages
+最终请求URL: http://localhost:8080/api/messages?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+请求方法: GET
+查询字符串: ?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+代理请求: GET http://localhost:8080/api/messages?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {
+  sessionId: 'ec3d1dd6428a11f0844d81792c3ddaf5'
+}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:31:16 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/messages
+处理后API路径: /api/messages
+最终请求URL: http://localhost:8080/api/messages?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+请求方法: GET
+查询字符串: ?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+代理请求: GET http://localhost:8080/api/messages?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {
+  sessionId: 'cfdafb3442b411f0844d81792c3ddaf5'
+}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:31:18 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/messages
+处理后API路径: /api/messages
+最终请求URL: http://localhost:8080/api/messages?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+请求方法: GET
+查询字符串: ?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+代理请求: GET http://localhost:8080/api/messages?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {
+  sessionId: 'ec3d1dd6428a11f0844d81792c3ddaf5'
+}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:31:40 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/messages
+处理后API路径: /api/messages
+最终请求URL: http://localhost:8080/api/messages?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+请求方法: GET
+查询字符串: ?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+代理请求: GET http://localhost:8080/api/messages?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {
+  sessionId: 'cfdafb3442b411f0844d81792c3ddaf5'
+}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:31:40 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/messages
+处理后API路径: /api/messages
+最终请求URL: http://localhost:8080/api/messages?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+请求方法: GET
+查询字符串: ?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+代理请求: GET http://localhost:8080/api/messages?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {
+  sessionId: 'ec3d1dd6428a11f0844d81792c3ddaf5'
+}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:31:43 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/messages
+处理后API路径: /api/messages
+最终请求URL: http://localhost:8080/api/messages?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+请求方法: GET
+查询字符串: ?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+代理请求: GET http://localhost:8080/api/messages?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {
+  sessionId: 'cfdafb3442b411f0844d81792c3ddaf5'
+}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:31:45 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/messages
+处理后API路径: /api/messages
+最终请求URL: http://localhost:8080/api/messages?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+请求方法: GET
+查询字符串: ?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+代理请求: GET http://localhost:8080/api/messages?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {
+  sessionId: 'ec3d1dd6428a11f0844d81792c3ddaf5'
+}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:31:50 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/messages
+处理后API路径: /api/messages
+最终请求URL: http://localhost:8080/api/messages?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+请求方法: GET
+查询字符串: ?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+代理请求: GET http://localhost:8080/api/messages?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {
+  sessionId: 'cfdafb3442b411f0844d81792c3ddaf5'
+}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:31:50 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/messages
+处理后API路径: /api/messages
+最终请求URL: http://localhost:8080/api/messages?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+请求方法: GET
+查询字符串: ?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+代理请求: GET http://localhost:8080/api/messages?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {
+  sessionId: 'ec3d1dd6428a11f0844d81792c3ddaf5'
+}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:32:09 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/messages
+处理后API路径: /api/messages
+最终请求URL: http://localhost:8080/api/messages?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+请求方法: GET
+查询字符串: ?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+代理请求: GET http://localhost:8080/api/messages?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {
+  sessionId: 'cfdafb3442b411f0844d81792c3ddaf5'
+}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:32:23 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/messages
+处理后API路径: /api/messages
+最终请求URL: http://localhost:8080/api/messages?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+请求方法: GET
+查询字符串: ?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+代理请求: GET http://localhost:8080/api/messages?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {
+  sessionId: 'ec3d1dd6428a11f0844d81792c3ddaf5'
+}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:32:25 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/messages
+处理后API路径: /api/messages
+最终请求URL: http://localhost:8080/api/messages?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+请求方法: GET
+查询字符串: ?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+代理请求: GET http://localhost:8080/api/messages?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {
+  sessionId: 'cfdafb3442b411f0844d81792c3ddaf5'
+}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:32:25 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/messages
+处理后API路径: /api/messages
+最终请求URL: http://localhost:8080/api/messages?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+请求方法: GET
+查询字符串: ?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+代理请求: GET http://localhost:8080/api/messages?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {
+  sessionId: 'ec3d1dd6428a11f0844d81792c3ddaf5'
+}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:32:27 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/messages
+处理后API路径: /api/messages
+最终请求URL: http://localhost:8080/api/messages?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+请求方法: GET
+查询字符串: ?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+代理请求: GET http://localhost:8080/api/messages?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {
+  sessionId: 'cfdafb3442b411f0844d81792c3ddaf5'
+}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:32:27 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/messages
+处理后API路径: /api/messages
+最终请求URL: http://localhost:8080/api/messages?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+请求方法: GET
+查询字符串: ?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+代理请求: GET http://localhost:8080/api/messages?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {
+  sessionId: 'ec3d1dd6428a11f0844d81792c3ddaf5'
+}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:32:28 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/messages
+处理后API路径: /api/messages
+最终请求URL: http://localhost:8080/api/messages?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+请求方法: GET
+查询字符串: ?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+代理请求: GET http://localhost:8080/api/messages?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {
+  sessionId: 'cfdafb3442b411f0844d81792c3ddaf5'
+}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:32:28 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/messages
+处理后API路径: /api/messages
+最终请求URL: http://localhost:8080/api/messages?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+请求方法: GET
+查询字符串: ?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+代理请求: GET http://localhost:8080/api/messages?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {
+  sessionId: 'ec3d1dd6428a11f0844d81792c3ddaf5'
+}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:32:30 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/messages
+处理后API路径: /api/messages
+最终请求URL: http://localhost:8080/api/messages?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+请求方法: GET
+查询字符串: ?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+代理请求: GET http://localhost:8080/api/messages?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {
+  sessionId: 'cfdafb3442b411f0844d81792c3ddaf5'
+}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:32:30 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/messages
+处理后API路径: /api/messages
+最终请求URL: http://localhost:8080/api/messages?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+请求方法: GET
+查询字符串: ?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+代理请求: GET http://localhost:8080/api/messages?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {
+  sessionId: 'ec3d1dd6428a11f0844d81792c3ddaf5'
+}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:32:31 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/messages
+处理后API路径: /api/messages
+最终请求URL: http://localhost:8080/api/messages?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+请求方法: GET
+查询字符串: ?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+代理请求: GET http://localhost:8080/api/messages?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {
+  sessionId: 'cfdafb3442b411f0844d81792c3ddaf5'
+}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:32:31 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/messages
+处理后API路径: /api/messages
+最终请求URL: http://localhost:8080/api/messages?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+请求方法: GET
+查询字符串: ?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+代理请求: GET http://localhost:8080/api/messages?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {
+  sessionId: 'ec3d1dd6428a11f0844d81792c3ddaf5'
+}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:32:33 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/messages
+处理后API路径: /api/messages
+最终请求URL: http://localhost:8080/api/messages?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+请求方法: GET
+查询字符串: ?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+代理请求: GET http://localhost:8080/api/messages?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {
+  sessionId: 'cfdafb3442b411f0844d81792c3ddaf5'
+}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:32:33 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/messages
+处理后API路径: /api/messages
+最终请求URL: http://localhost:8080/api/messages?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+请求方法: GET
+查询字符串: ?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+代理请求: GET http://localhost:8080/api/messages?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {
+  sessionId: 'ec3d1dd6428a11f0844d81792c3ddaf5'
+}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:32:44 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/messages
+处理后API路径: /api/messages
+最终请求URL: http://localhost:8080/api/messages?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+请求方法: GET
+查询字符串: ?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+代理请求: GET http://localhost:8080/api/messages?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {
+  sessionId: 'cfdafb3442b411f0844d81792c3ddaf5'
+}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:32:44 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/messages
+处理后API路径: /api/messages
+最终请求URL: http://localhost:8080/api/messages?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+请求方法: GET
+查询字符串: ?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+代理请求: GET http://localhost:8080/api/messages?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {
+  sessionId: 'ec3d1dd6428a11f0844d81792c3ddaf5'
+}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:32:46 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/messages
+处理后API路径: /api/messages
+最终请求URL: http://localhost:8080/api/messages?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+请求方法: GET
+查询字符串: ?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+代理请求: GET http://localhost:8080/api/messages?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {
+  sessionId: 'cfdafb3442b411f0844d81792c3ddaf5'
+}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:33:20 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/messages
+处理后API路径: /api/messages
+最终请求URL: http://localhost:8080/api/messages?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+请求方法: GET
+查询字符串: ?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+代理请求: GET http://localhost:8080/api/messages?sessionId=ec3d1dd6428a11f0844d81792c3ddaf5
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {
+  sessionId: 'ec3d1dd6428a11f0844d81792c3ddaf5'
+}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:33:27 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/sessions
+处理后API路径: /api/sessions
+最终请求URL: http://localhost:8080/api/sessions
+请求方法: GET
+查询字符串: 
+代理请求: GET http://localhost:8080/api/sessions
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'model',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {}
+转发token: token-zjts...
+转发appid: model
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:33:36 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/messages
+处理后API路径: /api/messages
+最终请求URL: http://localhost:8080/api/messages?sessionId=108d1c356cc74a7cb488c9d81a6a38d8
+请求方法: GET
+查询字符串: ?sessionId=108d1c356cc74a7cb488c9d81a6a38d8
+代理请求: GET http://localhost:8080/api/messages?sessionId=108d1c356cc74a7cb488c9d81a6a38d8
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'model',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {
+  sessionId: '108d1c356cc74a7cb488c9d81a6a38d8'
+}
+转发token: token-zjts...
+转发appid: model
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:33:38 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/messages
+处理后API路径: /api/messages
+最终请求URL: http://localhost:8080/api/messages?sessionId=8c98cfe06df9420186d0db7559ccc73c
+请求方法: GET
+查询字符串: ?sessionId=8c98cfe06df9420186d0db7559ccc73c
+代理请求: GET http://localhost:8080/api/messages?sessionId=8c98cfe06df9420186d0db7559ccc73c
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'model',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {
+  sessionId: '8c98cfe06df9420186d0db7559ccc73c'
+}
+转发token: token-zjts...
+转发appid: model
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:33:42 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/sessions
+处理后API路径: /api/sessions
+最终请求URL: http://localhost:8080/api/sessions
+请求方法: GET
+查询字符串: 
+代理请求: GET http://localhost:8080/api/sessions
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:33:56 GMT' ],
+  connection: [ 'close' ]
+}
+原始请求路径: /api/messages
+处理后API路径: /api/messages
+最终请求URL: http://localhost:8080/api/messages?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+请求方法: GET
+查询字符串: ?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+代理请求: GET http://localhost:8080/api/messages?sessionId=cfdafb3442b411f0844d81792c3ddaf5
+请求头: {
+  host: 'localhost:3001',
+  connection: 'keep-alive',
+  appid: 'process',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-ch-ua': '"Microsoft Edge";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+  accept: 'application/json',
+  'content-type': 'application/json',
+  token: 'token-zjts',
+  origin: 'http://192.168.1.131:3000',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://192.168.1.131:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'zh-CN,zh;q=0.9'
+}
+查询参数: [Object: null prototype] {
+  sessionId: 'cfdafb3442b411f0844d81792c3ddaf5'
+}
+转发token: token-zjts...
+转发appid: process
+收到响应: 200 OK
+响应头: [Object: null prototype] {
+  vary: [
+    'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+  ],
+  'content-type': [ 'application/json' ],
+  'transfer-encoding': [ 'chunked' ],
+  date: [ 'Fri, 06 Jun 2025 09:33:58 GMT' ],
+  connection: [ 'close' ]
+}

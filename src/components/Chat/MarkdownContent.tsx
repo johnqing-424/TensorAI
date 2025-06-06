@@ -179,18 +179,19 @@ const MarkdownContent: React.FC<MarkdownContentProps> = ({
 
     // 添加调试日志
     useEffect(() => {
-        if (!content) {
-            console.warn("MarkdownContent: 内容为空");
-        } else if (content.length < 50) {
-            console.log("MarkdownContent: 内容 =", content);
-        } else {
-            console.log("MarkdownContent: 内容长度 =", content.length);
-        }
+        if (process.env.NODE_ENV === 'development') {
+            // 只在内容确实应该存在但为空时才警告（避免流式加载时的正常空状态）
+            if (!content && content !== undefined && content !== '') {
+                console.warn("MarkdownContent: 内容异常为空");
+            } else if (content && content.length > 1000) {
+                console.log("MarkdownContent: 长内容渲染，长度 =", content.length);
+            }
 
-        if (reference && reference.chunks && reference.chunks.length > 0) {
-            console.log("MarkdownContent: 包含引用，共", reference.chunks.length, "个片段");
+            if (reference && reference.chunks && reference.chunks.length > 0) {
+                console.log("MarkdownContent: 包含引用，共", reference.chunks.length, "个片段");
+            }
         }
-    }, [content, reference]);
+    }, [content?.length, reference?.chunks?.length]); // 只监听长度变化，减少重渲染
 
     // 提前声明所需的文档ID，即使reference可能为空
     const documentIds = useMemo(() => {

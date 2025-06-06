@@ -205,6 +205,10 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
         try {
             const response = await apiClient.listChatSessions();
+            console.log('API响应完整结构:', response);
+            console.log('响应code:', response.code);
+            console.log('响应data:', response.data);
+            console.log('响应message:', response.message);
 
             if (response.code === 0 && response.data) {
                 console.log('获取会话列表成功:', response.data);
@@ -238,8 +242,11 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     setMessages([]);
                 }
             } else {
-                console.error('获取会话列表失败:', response.message);
-                setApiError(`获取会话列表失败: ${response.message}`);
+                console.error('获取会话列表失败 - 条件不满足');
+                console.error('response.code !== 0:', response.code !== 0);
+                console.error('!response.data:', !response.data);
+                console.error('response.message:', response.message);
+                setApiError(`获取会话列表失败: ${response.message || '响应格式错误'}`);
                 setChatSessions([]);
             }
         } catch (error) {
@@ -414,12 +421,14 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
         // 创建用户消息，根据ChatMessage类型定义
         const userMessage: ChatMessage = {
+            id: `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
             role: 'user',
             content: message
         };
 
         // 创建临时助手消息，根据ChatMessage类型定义
         const tempAssistantMessage: ChatMessage = {
+            id: `assistant-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
             role: 'assistant',
             content: '...',
             isLoading: true
@@ -453,24 +462,29 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 message,
                 (partialResponse: ApiResponse<StreamChatResponse>) => {
                     if (partialResponse && partialResponse.data) {
-                        responseText = partialResponse.data.answer || '';
+                        const newContent = partialResponse.data.answer || '';
+                        
+                        // 只有当内容真正发生变化时才更新
+                        if (newContent !== responseText) {
+                            responseText = newContent;
 
-                        // 更新UI中的消息
-                        setMessages(currentMessages => {
-                            const newMessages = [...currentMessages];
-                            const lastMessageIndex = newMessages.length - 1;
+                            // 更新UI中的消息
+                            setMessages(currentMessages => {
+                                const newMessages = [...currentMessages];
+                                const lastMessageIndex = newMessages.length - 1;
 
-                            // 确保最后一条消息是助手消息
-                            if (lastMessageIndex >= 0 && newMessages[lastMessageIndex].role === 'assistant') {
-                                newMessages[lastMessageIndex] = {
-                                    ...newMessages[lastMessageIndex],
-                                    content: responseText,
-                                    isLoading: true
-                                };
-                            }
+                                // 确保最后一条消息是助手消息
+                                if (lastMessageIndex >= 0 && newMessages[lastMessageIndex].role === 'assistant') {
+                                    newMessages[lastMessageIndex] = {
+                                        ...newMessages[lastMessageIndex],
+                                        content: responseText,
+                                        isLoading: true
+                                    };
+                                }
 
-                            return newMessages;
-                        });
+                                return newMessages;
+                            });
+                        }
                     }
 
                     // 如果有引用信息，记录它
@@ -634,79 +648,17 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             // 获取聊天助手
             fetchChatAssistants();
 
-            // 尝试从本地存储恢复选中的助手ID
-            const savedAssistantId = localStorage.getItem('ragflow_selected_assistant');
-            if (savedAssistantId) {
-                // 尝试恢复固定功能菜单的选中状态
-                if (['process', 'product', 'model', 'more'].includes(savedAssistantId)) {
-                    // 设置API客户端的appid
-                    console.log(`恢复API客户端appid: ${savedAssistantId}`);
-                    apiClient.setAppId(savedAssistantId);
+            // 清除之前的选择状态，让用户重新选择应用
+            console.log('用户已登录，清除之前的应用选择状态');
+            setSelectedChatAssistant(null);
+            setChatSessions([]);
+            setCurrentSession(null);
+            setMessages([]);
 
-                    // 创建一个临时助手对象
-                    const tempAssistant: ChatAssistant = {
-                        id: savedAssistantId,
-                        name: savedAssistantId === 'process' ? '流程制度检索' :
-                            savedAssistantId === 'product' ? '产品技术检索' :
-                                savedAssistantId === 'model' ? '大模型知识检索' : '更多',
-                        description: '',
-                        create_date: new Date().toISOString(),
-                        update_date: new Date().toISOString(),
-                        avatar: '',
-                        datasets: [],
-                        llm: {
-                            model_name: '',
-                            temperature: 0.7,
-                            top_p: 0.9,
-                            presence_penalty: 0,
-                            frequency_penalty: 0
-                        },
-                        prompt: {
-                            similarity_threshold: 0.7,
-                            keywords_similarity_weight: 0.5,
-                            top_n: 3,
-                            variables: [],
-                            rerank_model: '',
-                            empty_response: '',
-                            opener: '',
-                            prompt: ''
-                        },
-                        status: 'active'
-                    };
-
-                    console.log('从本地存储恢复选中的固定功能:', tempAssistant.name);
-                    setSelectedChatAssistant(tempAssistant);
-
-                    // 获取会话列表，使用恢复的appid
-                    fetchChatSessions();
-                } else {
-                    // 在下一个tick执行，确保chatAssistants已经加载
-                    setTimeout(() => {
-                        // 查找匹配的助手
-                        const assistant = chatAssistants.find(a => a.id === savedAssistantId);
-                        if (assistant) {
-                            console.log('从本地存储恢复选中的助手:', assistant.name);
-                            setSelectedChatAssistant(assistant);
-
-                            // 获取会话列表
-                            fetchChatSessions();
-                        }
-                    }, 100);
-                }
-
-                // 尝试恢复选中的会话
-                const savedSessionId = localStorage.getItem('ragflow_selected_session');
-                if (savedSessionId) {
-                    // 延迟执行，确保会话列表已加载
-                    setTimeout(() => {
-                        const session = chatSessions.find(s => s.id === savedSessionId);
-                        if (session) {
-                            console.log('从本地存储恢复选中的会话:', session.name);
-                            selectSession(session);
-                        }
-                    }, 200);
-                }
-            }
+            // 清除本地存储的选择状态
+            localStorage.removeItem('ragflow_selected_assistant');
+            localStorage.removeItem('ragflow_selected_session');
+            localStorage.removeItem('ragflow_appid');
         }
     }, [isAuthenticated]);
 
@@ -719,11 +671,10 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         if (assistant) {
             localStorage.setItem('ragflow_selected_assistant', assistant.id);
 
-            // 设置API客户端的appid
-            if (['process', 'product', 'model', 'more'].includes(assistant.id)) {
-                console.log(`设置API客户端appid: ${assistant.id}`);
-                apiClient.setAppId(assistant.id);
-            }
+            // 设置API客户端的appid，对应后端的多应用配置
+            // 使用assistant.id作为appid，确保与NavigationBar.tsx中的FunctionIdType一致
+            console.log(`设置API客户端appid: ${assistant.id}`);
+            apiClient.setAppId(assistant.id);
 
             // 重新获取会话列表，使用新的appid
             fetchChatSessions();
@@ -738,6 +689,13 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     // 选择会话
     const selectSession = (session: ChatSession) => {
         console.log('选择会话:', session);
+        
+        // 如果是同一个会话，避免重复选择
+        if (currentSession && currentSession.id === session.id) {
+            console.log('会话已选中，跳过重复选择');
+            return;
+        }
+        
         setCurrentSession(session);
 
         // 保存选中的会话ID到本地存储

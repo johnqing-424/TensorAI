@@ -98,7 +98,8 @@ const ChatLayout: React.FC = () => {
         currentSession,
         selectChatAssistant,
         chatSessions,
-        selectSession
+        selectSession,
+        sendMessage
     } = useChatContext();
 
     const navigate = useNavigate();
@@ -305,7 +306,26 @@ const ChatLayout: React.FC = () => {
     // 处理发送消息
     const handleSendMessage = (message: string) => {
         console.log("发送消息:", message);
-        // 这里可以添加发送消息的逻辑
+
+        // 获取当前选中的功能ID
+        const appId = selectedChatAssistant?.id || 'process';
+
+        // 如果当前没有会话，先创建一个新会话
+        if (!currentSession) {
+            createChatSession(functionTitles[appId as FunctionIdType] || '新对话').then(newSession => {
+                if (newSession) {
+                    // 导航到新会话的URL
+                    navigate(`/${appId}/${newSession.id}`);
+                    // 发送消息
+                    setTimeout(() => {
+                        sendMessage(message);
+                    }, 100); // 短暂延迟确保会话已创建
+                }
+            });
+        } else {
+            // 已有会话，直接发送消息
+            sendMessage(message);
+        }
     };
 
     // 渲染欢迎页面
@@ -610,4 +630,4 @@ const ChatLayout: React.FC = () => {
     );
 };
 
-export default ChatLayout; 
+export default ChatLayout;

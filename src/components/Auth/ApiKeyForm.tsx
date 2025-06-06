@@ -62,24 +62,17 @@ const styles = {
     }
 };
 
-// 预设token样例 - 确保使用横线而不是下划线
-const SAMPLE_TOKENS = [
-    'token-zjts',
-    'token-bruce',
-    'token-yuehan'
-];
-
-// 有效token列表 - 用于验证token是否有效
-const VALID_TOKENS = [
-    'token-zjts',
-    'token-bruce',
-    'token-yuehan',
-    'token-local'
+// 预设验证码样例
+const SAMPLE_CODES = [
+    '123456',
+    '888888',
+    '000000'
 ];
 
 const ApiKeyForm: React.FC<ApiKeyFormProps> = ({ onSuccess }) => {
     const { setApiKey } = useChatContext();
-    const [token, setToken] = useState('');
+    const [code, setCode] = useState('');
+    const [phone, setPhone] = useState('');
     const [error, setError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [debugInfo, setDebugInfo] = useState<string | null>(null);
@@ -124,38 +117,39 @@ const ApiKeyForm: React.FC<ApiKeyFormProps> = ({ onSuccess }) => {
         }
     };
 
-    // 验证token格式和有效性
-    const validateToken = (tokenValue: string): { valid: boolean; token: string; message?: string } => {
-        let finalToken = tokenValue;
-
-        // 如果使用了下划线而不是横线，自动修正
-        if (tokenValue.includes('_')) {
-            finalToken = tokenValue.replace(/_/g, '-');
-            return {
-                valid: true,
-                token: finalToken,
-                message: `检测到token格式问题，已自动将 "_" 修正为 "-": ${finalToken}`
-            };
-        }
-
-        // 验证token是否在有效列表中
-        if (!VALID_TOKENS.includes(finalToken)) {
-            return {
-                valid: false,
-                token: finalToken,
-                message: `无效的访问令牌: ${finalToken}`
-            };
-        }
-
-        return { valid: true, token: finalToken };
+    // 验证验证码格式
+    const validateCode = (code: string): boolean => {
+        const codeRegex = /^\d{6}$/;
+        return codeRegex.test(code);
     };
 
-    // 处理直接登录
+    // 验证手机号格式
+    const validatePhone = (phone: string): boolean => {
+        const phoneRegex = /^1[3-9]\d{9}$/;
+        return phoneRegex.test(phone);
+    };
+
+    // 处理登录
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!token) {
-            setError('请输入访问令牌');
+        if (!phone) {
+            setError('请输入手机号');
+            return;
+        }
+
+        if (!validatePhone(phone)) {
+            setError('请输入正确的手机号格式');
+            return;
+        }
+
+        if (!code) {
+            setError('请输入验证码');
+            return;
+        }
+
+        if (!validateCode(code)) {
+            setError('请输入6位数字验证码');
             return;
         }
 
@@ -163,89 +157,92 @@ const ApiKeyForm: React.FC<ApiKeyFormProps> = ({ onSuccess }) => {
         setError(null);
 
         try {
-            // 验证并自动修正token格式
-            const validation = validateToken(token);
+            console.log('开始登录流程:', { phone, code });
+            setDebugInfo(`开始登录 - 手机号: ${phone}, 验证码: ${code}`);
 
-            if (!validation.valid) {
-                setError(validation.message || '无效的访问令牌');
-                setIsLoading(false);
-                return;
-            }
+            // 调用登录API
+            const response = await apiClient.login(phone, code);
+            console.log('登录API响应:', response);
 
-            const validatedToken = validation.token;
-            if (validation.message) {
-                setDebugInfo(validation.message);
-            }
+            if (response.code === 0 && response.data) {
+                // 登录成功，设置API密钥
+                setApiKey(response.data);
+                console.log('登录成功:', { phone, token: response.data });
+                setDebugInfo(`登录成功 - 手机号: ${phone}, 获得token: ${response.data}`);
 
-            // 直接设置API密钥
-            apiClient.setApiKey(validatedToken);
-            setApiKey(validatedToken);
-            console.log('直接使用token登录:', validatedToken);
-            setDebugInfo(`已设置访问令牌: ${validatedToken}`);
-
-            // 如果token被修正了，更新显示
-            if (validatedToken !== token) {
-                setToken(validatedToken);
-            }
-
-            // 登录成功，调用回调
-            if (onSuccess) {
-                onSuccess();
+                // 登录成功，调用回调
+                if (onSuccess) {
+                    onSuccess();
+                }
+            } else {
+                console.error('登录失败:', response);
+                setError(response.message || '登录失败，请检查手机号和验证码');
+                setDebugInfo(`登录失败 - code: ${response.code}, message: ${response.message}`);
             }
         } catch (error) {
-            setError('设置访问令牌失败');
-            console.error('设置访问令牌失败:', error);
+            console.error('登录异常:', error);
+            setError('登录失败，请重试');
+            setDebugInfo(`登录异常: ${error instanceof Error ? error.message : String(error)}`);
         } finally {
             setIsLoading(false);
         }
     };
 
-    // 处理token输入变化，自动格式化
-    const handleTokenChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const newValue = e.target.value;
-        setToken(newValue);
-
-        // 如果检测到下划线，显示警告但不立即更正
-        if (newValue.includes('_')) {
-            setDebugInfo('注意: token格式应使用横线"-"而不是下划线"_"');
+    // 处理验证码输入变化
+    const handleCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const newValue = e.target.value.replace(/\D/g, ''); // 只允许数字
+        if (newValue.length <= 6) {
+            setCode(newValue);
         }
     };
 
     return (
         <div className="auth-form-container">
             <h2>欢迎使用TensorAI</h2>
-            <p className="auth-description">请输入您的访问令牌</p>
+            <p className="auth-description">请输入您的手机号和验证码</p>
 
             {error && <div className="error-message">{error}</div>}
 
             <form className="auth-form" onSubmit={handleSubmit}>
                 <div className="form-group">
-                    <label htmlFor="token">访问令牌</label>
+                    <label htmlFor="phone">手机号</label>
                     <input
-                        id="token"
-                        type="text"
-                        value={token}
-                        onChange={handleTokenChange}
-                        placeholder="例如：token-zjts"
+                        id="phone"
+                        type="tel"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        placeholder="请输入11位手机号"
                         disabled={isLoading}
+                        maxLength={11}
                     />
-                    {token.includes('_') && (
-                        <div style={styles.warningText}>
-                            请使用横线"-"而不是下划线"_"
-                        </div>
-                    )}
+                </div>
+
+                <div className="form-group">
+                    <label htmlFor="code">验证码</label>
+                    <input
+                        id="code"
+                        type="text"
+                        value={code}
+                        onChange={handleCodeChange}
+                        placeholder="请输入6位验证码"
+                        disabled={isLoading}
+                        maxLength={6}
+                    />
+                    <div style={styles.noteText}>
+                        测试验证码: {SAMPLE_CODES.join(', ')}
+                    </div>
                 </div>
 
                 <button
                     type="submit"
                     className="submit-button"
-                    disabled={isLoading}
+                    disabled={isLoading || !phone || !code}
                 >
                     {isLoading ? '登录中...' : '登录'}
                 </button>
 
                 <p className="info-text">
-                    * 如需访问令牌，请联系管理员
+                    * 需要同时提供正确的手机号和验证码才能登录
                 </p>
             </form>
 
@@ -331,19 +328,19 @@ const ApiKeyForm: React.FC<ApiKeyFormProps> = ({ onSuccess }) => {
                     </div>
 
                     <div style={{ marginTop: '15px' }}>
-                        <p style={{ fontSize: '14px', marginBottom: '5px' }}>选择预设令牌:</p>
+                        <p style={{ fontSize: '14px', marginBottom: '5px' }}>选择预设验证码:</p>
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
-                            {SAMPLE_TOKENS.map((sampleToken, index) => (
+                            {SAMPLE_CODES.map((sampleCode, index) => (
                                 <button
                                     key={index}
                                     type="button"
                                     onClick={() => {
-                                        setToken(sampleToken);
-                                        setDebugInfo(`已选择预设令牌: ${sampleToken}`);
+                                        setCode(sampleCode);
+                                        setDebugInfo(`已选择预设验证码: ${sampleCode}`);
                                     }}
                                     style={{ padding: '4px 8px', background: '#4caf50', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}
                                 >
-                                    {sampleToken}
+                                    {sampleCode}
                                 </button>
                             ))}
                         </div>

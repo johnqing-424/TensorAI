@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useChatContext } from '../../context/ChatContext';
 import ChatHistory from './ChatHistory';
+import { useNavigate } from 'react-router-dom';
+import { FunctionIdType } from '../Layout/NavigationBar';
 
 // 输入框组件接口
 interface ChatInputBoxProps {
@@ -66,13 +68,36 @@ const ChatInputBox: React.FC<ChatInputBoxProps> = ({
 };
 
 const ChatPage: React.FC = () => {
-    const { currentSession } = useChatContext();
+    const { currentSession, selectedChatAssistant } = useChatContext();
     const [inputValue, setInputValue] = useState<string>('');
+    const navigate = useNavigate();
 
     // 处理发送消息
     const handleSendMessage = (message: string) => {
         console.log("发送消息:", message);
-        // 这里可以添加发送消息的逻辑
+
+        const { sendMessage, currentSession, createChatSession } = useChatContext();
+        const navigate = useNavigate();
+
+        // 获取当前选中的功能ID或默认功能ID
+        const appId = selectedChatAssistant?.id || 'process';
+
+        // 如果当前没有会话，先创建一个新会话
+        if (!currentSession) {
+            createChatSession('新对话').then(newSession => {
+                if (newSession) {
+                    // 导航到新会话的URL
+                    navigate(`/${appId}/${newSession.id}`);
+                    // 发送消息
+                    setTimeout(() => {
+                        sendMessage(message);
+                    }, 100); // 短暂延迟确保会话已创建
+                }
+            });
+        } else {
+            // 已有会话，直接发送消息
+            sendMessage(message);
+        }
     };
 
     return (
@@ -96,4 +121,4 @@ const ChatPage: React.FC = () => {
     );
 };
 
-export default ChatPage; 
+export default ChatPage;

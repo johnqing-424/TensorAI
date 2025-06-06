@@ -3,7 +3,7 @@ import { ApiResponse, ChatCompletion, ChatCompletionRequest, ChatSession, Stream
 class ApiClient {
     private baseUrl: string;
     private token: string | null;
-    private appid: string | null = 'process'; // 默认应用ID
+    private appid: string | null = null; // 默认应用ID，登录后由用户选择
     private maxRetries: number = 2;
     private retryDelay: number = 2000;
     private connectionTimeout: number = 30000; // 从20秒增加到30秒
@@ -31,7 +31,7 @@ class ApiClient {
         }
 
         this.token = localStorage.getItem('ragflow_api_key');
-        this.appid = localStorage.getItem('ragflow_appid') || 'process';
+        this.appid = localStorage.getItem('ragflow_appid');
 
         // 监听网络状态变化
         window.addEventListener('online', this.handleNetworkChange);
@@ -131,12 +131,17 @@ class ApiClient {
         const url = `${this.baseUrl}${endpoint}`;
         const requestHeaders: HeadersInit = {
             'token': this.token, // 使用token头
-            'appid': this.appid || 'process', // 添加appid头
             // 添加CORS相关请求头
             'Origin': window.location.origin,
             'Access-Control-Request-Method': method,
+            'Access-Control-Request-Headers': 'Content-Type, token, appid',
             ...headers,
         };
+
+        // 只有当appid存在时才添加到请求头
+        if (this.appid) {
+            requestHeaders['appid'] = this.appid;
+        }
 
         if (body && !headers['Content-Type']) {
             requestHeaders['Content-Type'] = 'application/json';
@@ -295,18 +300,14 @@ class ApiClient {
                 url = `${successServer}/api/login`;
             }
 
-            console.log(`发送登录请求: POST ${url}`);
+            console.log(`发送登录请求: {url: '${url}', mobile: '${mobile}', code: '${code}'}`);
             const response = await fetch(url, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'appid': this.appid || 'process',
-                    // 添加CORS相关请求头
-                    'Origin': window.location.origin,
-                    'Access-Control-Request-Method': 'POST',
+                    'appid': this.appid || ''
                 },
                 body: JSON.stringify({ mobile, code }),
-                // 重要：允许跨域请求携带凭证
                 mode: 'cors',
                 credentials: 'same-origin',
                 cache: 'no-store'
@@ -467,7 +468,6 @@ class ApiClient {
                     headers: {
                         'Content-Type': 'application/json',
                         'token': this.token || '',
-                        'appid': this.appid || 'process',
                         'Accept': 'text/event-stream',
                         // 添加Keep-Alive标头以维持连接
                         'Connection': 'keep-alive',
@@ -475,6 +475,7 @@ class ApiClient {
                         // 添加CORS相关请求头
                         'Origin': window.location.origin,
                         'Access-Control-Request-Method': 'POST',
+                        ...(this.appid ? { 'appid': this.appid } : {})
                     },
                     body: JSON.stringify({ sessionId, message }),
                     signal: controller.signal,
@@ -547,9 +548,40 @@ class ApiClient {
                         if (line.startsWith('data:')) {
                             try {
                                 const jsonStr = line.slice(5).trim();
-                                const chunk = JSON.parse(jsonStr);
+                                
+                                // 跳过非JSON数据（如 "data: true"）
+                                if (jsonStr === 'true' || jsonStr === 'false' || jsonStr === '') {
+                                    continue;
+                                }
+                                
+                                // 尝试解析JSON，如果失败则跳过
+                                let chunk;
+                                try {
+                                    chunk = JSON.parse(jsonStr);
+                                } catch (parseError) {
+                                    console.warn('跳过无效JSON数据:', jsonStr);
+                                    continue;
+                                }
+                                
+                                console.log('解析到数据块:', chunk);
 
-                                onChunkReceived(chunk);
+                                // 检查是否是包含answer的数据块
+                                if (chunk && chunk.answer) {
+                                    // 直接使用RAGFlow返回的数据格式
+                                    const streamResponse = {
+                                        answer: chunk.answer,
+                                        reference: chunk.reference || null,
+                                        session_id: chunk.session_id
+                                    };
+                                    
+                                    onChunkReceived({
+                                        code: 0,
+                                        data: streamResponse
+                                    });
+                                } else if (chunk && chunk.code !== undefined) {
+                                    // 处理包含code的响应
+                                    onChunkReceived(chunk);
+                                }
 
                                 // 判断是否是完成事件
                                 if (line.includes('event:complete')) {
@@ -558,7 +590,7 @@ class ApiClient {
                                     return;
                                 }
                             } catch (e) {
-                                console.error('解析数据块错误:', e);
+                                console.error('解析数据块错误:', e, '原始数据:', line);
                             }
                         } else if (line.startsWith('event:complete')) {
                             // 处理完成事件
@@ -718,10 +750,11 @@ class ApiClient {
 
             const headers = {
                 'Content-Type': 'application/json',
-                'appid': this.appid || 'process',
                 // 添加CORS相关请求头
                 'Origin': window.location.origin,
                 'Access-Control-Request-Method': 'POST',
+                'Access-Control-Request-Headers': 'Content-Type, appid',
+                ...(this.appid ? { 'appid': this.appid } : {})
             };
 
             console.log('发送验证码请求:', url);
@@ -775,7 +808,7 @@ class ApiClient {
                 method: 'HEAD',
                 headers: {
                     'Cache-Control': 'no-cache',
-                    'appid': this.appid || 'process'
+                    ...(this.appid ? { 'appid': this.appid } : {})
                 }
             });
 

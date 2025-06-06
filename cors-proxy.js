@@ -12,7 +12,7 @@ const BACKEND_API_URL = 'http://localhost:8080'; // 修改为实际的Tensor-AI�
 app.use(cors({
     origin: ['http://localhost:3000', 'http://192.168.1.131:3000'], // 显式列出允许的源
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'token', 'appid', 'Cache-Control'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'token', 'appid', 'Cache-Control', 'Accept', 'Connection', 'Keep-Alive'],
     exposedHeaders: ['Content-Type', 'Authorization', 'token', 'appid'],
     credentials: true // 支持凭据
 }));
@@ -34,10 +34,18 @@ app.use('/proxy', async (req, res) => {
         const queryParams = new URLSearchParams(req.query).toString();
         const queryString = queryParams ? `?${queryParams}` : '';
 
-        // 处理特殊情况：登录不需要在路径前加/api
-        const finalUrl = targetPath === '/login'
-            ? `${BACKEND_API_URL}${targetPath}${queryString}`
-            : `${BACKEND_API_URL}/api${targetPath}${queryString}`;
+        // 检查前端请求路径是否已经包含 /api 前缀
+        const apiPath = targetPath.startsWith('/api') ? targetPath : `/api${targetPath}`;
+        const finalUrl = `${BACKEND_API_URL}${apiPath}${queryString}`;
+
+        // 记录详细的请求信息，便于调试
+        console.log(`原始请求路径: ${targetPath}`);
+        console.log(`处理后API路径: ${apiPath}`);
+        console.log(`最终请求URL: ${finalUrl}`);
+        console.log(`请求方法: ${req.method}`);
+        console.log(`查询字符串: ${queryString}`);
+
+
 
         console.log(`代理请求: ${req.method} ${finalUrl}`);
         console.log('请求头:', req.headers);
@@ -45,8 +53,8 @@ app.use('/proxy', async (req, res) => {
 
         // 构建请求头 - 复制所有重要头部
         const headers = {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
+            'Content-Type': req.headers['content-type'] || 'application/json',
+            'Accept': req.headers['accept'] || 'application/json',
             'Cache-Control': 'no-cache'
         };
 
@@ -96,4 +104,4 @@ const PORT = 3001;
 app.listen(PORT, () => {
     console.log(`CORS代理服务器运行在 http://localhost:${PORT}`);
     console.log(`代理后端API: ${BACKEND_API_URL}`);
-}); 
+});

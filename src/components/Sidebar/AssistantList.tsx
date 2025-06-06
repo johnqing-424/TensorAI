@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useChatContext } from '../../context/ChatContext';
 import { useNavigate } from 'react-router-dom';
 import { ChatAssistant } from '../../types';
@@ -12,15 +12,16 @@ const AssistantList: React.FC = () => {
         fetchChatAssistants,
         loadingChatAssistants,
         logout,
-        toggleSidebar
+        toggleSidebar,
+        createChatSession
     } = useChatContext();
 
-    // 定义四个固定功能（原聊天助手）
+    // 定义固定的聊天助手列表，对应后端的多应用配置
     const fixedAssistants: ChatAssistant[] = [
         {
-            id: 'process',
+            id: 'process',  // 修改为与NavigationBar.tsx中定义的FunctionIdType一致
             name: '流程制度检索',
-            description: '检索公司内部流程制度文档',
+            description: '专业的流程制度查询助手',
             create_date: new Date().toISOString(),
             update_date: new Date().toISOString(),
             avatar: '',
@@ -45,9 +46,9 @@ const AssistantList: React.FC = () => {
             status: 'active'
         },
         {
-            id: 'product',
+            id: 'product',  // 修改为与NavigationBar.tsx中定义的FunctionIdType一致
             name: '产品技术检索',
-            description: '检索产品和技术相关文档',
+            description: '产品技术问题解答助手',
             create_date: new Date().toISOString(),
             update_date: new Date().toISOString(),
             avatar: '',
@@ -72,9 +73,9 @@ const AssistantList: React.FC = () => {
             status: 'active'
         },
         {
-            id: 'model',
+            id: 'model',  // 修改为与NavigationBar.tsx中定义的FunctionIdType一致
             name: '大模型知识检索',
-            description: '检索大模型相关知识和文档',
+            description: '大语言模型相关知识助手',
             create_date: new Date().toISOString(),
             update_date: new Date().toISOString(),
             avatar: '',
@@ -166,6 +167,37 @@ const AssistantList: React.FC = () => {
         navigate('/');
     };
 
+    // 处理创建新会话
+    const handleCreateNewChat = () => {
+        const appId = selectedChatAssistant?.id || 'process';
+
+        createChatSession('新对话').then(newSession => {
+            if (newSession) {
+                // 导航到新会话的URL
+                navigate(`/${appId}/${newSession.id}`);
+            }
+        });
+    };
+
+    // 添加全局键盘快捷键处理
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            // 检测Ctrl+N快捷键
+            if (e.ctrlKey && e.key === 'n') {
+                e.preventDefault(); // 阻止浏览器默认行为
+                handleCreateNewChat();
+            }
+        };
+
+        // 添加全局键盘事件监听
+        document.addEventListener('keydown', handleKeyDown);
+
+        // 组件卸载时移除事件监听
+        return () => {
+            document.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [selectedChatAssistant]);
+
     return (
         <div className="sidebar-content">
             <div className="sidebar-header">
@@ -181,7 +213,7 @@ const AssistantList: React.FC = () => {
             </div>
 
             <div className="sidebar-actions">
-                <button className="new-chat-btn">
+                <button className="new-chat-btn" onClick={handleCreateNewChat}>
                     <span className="icon">+</span>
                     <span className="text">新对话</span>
                     <span className="shortcut">Ctrl+N</span>
@@ -387,4 +419,4 @@ const AssistantList: React.FC = () => {
     );
 };
 
-export default AssistantList; 
+export default AssistantList;

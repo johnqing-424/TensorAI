@@ -10,6 +10,7 @@ export interface ApiResponse<T> {
 
 // 聊天消息类型
 export interface ChatMessage {
+    id?: string;          // 消息唯一标识符
     role: "user" | "assistant" | "system";
     content: string;
     isLoading?: boolean;  // 标记消息是否处于加载状态
