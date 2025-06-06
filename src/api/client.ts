@@ -548,12 +548,12 @@ class ApiClient {
                         if (line.startsWith('data:')) {
                             try {
                                 const jsonStr = line.slice(5).trim();
-                                
+
                                 // 跳过非JSON数据（如 "data: true"）
                                 if (jsonStr === 'true' || jsonStr === 'false' || jsonStr === '') {
                                     continue;
                                 }
-                                
+
                                 // 尝试解析JSON，如果失败则跳过
                                 let chunk;
                                 try {
@@ -562,7 +562,7 @@ class ApiClient {
                                     console.warn('跳过无效JSON数据:', jsonStr);
                                     continue;
                                 }
-                                
+
                                 console.log('解析到数据块:', chunk);
 
                                 // 检查是否是包含answer的数据块
@@ -573,7 +573,7 @@ class ApiClient {
                                         reference: chunk.reference || null,
                                         session_id: chunk.session_id
                                     };
-                                    
+
                                     onChunkReceived({
                                         code: 0,
                                         data: streamResponse

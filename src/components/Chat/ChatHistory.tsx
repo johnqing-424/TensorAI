@@ -19,7 +19,12 @@ const ChatHistory: React.FC = () => {
         // 使用 setTimeout 确保在 DOM 更新后执行滚动
         setTimeout(() => {
             if (messagesEndRef.current) {
-                messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+                // 使用页面滚动而不是容器内滚动
+                const elementTop = messagesEndRef.current.offsetTop;
+                window.scrollTo({
+                    top: elementTop,
+                    behavior: 'smooth'
+                });
             }
         }, 100);
     };

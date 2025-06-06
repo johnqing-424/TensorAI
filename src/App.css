@@ -14,6 +14,9 @@ body {
   color: #333;
   background-color: #f5f7fa;
   line-height: 1.5;
+  /* 确保页面可以正常滚动 */
+  overflow-y: auto;
+  height: auto;
 }
 
 .app-container {
@@ -21,6 +24,8 @@ body {
   width: 100vw;
   display: flex;
   flex-direction: column;
+  /* 允许容器高度自动增长，不限制在100vh */
+  height: auto;
 }
 
 /* 身份验证表单 */
@@ -110,35 +115,8 @@ body {
   color: #777;
 }
 
-/* 聊天布局 */
-.chat-layout {
-  display: flex;
-  height: 100vh;
-  overflow: hidden;
-}
-
-.sidebar {
-  width: 300px;
-  min-width: 300px;
-  background-color: #f8f9fa;
-  border-right: 1px solid #e6e6e6;
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  transition: all 0.3s ease;
-  opacity: 1;
-  visibility: visible;
-}
-
-.chat-container {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  background-color: #fff;
-  position: relative;
-  transition: margin-left 0.3s ease;
-}
+/* 聊天布局 - 移除冲突样式，使用ChatLayout.css中的定义 */
+/* .chat-layout, .sidebar, .chat-container 样式已移至 ChatLayout.css */
 
 /* 展开侧边栏按钮 */
 .show-sidebar-button {
@@ -526,7 +504,8 @@ body {
   flex: 1;
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 80px);
+  /* 移除高度限制，允许内容自然撑开 */
+  min-height: calc(100vh - 80px);
 }
 
 .no-assistant-selected {
@@ -895,123 +874,7 @@ body {
   cursor: pointer;
 }
 
-/* 兼容旧样式 */
-.message {
-  display: flex;
-  margin-bottom: 24px;
-}
 
-.user-message {
-  justify-content: flex-end;
-}
-
-.assistant-message {
-  justify-content: flex-start;
-}
-
-.error-message .message-content {
-  background-color: rgba(244, 67, 54, 0.1) !important;
-  border-left: 4px solid #f44336;
-  color: #d32f2f !important;
-}
-
-.loading-message .message-content {
-  background-color: rgba(255, 152, 0, 0.1) !important;
-  border-left: 4px solid #ff9800;
-  color: #e65100 !important;
-  font-style: italic;
-}
-
-.message-avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background-color: #f0f0f0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.user-message .message-avatar {
-  margin-left: 12px;
-  order: 2;
-}
-
-.assistant-message .message-avatar {
-  margin-right: 12px;
-  order: 0;
-}
-
-.message-content {
-  max-width: 70%;
-  padding: 12px 16px;
-  border-radius: 18px;
-  word-wrap: break-word;
-  line-height: 1.5;
-  font-size: 15px;
-}
-
-.user-message .message-content {
-  background-color: #4a90e2;
-  color: white;
-  border-bottom-right-radius: 4px;
-  order: 1;
-}
-
-.assistant-message .message-content {
-  background-color: #f0f0f0;
-  color: #333;
-  border-bottom-left-radius: 4px;
-  order: 1;
-}
-
-.typing-indicator {
-  display: inline-flex;
-  align-items: center;
-  margin-left: 4px;
-}
-
-.dot {
-  width: 6px;
-  height: 6px;
-  background-color: #777;
-  border-radius: 50%;
-  margin: 0 2px;
-  animation: pulse 1.5s infinite;
-}
-
-.dot:nth-child(2) {
-  animation-delay: 0.2s;
-}
-
-.dot:nth-child(3) {
-  animation-delay: 0.4s;
-}
-
-@keyframes pulse {
-  0% {
-    opacity: 0.3;
-    transform: scale(0.8);
-  }
-
-  50% {
-    opacity: 1;
-    transform: scale(1.2);
-  }
-
-  100% {
-    opacity: 0.3;
-    transform: scale(0.8);
-  }
-}
-
-.reference-marker {
-  font-size: 12px;
-  color: #4a90e2;
-  margin-left: 2px;
-  cursor: pointer;
-}
 
 /* 参考面板 */
 .reference-panel {
@@ -1173,9 +1036,7 @@ body {
     height: 60vh;
   }
 
-  .message-content {
-    max-width: 80%;
-  }
+  /* 移除冲突的message-content样式，使用ChatMessage.css中的样式 */
 }
 
 /* API错误提示条 */

@@ -423,18 +423,18 @@ class ApiClient {
                     if (line.startsWith('data:')) {
                         try {
                             const jsonStr = line.substring(5).trim();
-                            
+
                             // 跳过空的或非JSON数据
                             if (jsonStr === '' || jsonStr === 'true' || jsonStr === 'false') {
                                 continue;
                             }
-                            
+
                             // 尝试解析JSON，如果失败则跳过该数据块
                             try {
                                 const parsedData = JSON.parse(jsonStr);
                                 onChunkReceived(parsedData);
                             } catch (parseError: any) {
-                                 console.warn('跳过无效JSON数据:', jsonStr, '错误:', parseError.message);
+                                console.warn('跳过无效JSON数据:', jsonStr, '错误:', parseError.message);
                                 continue;
                             }
                         } catch (e) {

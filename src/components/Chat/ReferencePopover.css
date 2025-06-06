@@ -1,0 +1,226 @@
+/* 引用弹窗样式 */
+.reference-popover-overlay {
+    z-index: 1050;
+}
+
+.reference-popover-content {
+    max-width: 400px;
+    min-width: 280px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+}
+
+/* 弹窗头部 */
+.reference-popover-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.reference-title {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.reference-close-btn {
+    background: none;
+    border: none;
+    font-size: 16px;
+    color: #666;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    margin-left: 8px;
+    flex-shrink: 0;
+}
+
+.reference-close-btn:hover {
+    background-color: #e9ecef;
+    color: #333;
+}
+
+/* 弹窗主体 */
+.reference-popover-body {
+    padding: 16px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+/* 文本内容 */
+.reference-popover-text {
+    line-height: 1.5;
+}
+
+.reference-content {
+    margin: 0;
+    font-size: 14px;
+    color: #555;
+    word-break: break-word;
+    white-space: pre-wrap;
+}
+
+/* 图片内容 */
+.reference-popover-image {
+    text-align: center;
+}
+
+.reference-image {
+    max-width: 100%;
+    max-height: 200px;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* 弹窗底部 */
+.reference-popover-footer {
+    padding: 12px 16px;
+    background-color: #f8f9fa;
+    border-top: 1px solid #e9ecef;
+    text-align: right;
+}
+
+.reference-document-link {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.reference-document-link:hover {
+    background-color: #0056b3;
+    transform: translateY(-1px);
+}
+
+.reference-document-link:active {
+    transform: translateY(0);
+}
+
+/* 触发器样式 */
+.reference-popover-trigger {
+    position: absolute;
+    z-index: 1;
+}
+
+.reference-marker {
+    font-size: 16px;
+    cursor: pointer;
+}
+
+/* 滚动条样式 */
+.reference-popover-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.reference-popover-body::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.reference-popover-body::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+.reference-popover-body::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* 深色主题适配 */
+@media (prefers-color-scheme: dark) {
+    .reference-popover-content {
+        background: #2d2d2d;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .reference-popover-header,
+    .reference-popover-footer {
+        background-color: #3a3a3a;
+        border-color: #4a4a4a;
+    }
+
+    .reference-title {
+        color: #e0e0e0;
+    }
+
+    .reference-close-btn {
+        color: #ccc;
+    }
+
+    .reference-close-btn:hover {
+        background-color: #4a4a4a;
+        color: #fff;
+    }
+
+    .reference-content {
+        color: #ccc;
+    }
+
+    .reference-document-link {
+        background-color: #0d6efd;
+    }
+
+    .reference-document-link:hover {
+        background-color: #0b5ed7;
+    }
+
+    .reference-popover-body::-webkit-scrollbar-track {
+        background: #3a3a3a;
+    }
+
+    .reference-popover-body::-webkit-scrollbar-thumb {
+        background: #666;
+    }
+
+    .reference-popover-body::-webkit-scrollbar-thumb:hover {
+        background: #777;
+    }
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .reference-popover-content {
+        max-width: 320px;
+        min-width: 240px;
+    }
+
+    .reference-popover-header,
+    .reference-popover-footer {
+        padding: 10px 12px;
+    }
+
+    .reference-popover-body {
+        padding: 12px;
+        max-height: 250px;
+    }
+
+    .reference-title {
+        font-size: 13px;
+    }
+
+    .reference-content {
+        font-size: 13px;
+    }
+
+    .reference-document-link {
+        padding: 5px 10px;
+        font-size: 11px;
+    }
+}

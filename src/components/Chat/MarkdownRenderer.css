@@ -1,0 +1,363 @@
+/* Markdown渲染器基础样式 */
+.markdown-renderer {
+    line-height: 1.6;
+    color: #333;
+    font-size: 14px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+.markdown-renderer--empty {
+    padding: 12px 0;
+    text-align: center;
+}
+
+.markdown-renderer--streaming {
+    position: relative;
+}
+
+.markdown-renderer--streaming::after {
+    content: '|';
+    animation: blink 1s infinite;
+    color: #666;
+    margin-left: 2px;
+}
+
+.markdown-renderer--has-references {
+    /* 为包含引用的内容添加特殊样式 */
+}
+
+/* 空内容样式 */
+.empty-content-text {
+    color: #999;
+    font-style: italic;
+    font-size: 13px;
+}
+
+/* 引用标记样式 */
+.markdown-reference-marker {
+    display: inline-block;
+    font-size: 14px;
+    cursor: pointer;
+    margin: 0 2px;
+    padding: 2px 4px;
+    border-radius: 3px;
+    background-color: rgba(0, 123, 255, 0.1);
+    border: 1px solid rgba(0, 123, 255, 0.3);
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.markdown-reference-marker:hover {
+    background-color: rgba(0, 123, 255, 0.2);
+    border-color: rgba(0, 123, 255, 0.5);
+    transform: scale(1.1);
+}
+
+.markdown-reference-marker:focus {
+    outline: 2px solid #007bff;
+    outline-offset: 2px;
+}
+
+/* 光标标记样式 */
+.markdown-cursor-marker {
+    display: inline-block;
+    width: 2px;
+    height: 1em;
+    background-color: #007bff;
+    animation: blink 1s infinite;
+    margin: 0 1px;
+}
+
+/* 内联代码样式 */
+.markdown-inline-code {
+    background-color: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 3px;
+    padding: 2px 4px;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 0.9em;
+    color: #e83e8c;
+}
+
+/* Markdown基础元素样式 */
+.markdown-renderer h1,
+.markdown-renderer h2,
+.markdown-renderer h3,
+.markdown-renderer h4,
+.markdown-renderer h5,
+.markdown-renderer h6 {
+    margin-top: 24px;
+    margin-bottom: 16px;
+    font-weight: 600;
+    line-height: 1.25;
+}
+
+.markdown-renderer h1 {
+    font-size: 2em;
+    border-bottom: 1px solid #eaecef;
+    padding-bottom: 0.3em;
+}
+
+.markdown-renderer h2 {
+    font-size: 1.5em;
+    border-bottom: 1px solid #eaecef;
+    padding-bottom: 0.3em;
+}
+
+.markdown-renderer h3 {
+    font-size: 1.25em;
+}
+
+.markdown-renderer h4 {
+    font-size: 1em;
+}
+
+.markdown-renderer h5 {
+    font-size: 0.875em;
+}
+
+.markdown-renderer h6 {
+    font-size: 0.85em;
+    color: #6a737d;
+}
+
+.markdown-renderer p {
+    margin-top: 0;
+    margin-bottom: 16px;
+}
+
+.markdown-renderer blockquote {
+    padding: 0 1em;
+    color: #6a737d;
+    border-left: 0.25em solid #dfe2e5;
+    margin: 0 0 16px 0;
+}
+
+.markdown-renderer blockquote> :first-child {
+    margin-top: 0;
+}
+
+.markdown-renderer blockquote> :last-child {
+    margin-bottom: 0;
+}
+
+.markdown-renderer ul,
+.markdown-renderer ol {
+    padding-left: 2em;
+    margin-top: 0;
+    margin-bottom: 16px;
+}
+
+.markdown-renderer li {
+    margin-bottom: 0.25em;
+}
+
+.markdown-renderer li>p {
+    margin-bottom: 0.5em;
+}
+
+.markdown-renderer table {
+    border-spacing: 0;
+    border-collapse: collapse;
+    margin-top: 0;
+    margin-bottom: 16px;
+    width: 100%;
+    overflow: auto;
+}
+
+.markdown-renderer table th,
+.markdown-renderer table td {
+    padding: 6px 13px;
+    border: 1px solid #dfe2e5;
+}
+
+.markdown-renderer table th {
+    font-weight: 600;
+    background-color: #f6f8fa;
+}
+
+.markdown-renderer table tr:nth-child(2n) {
+    background-color: #f6f8fa;
+}
+
+.markdown-renderer hr {
+    height: 0.25em;
+    padding: 0;
+    margin: 24px 0;
+    background-color: #e1e4e8;
+    border: 0;
+}
+
+/* 代码块样式 */
+.markdown-renderer pre {
+    padding: 16px;
+    overflow: auto;
+    font-size: 85%;
+    line-height: 1.45;
+    background-color: #f6f8fa;
+    border-radius: 6px;
+    margin-bottom: 16px;
+}
+
+.markdown-renderer pre code {
+    display: inline;
+    max-width: auto;
+    padding: 0;
+    margin: 0;
+    overflow: visible;
+    line-height: inherit;
+    word-wrap: normal;
+    background-color: transparent;
+    border: 0;
+}
+
+/* 链接样式 */
+.markdown-renderer a {
+    color: #0366d6;
+    text-decoration: none;
+}
+
+.markdown-renderer a:hover {
+    text-decoration: underline;
+}
+
+/* 图片样式 */
+.markdown-renderer img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* 数学公式样式 */
+.markdown-renderer .katex {
+    font-size: 1em;
+}
+
+.markdown-renderer .katex-display {
+    margin: 1em 0;
+    text-align: center;
+}
+
+/* 动画定义 */
+@keyframes blink {
+
+    0%,
+    50% {
+        opacity: 1;
+    }
+
+    51%,
+    100% {
+        opacity: 0;
+    }
+}
+
+/* 深色主题适配 */
+@media (prefers-color-scheme: dark) {
+    .markdown-renderer {
+        color: #e1e4e8;
+    }
+
+    .markdown-renderer h1,
+    .markdown-renderer h2 {
+        border-bottom-color: #30363d;
+    }
+
+    .markdown-renderer h6 {
+        color: #8b949e;
+    }
+
+    .markdown-renderer blockquote {
+        color: #8b949e;
+        border-left-color: #30363d;
+    }
+
+    .markdown-renderer table th,
+    .markdown-renderer table td {
+        border-color: #30363d;
+    }
+
+    .markdown-renderer table th {
+        background-color: #21262d;
+    }
+
+    .markdown-renderer table tr:nth-child(2n) {
+        background-color: #161b22;
+    }
+
+    .markdown-renderer hr {
+        background-color: #30363d;
+    }
+
+    .markdown-renderer pre {
+        background-color: #161b22;
+    }
+
+    .markdown-renderer a {
+        color: #58a6ff;
+    }
+
+    .markdown-inline-code {
+        background-color: #161b22;
+        border-color: #30363d;
+        color: #f85149;
+    }
+
+    .markdown-reference-marker {
+        background-color: rgba(88, 166, 255, 0.1);
+        border-color: rgba(88, 166, 255, 0.3);
+    }
+
+    .markdown-reference-marker:hover {
+        background-color: rgba(88, 166, 255, 0.2);
+        border-color: rgba(88, 166, 255, 0.5);
+    }
+
+    .markdown-cursor-marker {
+        background-color: #58a6ff;
+    }
+
+    .empty-content-text {
+        color: #8b949e;
+    }
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .markdown-renderer {
+        font-size: 13px;
+    }
+
+    .markdown-renderer h1 {
+        font-size: 1.8em;
+    }
+
+    .markdown-renderer h2 {
+        font-size: 1.4em;
+    }
+
+    .markdown-renderer h3 {
+        font-size: 1.2em;
+    }
+
+    .markdown-renderer ul,
+    .markdown-renderer ol {
+        padding-left: 1.5em;
+    }
+
+    .markdown-renderer table {
+        font-size: 12px;
+    }
+
+    .markdown-renderer table th,
+    .markdown-renderer table td {
+        padding: 4px 8px;
+    }
+
+    .markdown-renderer pre {
+        padding: 12px;
+        font-size: 12px;
+    }
+}

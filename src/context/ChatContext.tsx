@@ -463,7 +463,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 (partialResponse: ApiResponse<StreamChatResponse>) => {
                     if (partialResponse && partialResponse.data) {
                         const newContent = partialResponse.data.answer || '';
-                        
+
                         // 只有当内容真正发生变化时才更新
                         if (newContent !== responseText) {
                             responseText = newContent;
@@ -689,13 +689,13 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     // 选择会话
     const selectSession = (session: ChatSession) => {
         console.log('选择会话:', session);
-        
+
         // 如果是同一个会话，避免重复选择
         if (currentSession && currentSession.id === session.id) {
             console.log('会话已选中，跳过重复选择');
             return;
         }
-        
+
         setCurrentSession(session);
 
         // 保存选中的会话ID到本地存储

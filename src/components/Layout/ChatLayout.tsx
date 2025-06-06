@@ -118,6 +118,33 @@ const ChatLayout: React.FC = () => {
     const [moreDeepThinking, setMoreDeepThinking] = useState<boolean>(false);
     const [chatDeepThinking, setChatDeepThinking] = useState<boolean>(false);
 
+    // 滑动到底部按钮状态
+    const [showScrollToBottom, setShowScrollToBottom] = useState<boolean>(false);
+
+    // 监听页面滚动，控制滑动到底部按钮的显示
+    useEffect(() => {
+        const handleScroll = () => {
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            const windowHeight = window.innerHeight;
+            const documentHeight = document.documentElement.scrollHeight;
+
+            // 当距离底部超过200px时显示按钮
+            const isNearBottom = scrollTop + windowHeight >= documentHeight - 200;
+            setShowScrollToBottom(!isNearBottom);
+        };
+
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
+
+    // 滑动到底部功能
+    const scrollToBottom = () => {
+        window.scrollTo({
+            top: document.documentElement.scrollHeight,
+            behavior: 'smooth'
+        });
+    };
+
     // 问候语动画状态
     const [greetingAnimated, setGreetingAnimated] = useState<boolean>(false);
 
@@ -543,8 +570,9 @@ const ChatLayout: React.FC = () => {
 
         return (
             <div className="page chat-page" style={{ width: '100%', boxSizing: 'border-box' }}>
-                <div className="chat-header">
-                    <h2>{currentSession?.name || '新对话'}</h2>
+                {/* 右上角固定的session name显示区域 */}
+                <div className="session-name-display">
+                    {currentSession?.name || '新对话'}
                 </div>
 
                 <ChatHistory />
@@ -626,6 +654,19 @@ const ChatLayout: React.FC = () => {
                     <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
             </div>
+
+            {/* 滑动到底部按钮 */}
+            {showScrollToBottom && (
+                <button
+                    className="scroll-to-bottom-btn"
+                    onClick={scrollToBottom}
+                    title="滑动到底部"
+                >
+                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                </button>
+            )}
         </div>
     );
 };

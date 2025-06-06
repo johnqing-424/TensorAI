@@ -2,26 +2,33 @@
 
 .chat-layout {
     display: flex;
-    height: 100vh;
+    min-height: 100vh;
     width: 100%;
     position: relative;
-    background-color: #fff;
+    background-color: #ffffff;
+    /* 允许布局高度自动增长，支持页面滚动 */
+    height: auto;
+    /* 防止出现左右滚动条 */
+    overflow-x: hidden;
+    box-sizing: border-box;
 }
 
 .sidebar {
     width: 225px;
     height: 100vh;
-    background-color: #f7f7f8;
-    transition: width 0.3s ease;
+    background-color: #f8f9fa;
+    border-right: 1px solid #e8e8e8;
+    transition: margin-left 0.3s ease;
     flex-shrink: 0;
     display: flex;
     flex-direction: column;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
-    z-index: 100;
-    border-right: 1px solid #eaebee;
+    z-index: 10;
     position: fixed;
     left: 0;
     top: 0;
+    /* 侧边栏固定在左侧，不随页面滚动 */
+    overflow-y: auto;
 }
 
 .sidebar-collapsed {
@@ -29,11 +36,13 @@
     overflow: hidden;
     flex-shrink: 0;
     border-right: 1px solid #e0e0e0;
+    /* 折叠时完全隐藏侧边栏 */
 }
 
 .sidebar-collapsed+.chat-container {
-    margin-left: 60px;
-    width: calc(100% - 60px);
+    margin-left: 0;
+    width: 100%;
+    /* 侧边栏折叠时，聊天容器占据全宽 */
 }
 
 .sidebar-inner {
@@ -66,6 +75,12 @@
     width: calc(100% - 225px);
     min-height: 100vh;
     position: relative;
+    max-width: none;
+    /* 移除高度限制，让内容自然撑开页面高度 */
+    height: auto;
+    /* 防止出现左右滚动条 */
+    overflow-x: hidden;
+    box-sizing: border-box;
 }
 
 .chat-header {
@@ -85,13 +100,14 @@
 
 .chat-header h2 {
     margin: 0;
-    padding: 0;
+    padding: 0 20px;
     font-size: 18px;
     font-weight: 500;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     line-height: 60px;
+    /* 侧边栏展开时，h2靠近侧边栏右上角 */
 }
 
 /* 当侧边栏收缩时，调整header左边距以避免与展开按钮重叠 */
@@ -101,6 +117,7 @@
 
 .sidebar-collapsed+.chat-container .chat-header h2 {
     padding-left: 50px;
+    /* 侧边栏收缩时，h2位于展开按钮右边 */
 }
 
 /* 当侧边栏展开时，确保header紧贴sidebar右侧 */
@@ -111,11 +128,15 @@
 .chat-messages {
     flex: 1;
     width: 100%;
-    max-width: 100%;
+    max-width: none;
     box-sizing: border-box;
-    margin: 0 auto;
+    margin: 0;
     display: flex;
     flex-direction: column;
+    padding: 0 20px 120px 20px;
+    /* 底部留出120px空间给输入框，避免内容被遮挡 */
+    min-height: auto;
+    overflow: visible;
 }
 
 .chat-input-container {
@@ -124,13 +145,65 @@
     border-radius: 12px;
     padding: 12px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-    margin: 16px auto;
+    margin: 0;
     max-width: 768px;
-    width: 100%;
-    position: sticky;
+    width: calc(100% - 40px);
+    position: fixed;
     bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
     box-sizing: border-box;
-    z-index: 10;
+    z-index: 100;
+}
+
+/* 滑动到底部按钮 - 位于聊天框上方 */
+.scroll-to-bottom-btn {
+    position: fixed;
+    bottom: 140px;
+    right: 20px;
+    background: #fff;
+    border: 1px solid #eaebee;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    color: #666;
+    z-index: 99;
+    transition: all 0.2s ease;
+}
+
+.scroll-to-bottom-btn:hover {
+    background: #f5f5f5;
+    transform: scale(1.05);
+}
+
+.scroll-to-bottom-btn.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* 右上角session name显示区域 */
+.session-name-display {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #fff;
+    border: 1px solid #eaebee;
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #333;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    z-index: 50;
+    max-width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .chat-input {
@@ -243,57 +316,7 @@
     background: #f5f5f5;
 }
 
-.chat-message {
-    display: flex;
-    margin-bottom: 24px;
-    max-width: 100%;
-    width: 100%;
-    box-sizing: border-box;
-    overflow-wrap: break-word;
-    word-wrap: break-word;
-    justify-content: flex-start;
-}
-
-.chat-message.user {
-    justify-content: flex-end;
-}
-
-.message-avatar {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background-color: #3370ff;
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 16px;
-    margin: 0 12px;
-    flex-shrink: 0;
-}
-
-.message-avatar.user {
-    background-color: #10b981;
-}
-
-.message-content {
-    background-color: #f9f9fa;
-    padding: 12px 16px;
-    border-radius: 8px;
-    font-size: 14px;
-    line-height: 1.6;
-    max-width: 80%;
-    width: auto;
-    color: #333;
-    overflow-wrap: break-word;
-    word-wrap: break-word;
-    word-break: break-word;
-    overflow: hidden;
-}
-
-.chat-message.user .message-content {
-    background-color: #e5f1ff;
-}
+/* 移除冲突的聊天消息样式，使用ChatMessage.css中的样式 */
 
 .api-error-banner {
     position: fixed;
@@ -689,9 +712,7 @@
         width: 100%;
     }
 
-    .message-content {
-        max-width: 85%;
-    }
+    /* 移除冲突的message-content样式，使用ChatMessage.css中的样式 */
 
     .feature-card {
         width: 100%;
