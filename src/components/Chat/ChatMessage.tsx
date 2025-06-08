@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect, useState } from 'react';
 import { ChatMessage as MessageType, Reference, ReferenceChunk } from '../../types';
 import MessageContent from './MessageContent';
 import './ChatMessage.css';
@@ -16,7 +16,24 @@ interface ChatMessageProps {
 const ChatMessage: React.FC<ChatMessageProps> = React.memo((
     { message, isTyping = false, reference, onDocumentClick }
 ) => {
-    const { role, isLoading, isError } = message;
+    const { role, isLoading, isError, content, timestamp, completed } = message;
+    // 使用本地state强制更新组件
+    const [forceUpdateCounter, setForceUpdateCounter] = useState(0);
+
+    // 添加调试日志，监控流式消息更新
+    useEffect(() => {
+        if (role === 'assistant' && (isLoading || timestamp)) {
+            console.log(
+                `消息更新 [${completed ? '完成' : '加载中'}]: ${content.substring(0, 15)}... (${timestamp})`,
+                message
+            );
+
+            // 流式消息内容更新时强制组件重新渲染
+            if (isLoading) {
+                setForceUpdateCounter(prev => prev + 1);
+            }
+        }
+    }, [role, content, isLoading, timestamp, completed]);
 
     // 消息容器的CSS类名
     const messageClassName = useMemo(() => {
@@ -39,12 +56,18 @@ const ChatMessage: React.FC<ChatMessageProps> = React.memo((
         if (isTyping) {
             classes.push('chat-message--typing');
         }
+        if (completed) {
+            classes.push('chat-message--completed');
+        }
 
         return classes.join(' ');
-    }, [role, isLoading, isError, isTyping]);
+    }, [role, isLoading, isError, isTyping, completed]);
+
+    // 使用唯一key确保组件正确更新
+    const uniqueKey = `${message.id}-${timestamp || Date.now()}-${forceUpdateCounter}`;
 
     return (
-        <div className={messageClassName}>
+        <div className={messageClassName} key={uniqueKey}>
             <div className="chat-message-body">
                 <MessageContent
                     message={message}

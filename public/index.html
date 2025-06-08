@@ -23,6 +23,16 @@
       Learn how to configure a non-root public URL by running `npm run build`.
     -->
   <title>TensorAI - 智能助手</title>
+  <script>
+    // 禁用Service Worker注册，避免相关错误
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(function (registrations) {
+        for (let registration of registrations) {
+          registration.unregister();
+        }
+      });
+    }
+  </script>
 </head>
 
 <body>

@@ -21,11 +21,12 @@ body {
 
 .app-container {
   min-height: 100vh;
-  width: 100vw;
+  width: 100%;
   display: flex;
   flex-direction: column;
   /* 允许容器高度自动增长，不限制在100vh */
   height: auto;
+  overflow-x: hidden;
 }
 
 /* 身份验证表单 */
@@ -66,7 +67,8 @@ body {
   color: #444;
 }
 
-.form-group input {
+/* 限制form-group input样式的作用范围，避免影响聊天输入框 */
+.form-group input:not(.chat-input) {
   width: 100%;
   padding: 12px 16px;
   border: 1px solid #ddd;
@@ -75,7 +77,7 @@ body {
   transition: border-color 0.3s;
 }
 
-.form-group input:focus {
+.form-group input:not(.chat-input):focus {
   outline: none;
   border-color: #4a90e2;
   box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
@@ -957,37 +959,7 @@ body {
   font-style: normal;
 }
 
-/* 聊天输入 */
-.chat-input-container {
-  padding: 16px 20px;
-  border-top: 1px solid #e6e6e6;
-  background-color: #fff;
-}
-
-.chat-form {
-  display: flex;
-  align-items: flex-end;
-  gap: 12px;
-}
-
-.chat-input {
-  flex: 1;
-  padding: 12px 16px;
-  border: 1px solid #ddd;
-  border-radius: 24px;
-  resize: none;
-  max-height: 150px;
-  font-family: inherit;
-  font-size: 15px;
-  line-height: 1.5;
-  transition: border-color 0.3s, box-shadow 0.3s;
-}
-
-.chat-input:focus {
-  outline: none;
-  border-color: #4a90e2;
-  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
-}
+/* 聊天输入样式已移至ChatLayout.css，避免样式冲突 */
 
 .send-button {
   width: 40px;
@@ -1158,7 +1130,7 @@ body {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100vw;
+  width: 100%;
   height: 100vh;
   display: flex;
   flex-direction: column;
@@ -1270,12 +1242,13 @@ body {
 
 /* 应用加载样式 */
 .app-loading {
-  width: 100vw;
+  width: 100%;
   height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
   background-color: #f5f7fa;
+  overflow-x: hidden;
 }
 
 .code-group {

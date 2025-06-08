@@ -4,6 +4,8 @@ const cors = require('cors');
 const fetch = require('node-fetch');
 const app = express();
 const url = require('url');
+const path = require('path');
+const fs = require('fs');
 
 // 后端API地址
 const BACKEND_API_URL = 'http://localhost:8080'; // 修改为实际的Tensor-AI后端地址
@@ -23,6 +25,14 @@ app.use(express.json());
 // 测试端点
 app.get('/test', (req, res) => {
     res.json({ status: 'CORS代理服务器运行中' });
+});
+
+// 处理Service Worker请求
+app.get('/sw.js', (req, res) => {
+    console.log('收到Service Worker请求');
+    // 返回一个空的Service Worker文件或者自定义的Service Worker
+    res.setHeader('Content-Type', 'application/javascript');
+    res.send('// 这是一个空的Service Worker');
 });
 
 // 通用代理中间件
@@ -45,8 +55,6 @@ app.use('/proxy', async (req, res) => {
         console.log(`请求方法: ${req.method}`);
         console.log(`查询字符串: ${queryString}`);
 
-
-
         console.log(`代理请求: ${req.method} ${finalUrl}`);
         console.log('请求头:', req.headers);
         console.log('查询参数:', req.query);
@@ -62,6 +70,13 @@ app.use('/proxy', async (req, res) => {
         if (req.headers.token) {
             headers.token = req.headers.token;
             console.log('转发token:', req.headers.token.substring(0, 10) + '...');
+        } else {
+            // 尝试使用默认token（如果有）
+            const defaultToken = 'token-john'; // 使用默认token
+            if (defaultToken) {
+                headers.token = defaultToken;
+                console.log('使用默认token:', defaultToken);
+            }
         }
 
         if (req.headers.appid) {
@@ -86,11 +101,50 @@ app.use('/proxy', async (req, res) => {
             res.setHeader('Cache-Control', 'no-cache');
             res.setHeader('Connection', 'keep-alive');
 
-            // 流式传输数据
-            response.body.pipe(res);
+            console.log('检测到流式响应，设置SSE头');
+
+            // 创建一个转换器，用于处理和记录流数据
+            const { Transform } = require('stream');
+            const logTransform = new Transform({
+                transform(chunk, encoding, callback) {
+                    const data = chunk.toString();
+                    console.log('流式数据:', data);
+
+                    // 将数据包装成合适的SSE格式
+                    if (data && data.trim()) {
+                        const lines = data.split('\n');
+                        for (const line of lines) {
+                            if (line.trim()) {
+                                try {
+                                    // 尝试解析JSON以便检查格式
+                                    const json = JSON.parse(line);
+
+                                    // 确保每行数据以data:开头
+                                    if (!line.startsWith('data:')) {
+                                        this.push(`data: ${line}\n\n`);
+                                        console.log('添加SSE格式前缀:', `data: ${line}\n\n`);
+                                    } else {
+                                        this.push(`${line}\n\n`);
+                                        console.log('保持原始SSE格式:', `${line}\n\n`);
+                                    }
+                                } catch (e) {
+                                    // 如果不是有效JSON，直接转发
+                                    this.push(`${line}\n\n`);
+                                    console.log('转发非JSON数据:', `${line}\n\n`);
+                                }
+                            }
+                        }
+                    }
+                    callback();
+                }
+            });
+
+            // 使用转换流处理
+            response.body.pipe(logTransform).pipe(res);
         } else {
             // 常规JSON响应
             const data = await response.json();
+            console.log('JSON响应数据:', data);
             res.json(data);
         }
     } catch (error) {

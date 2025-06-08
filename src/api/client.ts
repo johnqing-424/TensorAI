@@ -578,13 +578,40 @@ class ApiClient {
                                         code: 0,
                                         data: streamResponse
                                     });
+                                } else if (chunk && chunk.code !== undefined && chunk.data !== undefined) {
+                                    // 处理Tensor-AI格式响应
+                                    console.log('处理Tensor-AI格式响应:', chunk);
+
+                                    if (chunk.data && typeof chunk.data === 'object') {
+                                        // 处理数据对象包含answer的情况
+                                        if (chunk.data.answer) {
+                                            const streamResponse = {
+                                                answer: chunk.data.answer,
+                                                reference: chunk.data.reference || null,
+                                                session_id: chunk.data.session_id || sessionId
+                                            };
+
+                                            onChunkReceived({
+                                                code: chunk.code,
+                                                data: streamResponse
+                                            });
+                                        } else {
+                                            // 直接传递整个响应
+                                            onChunkReceived(chunk);
+                                        }
+                                    } else {
+                                        // 直接传递整个响应
+                                        onChunkReceived(chunk);
+                                    }
                                 } else if (chunk && chunk.code !== undefined) {
                                     // 处理包含code的响应
                                     onChunkReceived(chunk);
                                 }
 
                                 // 判断是否是完成事件
-                                if (line.includes('event:complete')) {
+                                if (line.includes('event:complete') ||
+                                    (chunk && chunk.data === true) ||
+                                    (chunk && chunk.code === 0 && chunk.data === true)) {
                                     if (readTimeoutId) clearTimeout(readTimeoutId);
                                     onComplete();
                                     return;

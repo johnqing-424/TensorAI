@@ -1,89 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useChatContext } from '../../context/ChatContext';
 import { useNavigate, useLocation, Routes, Route, Navigate, useParams } from 'react-router-dom';
 import AssistantList from '../Sidebar/AssistantList';
 import SessionList from '../Sidebar/SessionList';
 import ChatHistory from '../Chat/ChatHistory';
 import NavigationBar, { functionIcons, functionTitles, FunctionIdType, functionRoutes } from './NavigationBar';
+import ChatInputBox from '../Common/ChatInputBox';
+
 import './ChatLayout.css';
 
-// 输入框组件接口
-interface ChatInputBoxProps {
-    inputValue: string;
-    setInputValue: React.Dispatch<React.SetStateAction<string>>;
-    placeholder?: string;
-    onSend?: (message: string) => void;
-    isDeepThinking?: boolean;
-    toggleDeepThinking?: () => void;
-}
 
-// 聊天输入框组件
-const ChatInputBox: React.FC<ChatInputBoxProps> = ({
-    inputValue,
-    setInputValue,
-    placeholder = '发消息，输入 @ 选择技能或选择文件',
-    onSend = () => { },
-    isDeepThinking = false,
-    toggleDeepThinking = () => { }
-}) => {
-    // 处理发送按钮点击
-    const handleSend = () => {
-        if (inputValue.trim()) {
-            onSend(inputValue);
-            setInputValue('');
-        }
-    };
-
-    // 处理按键事件（按回车发送）
-    const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            handleSend();
-        }
-    };
-
-    return (
-        <div className="chat-input-container">
-            <textarea
-                className="chat-input"
-                placeholder={placeholder}
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                onKeyDown={handleKeyDown}
-            />
-            <div className="chat-toolbar">
-                <div className="chat-tools">
-                    {/* 文件上传按钮（曲别针图标） */}
-                    <button title="上传文件">
-                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2" fill="none">
-                            <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48" />
-                        </svg>
-                    </button>
-
-                    {/* 深度思考按钮 - 可选中 */}
-                    <button
-                        title="深度思考"
-                        className={`deep-thinking-btn ${isDeepThinking ? 'active' : ''}`}
-                        onClick={toggleDeepThinking}
-                    >
-                        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-                            <path d="M15.5 8c.827 0 1.5-.673 1.5-1.5S16.327 5 15.5 5 14 5.673 14 6.5 14.673 8 15.5 8zm-7 0c.827 0 1.5-.673 1.5-1.5S9.327 5 8.5 5 7 5.673 7 6.5 7.673 8 8.5 8zm3.5 9.5c-2.49 0-4.5-2.01-4.5-4.5S9.51 8.5 12 8.5s4.5 2.01 4.5 4.5-2.01 4.5-4.5 4.5zm0-1c1.933 0 3.5-1.567 3.5-3.5S13.933 9.5 12 9.5 8.5 11.067 8.5 13s1.567 3.5 3.5 3.5z" />
-                            <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10zm0-2a8 8 0 100-16 8 8 0 000 16z" />
-                        </svg>
-                        <span>深度思考</span>
-                    </button>
-                </div>
-                <button
-                    className="chat-send"
-                    onClick={handleSend}
-                    disabled={!inputValue.trim()}
-                >
-                    发送
-                </button>
-            </div>
-        </div>
-    );
-};
 
 const ChatLayout: React.FC = () => {
     const {
@@ -98,6 +24,7 @@ const ChatLayout: React.FC = () => {
         currentSession,
         selectChatAssistant,
         chatSessions,
+        loadingSessions,
         selectSession,
         sendMessage
     } = useChatContext();
@@ -123,30 +50,58 @@ const ChatLayout: React.FC = () => {
 
     // 监听页面滚动，控制滑动到底部按钮的显示
     useEffect(() => {
+        // 更可靠的滚动检测方法，检查是否距离底部超过300px
         const handleScroll = () => {
             const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
             const windowHeight = window.innerHeight;
             const documentHeight = document.documentElement.scrollHeight;
 
-            // 当距离底部超过200px时显示按钮
-            const isNearBottom = scrollTop + windowHeight >= documentHeight - 200;
+            // 添加缓冲区，当距离底部大于300px时显示按钮
+            const distanceFromBottom = documentHeight - (scrollTop + windowHeight);
+            const isNearBottom = distanceFromBottom < 300;
+
             setShowScrollToBottom(!isNearBottom);
+
+            // 调试输出
+            console.log(`滚动状态: 距离底部=${distanceFromBottom}px, 显示按钮=${!isNearBottom}`);
         };
 
+        // 初始检查一次
+        handleScroll();
+
         window.addEventListener('scroll', handleScroll);
-        return () => window.removeEventListener('scroll', handleScroll);
+
+        // 聊天内容变化时也重新检查
+        const checkInterval = setInterval(handleScroll, 1000);
+
+        return () => {
+            window.removeEventListener('scroll', handleScroll);
+            clearInterval(checkInterval);
+        };
     }, []);
 
-    // 滑动到底部功能
+    // 增强版滑动到底部功能
     const scrollToBottom = () => {
+        console.log("执行滚动到底部");
+
+        // 立即尝试滚动一次
         window.scrollTo({
             top: document.documentElement.scrollHeight,
-            behavior: 'smooth'
+            behavior: 'auto'
         });
+
+        // 为确保在DOM更新后滚动，使用多个延时
+        setTimeout(() => {
+            window.scrollTo({
+                top: document.documentElement.scrollHeight,
+                behavior: 'smooth'
+            });
+        }, 100);
     };
 
     // 问候语动画状态
     const [greetingAnimated, setGreetingAnimated] = useState<boolean>(false);
+    const [selectedSuggestion, setSelectedSuggestion] = useState<string | null>(null);
 
     // 根据时间段获取问候语
     const getGreeting = (): string => {
@@ -355,6 +310,64 @@ const ChatLayout: React.FC = () => {
         }
     };
 
+    // 渲染聊天页面
+    const renderChatPage = () => {
+        // 如果没有选择会话，显示提示
+        if (!currentSession) {
+            return (
+                <div className="chat-page empty-chat">
+                    <div className="empty-state">
+                        <div className="empty-icon">💬</div>
+                        <h3>请选择聊天会话</h3>
+                        <p>请从左侧边栏选择一个会话开始对话，或者创建新会话。</p>
+                        <button
+                            className="start-chat-btn"
+                            onClick={handleCreateNewChat}
+                        >
+                            创建新会话
+                        </button>
+                    </div>
+                </div>
+            );
+        }
+
+        return (
+            <div className="chat-page">
+                {/* 右上角固定的session name显示区域 */}
+                <div className="session-name-display">
+                    {currentSession?.name || '新对话'}
+                </div>
+
+                {/* 聊天历史 */}
+                <ChatHistory />
+
+                {/* 聊天页面输入框 */}
+                <div className="chat-input-container">
+                    <ChatInputBox
+                        inputValue={inputValue}
+                        setInputValue={setInputValue}
+                        onSend={handleSendMessage}
+                        isDeepThinking={chatDeepThinking}
+                        toggleDeepThinking={() => setChatDeepThinking(!chatDeepThinking)}
+                    />
+                </div>
+
+                {/* 滚动到底部按钮 */}
+                {showScrollToBottom && (
+                    <button
+                        className="scroll-to-bottom-btn"
+                        onClick={scrollToBottom}
+                        title="滑动到底部"
+                    >
+                        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </button>
+                )}
+            </div>
+        );
+    };
+
     // 渲染欢迎页面
     const renderWelcomePage = () => {
         return (
@@ -363,7 +376,8 @@ const ChatLayout: React.FC = () => {
                     {greeting}
                 </h1>
 
-                <div className="chat-input-wrapper">
+                {/* 欢迎页面输入框 */}
+                <div className="chat-input-container">
                     <ChatInputBox
                         inputValue={inputValue}
                         setInputValue={setInputValue}
@@ -438,7 +452,6 @@ const ChatLayout: React.FC = () => {
         let placeholder = '';
         let isDeepThinking = false;
         let toggleDeepThinking = () => { };
-
         switch (functionId) {
             case 'process':
                 description = '快速查询公司内部流程和制度文档';
@@ -471,7 +484,8 @@ const ChatLayout: React.FC = () => {
                 <h1 className="welcome-greeting">{title}</h1>
                 <p className="welcome-description">{description}</p>
 
-                <div className="chat-input-wrapper">
+                {/* 功能页面输入框 */}
+                <div className="chat-input-container">
                     <ChatInputBox
                         inputValue={inputValue}
                         setInputValue={setInputValue}
@@ -488,13 +502,31 @@ const ChatLayout: React.FC = () => {
                     <div className="suggestion-list">
                         {functionId === 'process' && (
                             <>
-                                <div className="suggestion-item" onClick={() => setInputValue('公司请假流程是什么？')}>
+                                <div className={`suggestion-item ${selectedSuggestion === '公司请假流程是什么？' ? 'selected' : ''}`} onClick={() => {
+                                    setSelectedSuggestion('公司请假流程是什么？');
+                                    setTimeout(() => {
+                                        setInputValue('公司请假流程是什么？');
+                                        setSelectedSuggestion(null);
+                                    }, 150);
+                                }}>
                                     公司请假流程是什么？
                                 </div>
-                                <div className="suggestion-item" onClick={() => setInputValue('差旅报销制度有哪些规定？')}>
+                                <div className={`suggestion-item ${selectedSuggestion === '差旅报销制度有哪些规定？' ? 'selected' : ''}`} onClick={() => {
+                                    setSelectedSuggestion('差旅报销制度有哪些规定？');
+                                    setTimeout(() => {
+                                         setInputValue('差旅报销制度有哪些规定？');
+                                         setSelectedSuggestion(null);
+                                     }, 150);
+                                }}>
                                     差旅报销制度有哪些规定？
                                 </div>
-                                <div className="suggestion-item" onClick={() => setInputValue('新员工入职需要准备哪些材料？')}>
+                                <div className={`suggestion-item ${selectedSuggestion === '新员工入职需要准备哪些材料？' ? 'selected' : ''}`} onClick={() => {
+                                    setSelectedSuggestion('新员工入职需要准备哪些材料？');
+                                    setTimeout(() => {
+                                         setInputValue('新员工入职需要准备哪些材料？');
+                                         setSelectedSuggestion(null);
+                                     }, 150);
+                                }}>
                                     新员工入职需要准备哪些材料？
                                 </div>
                             </>
@@ -502,13 +534,31 @@ const ChatLayout: React.FC = () => {
 
                         {functionId === 'product' && (
                             <>
-                                <div className="suggestion-item" onClick={() => setInputValue('产品的核心功能有哪些？')}>
-                                    产品的核心功能有哪些？
-                                </div>
-                                <div className="suggestion-item" onClick={() => setInputValue('系统架构是如何设计的？')}>
-                                    系统架构是如何设计的？
-                                </div>
-                                <div className="suggestion-item" onClick={() => setInputValue('最新版本更新了哪些内容？')}>
+                                <div className={`suggestion-item ${selectedSuggestion === '产品的核心功能有哪些？' ? 'selected' : ''}`} onClick={() => {
+                                    setSelectedSuggestion('产品的核心功能有哪些？');
+                                    setTimeout(() => {
+                                         setInputValue('产品的核心功能有哪些？');
+                                         setSelectedSuggestion(null);
+                                     }, 150);
+                                 }}>
+                                     产品的核心功能有哪些？
+                                 </div>
+                                 <div className={`suggestion-item ${selectedSuggestion === '系统架构是如何设计的？' ? 'selected' : ''}`} onClick={() => {
+                                     setSelectedSuggestion('系统架构是如何设计的？');
+                                     setTimeout(() => {
+                                         setInputValue('系统架构是如何设计的？');
+                                         setSelectedSuggestion(null);
+                                     }, 150);
+                                 }}>
+                                     系统架构是如何设计的？
+                                 </div>
+                                 <div className={`suggestion-item ${selectedSuggestion === '最新版本更新了哪些内容？' ? 'selected' : ''}`} onClick={() => {
+                                     setSelectedSuggestion('最新版本更新了哪些内容？');
+                                     setTimeout(() => {
+                                         setInputValue('最新版本更新了哪些内容？');
+                                         setSelectedSuggestion(null);
+                                     }, 150);
+                                }}>
                                     最新版本更新了哪些内容？
                                 </div>
                             </>
@@ -516,13 +566,31 @@ const ChatLayout: React.FC = () => {
 
                         {functionId === 'model' && (
                             <>
-                                <div className="suggestion-item" onClick={() => setInputValue('什么是Transformer架构？')}>
-                                    什么是Transformer架构？
-                                </div>
-                                <div className="suggestion-item" onClick={() => setInputValue('大模型的训练方法有哪些？')}>
-                                    大模型的训练方法有哪些？
-                                </div>
-                                <div className="suggestion-item" onClick={() => setInputValue('如何评估大语言模型的性能？')}>
+                                <div className={`suggestion-item ${selectedSuggestion === '什么是Transformer架构？' ? 'selected' : ''}`} onClick={() => {
+                                    setSelectedSuggestion('什么是Transformer架构？');
+                                    setTimeout(() => {
+                                         setInputValue('什么是Transformer架构？');
+                                         setSelectedSuggestion(null);
+                                     }, 150);
+                                 }}>
+                                     什么是Transformer架构？
+                                 </div>
+                                 <div className={`suggestion-item ${selectedSuggestion === '大模型的训练方法有哪些？' ? 'selected' : ''}`} onClick={() => {
+                                     setSelectedSuggestion('大模型的训练方法有哪些？');
+                                     setTimeout(() => {
+                                         setInputValue('大模型的训练方法有哪些？');
+                                         setSelectedSuggestion(null);
+                                     }, 150);
+                                 }}>
+                                     大模型的训练方法有哪些？
+                                 </div>
+                                 <div className={`suggestion-item ${selectedSuggestion === '如何评估大语言模型的性能？' ? 'selected' : ''}`} onClick={() => {
+                                     setSelectedSuggestion('如何评估大语言模型的性能？');
+                                     setTimeout(() => {
+                                         setInputValue('如何评估大语言模型的性能？');
+                                         setSelectedSuggestion(null);
+                                     }, 150);
+                                }}>
                                     如何评估大语言模型的性能？
                                 </div>
                             </>
@@ -530,61 +598,36 @@ const ChatLayout: React.FC = () => {
 
                         {functionId === 'more' && (
                             <>
-                                <div className="suggestion-item" onClick={() => setInputValue('有哪些功能即将推出？')}>
-                                    有哪些功能即将推出？
-                                </div>
-                                <div className="suggestion-item" onClick={() => setInputValue('如何使用高级搜索功能？')}>
-                                    如何使用高级搜索功能？
-                                </div>
-                                <div className="suggestion-item" onClick={() => setInputValue('有哪些AI辅助工具？')}>
+                                <div className={`suggestion-item ${selectedSuggestion === '有哪些功能即将推出？' ? 'selected' : ''}`} onClick={() => {
+                                    setSelectedSuggestion('有哪些功能即将推出？');
+                                    setTimeout(() => {
+                                         setInputValue('有哪些功能即将推出？');
+                                         setSelectedSuggestion(null);
+                                     }, 150);
+                                 }}>
+                                     有哪些功能即将推出？
+                                 </div>
+                                 <div className={`suggestion-item ${selectedSuggestion === '如何使用高级搜索功能？' ? 'selected' : ''}`} onClick={() => {
+                                     setSelectedSuggestion('如何使用高级搜索功能？');
+                                     setTimeout(() => {
+                                         setInputValue('如何使用高级搜索功能？');
+                                         setSelectedSuggestion(null);
+                                     }, 150);
+                                 }}>
+                                     如何使用高级搜索功能？
+                                 </div>
+                                 <div className={`suggestion-item ${selectedSuggestion === '有哪些AI辅助工具？' ? 'selected' : ''}`} onClick={() => {
+                                     setSelectedSuggestion('有哪些AI辅助工具？');
+                                     setTimeout(() => {
+                                         setInputValue('有哪些AI辅助工具？');
+                                         setSelectedSuggestion(null);
+                                     }, 150);
+                                }}>
                                     有哪些AI辅助工具？
                                 </div>
                             </>
                         )}
                     </div>
-                </div>
-            </div>
-        );
-    };
-
-    // 渲染聊天页面
-    const renderChatPage = () => {
-        // 如果没有选择会话，显示提示
-        if (!currentSession) {
-            return (
-                <div className="page chat-page">
-                    <div className="empty-state">
-                        <div className="empty-icon">💬</div>
-                        <h3>请选择聊天会话</h3>
-                        <p>请从左侧边栏选择一个会话开始对话，或者创建新会话。</p>
-                        <button
-                            className="start-chat-btn"
-                            onClick={handleCreateNewChat}
-                        >
-                            创建新会话
-                        </button>
-                    </div>
-                </div>
-            );
-        }
-
-        return (
-            <div className="page chat-page" style={{ width: '100%', boxSizing: 'border-box' }}>
-                {/* 右上角固定的session name显示区域 */}
-                <div className="session-name-display">
-                    {currentSession?.name || '新对话'}
-                </div>
-
-                <ChatHistory />
-
-                <div className="chat-input-wrapper">
-                    <ChatInputBox
-                        inputValue={inputValue}
-                        setInputValue={setInputValue}
-                        onSend={handleSendMessage}
-                        isDeepThinking={chatDeepThinking}
-                        toggleDeepThinking={() => setChatDeepThinking(!chatDeepThinking)}
-                    />
                 </div>
             </div>
         );
@@ -651,22 +694,14 @@ const ChatLayout: React.FC = () => {
                     <Route path="/more" element={renderFunctionPage('more')} />
                     <Route path="/chat" element={renderChatPage()} />
                     <Route path="/:appId/:sessionId" element={renderChatPage()} />
-                    <Route path="*" element={<Navigate to="/" replace />} />
+                    <Route path="*" element={
+                        // 只有在会话数据加载完成且确实找不到匹配的会话时才重定向
+                        !loadingSessions && chatSessions.length > 0 ? 
+                            <Navigate to="/" replace /> : 
+                            <div className="loading-placeholder">加载中...</div>
+                    } />
                 </Routes>
             </div>
-
-            {/* 滑动到底部按钮 */}
-            {showScrollToBottom && (
-                <button
-                    className="scroll-to-bottom-btn"
-                    onClick={scrollToBottom}
-                    title="滑动到底部"
-                >
-                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round">
-                        <polyline points="6 9 12 15 18 9"></polyline>
-                    </svg>
-                </button>
-            )}
         </div>
     );
 };

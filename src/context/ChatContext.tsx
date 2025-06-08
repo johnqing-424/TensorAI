@@ -1,6 +1,8 @@
-import React, { createContext, useContext, useState, useEffect, useLayoutEffect, ReactNode, useRef } from 'react';
+
+import React, { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
 import { apiClient } from '../services';
 import { ChatAssistant, ChatMessage, ChatSession, Reference, ApiResponse, ChatCompletion, StreamChatResponse } from '../types';
+import { functionTitles, FunctionIdType } from '../components/Layout/NavigationBar';
 
 interface ChatContextType {
     // 身份验证状态
@@ -478,9 +480,24 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                                     newMessages[lastMessageIndex] = {
                                         ...newMessages[lastMessageIndex],
                                         content: responseText,
-                                        isLoading: true
+                                        isLoading: true,
+                                        // 添加时间戳，强制React识别组件更新
+                                        timestamp: Date.now()
                                     };
                                 }
+
+                                // 打印消息状态，帮助调试
+                                console.log('流式更新消息:', newMessages[lastMessageIndex]);
+
+                                // 确保UI滚动到底部以查看最新消息
+                                setTimeout(() => {
+                                    if (document.documentElement) {
+                                        window.scrollTo({
+                                            top: document.documentElement.scrollHeight,
+                                            behavior: 'auto'
+                                        });
+                                    }
+                                }, 0);
 
                                 return newMessages;
                             });
@@ -502,10 +519,25 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                             newMessages[lastMessageIndex] = {
                                 ...newMessages[lastMessageIndex],
                                 content: responseText,
-                                isLoading: false
-                                // 注意：我们不再设置reference属性，因为ChatMessage类型中没有定义它
+                                isLoading: false,
+                                // 添加结束时间戳
+                                timestamp: Date.now(),
+                                completed: true
                             };
                         }
+
+                        // 打印完成状态
+                        console.log('完成消息更新:', newMessages[lastMessageIndex]);
+
+                        // 消息完成后也确保滚动到底部
+                        setTimeout(() => {
+                            if (document.documentElement) {
+                                window.scrollTo({
+                                    top: document.documentElement.scrollHeight,
+                                    behavior: 'smooth'
+                                });
+                            }
+                        }, 100);
 
                         return newMessages;
                     });
@@ -648,19 +680,65 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             // 获取聊天助手
             fetchChatAssistants();
 
-            // 清除之前的选择状态，让用户重新选择应用
-            console.log('用户已登录，清除之前的应用选择状态');
-            setSelectedChatAssistant(null);
-            setChatSessions([]);
-            setCurrentSession(null);
-            setMessages([]);
-
-            // 清除本地存储的选择状态
-            localStorage.removeItem('ragflow_selected_assistant');
-            localStorage.removeItem('ragflow_selected_session');
-            localStorage.removeItem('ragflow_appid');
+            // 不要清除本地存储的选择状态，以便页面刷新后能恢复
+            console.log('用户已登录，准备恢复之前的状态');
         }
     }, [isAuthenticated]);
+
+    // 页面初始化时尝试恢复会话状态
+    useEffect(() => {
+        if (isAuthenticated && chatSessions.length > 0) {
+            const savedSessionId = localStorage.getItem('ragflow_selected_session');
+            const savedAssistantId = localStorage.getItem('ragflow_selected_assistant');
+
+            console.log('尝试恢复会话状态:', { savedSessionId, savedAssistantId });
+
+            // 恢复助手选择
+            if (savedAssistantId && !selectedChatAssistant) {
+                const matchingAssistant = {
+                    id: savedAssistantId,
+                    name: functionTitles[savedAssistantId as FunctionIdType] || savedAssistantId,
+                    description: '',
+                    create_date: new Date().toISOString(),
+                    update_date: new Date().toISOString(),
+                    avatar: '',
+                    datasets: [],
+                    llm: {
+                        model_name: '',
+                        temperature: 0.7,
+                        top_p: 0.9,
+                        presence_penalty: 0,
+                        frequency_penalty: 0
+                    },
+                    prompt: {
+                        similarity_threshold: 0.7,
+                        keywords_similarity_weight: 0.5,
+                        top_n: 3,
+                        variables: [],
+                        rerank_model: '',
+                        empty_response: '',
+                        opener: '',
+                        prompt: ''
+                    },
+                    status: 'active'
+                };
+
+                console.log('恢复助手选择:', matchingAssistant);
+                setSelectedChatAssistant(matchingAssistant);
+                apiClient.setAppId(savedAssistantId);
+            }
+
+            // 恢复会话选择
+            if (savedSessionId && !currentSession) {
+                const savedSession = chatSessions.find(s => s.id === savedSessionId);
+                if (savedSession) {
+                    console.log('恢复会话选择:', savedSession);
+                    setCurrentSession(savedSession);
+                    getSessionMessages(savedSessionId);
+                }
+            }
+        }
+    }, [isAuthenticated, chatSessions, selectedChatAssistant, currentSession]);
 
     // 添加选择聊天助手和会话的方法，这些在早期编辑中被移除了
     const selectChatAssistant = (assistant: ChatAssistant | null) => {

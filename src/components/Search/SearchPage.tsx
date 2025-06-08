@@ -191,22 +191,32 @@ const SearchPage: React.FC = () => {
                 }
                 
                 .search-input-container {
-                    margin-bottom: 20px;
+                    margin: 20px auto;
+                    width: 100%;
+                    max-width: 800px;
                 }
                 
                 .search-input-wrapper {
                     display: flex;
-                    border: 1px solid #ddd;
-                    border-radius: 8px;
+                    border: 1px solid rgba(234, 235, 238, 0.5);
+                    border-radius: 12px;
                     overflow: hidden;
+                    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+                    background: rgba(255, 255, 255, 0.75);
+                    backdrop-filter: blur(20px);
+                    -webkit-backdrop-filter: blur(20px);
+                    transition: all 0.3s ease;
                 }
                 
                 .search-input {
                     flex: 1;
-                    padding: 12px 16px;
+                    padding: 16px 20px;
                     border: none;
                     outline: none;
                     font-size: 16px;
+                    min-height: 50px;
+                    line-height: 1.4;
+                    background: transparent;
                 }
                 
                 .search-button {
@@ -309,4 +319,4 @@ const SearchPage: React.FC = () => {
     );
 };
 
-export default SearchPage; 
+export default SearchPage;

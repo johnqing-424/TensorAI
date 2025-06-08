@@ -1,18 +1,28 @@
 /* ChatLayout.css - 聊天布局样式 */
 
+/* 主布局容器 */
 .chat-layout {
     display: flex;
     min-height: 100vh;
     width: 100%;
-    position: relative;
-    background-color: #ffffff;
-    /* 允许布局高度自动增长，支持页面滚动 */
-    height: auto;
-    /* 防止出现左右滚动条 */
+    max-width: 100%;
     overflow-x: hidden;
+    /* 防止水平滚动条 */
     box-sizing: border-box;
 }
 
+/* 加载占位符样式 */
+.loading-placeholder {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    font-size: 16px;
+    color: #666;
+    background-color: #f8f9fa;
+}
+
+/* 侧边栏样式 */
 .sidebar {
     width: 225px;
     height: 100vh;
@@ -27,7 +37,6 @@
     position: fixed;
     left: 0;
     top: 0;
-    /* 侧边栏固定在左侧，不随页面滚动 */
     overflow-y: auto;
 }
 
@@ -36,13 +45,6 @@
     overflow: hidden;
     flex-shrink: 0;
     border-right: 1px solid #e0e0e0;
-    /* 折叠时完全隐藏侧边栏 */
-}
-
-.sidebar-collapsed+.chat-container {
-    margin-left: 0;
-    width: 100%;
-    /* 侧边栏折叠时，聊天容器占据全宽 */
 }
 
 .sidebar-inner {
@@ -59,7 +61,6 @@
 
 .function-section {
     flex: 0 0 auto;
-    /* 不设置最大高度，根据内容自适应 */
 }
 
 .session-section {
@@ -67,163 +68,259 @@
     overflow-y: auto;
 }
 
+/* 聊天容器 */
 .chat-container {
-    flex: 1;
     display: flex;
     flex-direction: column;
+    position: relative;
+    min-height: 100vh;
     margin-left: 225px;
     width: calc(100% - 225px);
-    min-height: 100vh;
-    position: relative;
     max-width: none;
-    /* 移除高度限制，让内容自然撑开页面高度 */
-    height: auto;
-    /* 防止出现左右滚动条 */
+    /* 移除最大宽度限制，让容器能够充分利用空间 */
     overflow-x: hidden;
+    transition: margin-left 0.3s, width 0.3s;
     box-sizing: border-box;
 }
 
-.chat-header {
-    padding: 0;
-    border-bottom: none;
-    display: flex;
-    align-items: center;
-    width: 100%;
-    position: sticky;
-    top: 0;
-    background-color: #fff;
-    z-index: 10;
-    box-sizing: border-box;
-    height: 60px;
-    margin: 0;
-}
-
-.chat-header h2 {
-    margin: 0;
-    padding: 0 20px;
-    font-size: 18px;
-    font-weight: 500;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    line-height: 60px;
-    /* 侧边栏展开时，h2靠近侧边栏右上角 */
-}
-
-/* 当侧边栏收缩时，调整header左边距以避免与展开按钮重叠 */
-.sidebar-collapsed+.chat-container .chat-header {
-    padding-left: 0;
-}
-
-.sidebar-collapsed+.chat-container .chat-header h2 {
-    padding-left: 50px;
-    /* 侧边栏收缩时，h2位于展开按钮右边 */
-}
-
-/* 当侧边栏展开时，确保header紧贴sidebar右侧 */
-.chat-container .chat-header {
-    padding-left: 0;
+.sidebar-collapsed+.chat-container {
+    width: calc(100% - 60px);
+    max-width: none;
+    /* 移除最大宽度限制 */
+    margin-left: 60px;
 }
 
 .chat-messages {
     flex: 1;
-    width: 100%;
-    max-width: none;
-    box-sizing: border-box;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    padding: 0 20px 120px 20px;
-    /* 底部留出120px空间给输入框，避免内容被遮挡 */
-    min-height: auto;
-    overflow: visible;
+    overflow-x: hidden;
+    padding: 20px;
+    max-width: none !important;
+    /* 移除最大宽度限制，让内容充分利用屏幕宽度 */
+    margin: 0 auto;
 }
 
-.chat-input-container {
-    background: #fff;
-    border: 1px solid #eaebee;
-    border-radius: 12px;
-    padding: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-    margin: 0;
-    max-width: 768px;
-    width: calc(100% - 40px);
+/* 欢迎页面消息区域 */
+.welcome-page .chat-messages {
+    padding-bottom: 20px;
+}
+
+/* 聊天页面消息区域 - 为固定输入框留出空间 */
+.chat-page .chat-messages {
+    padding-bottom: 180px;
+    /* 为固定的输入框留出足够空间 */
+}
+
+/* 基础输入框工具类 */
+.input-container-base {
+    padding: 8px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(5px);
+    z-index: 100;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    max-height: 180px;
+}
+
+/* 固定定位修饰类 */
+.input-container-fixed {
     position: fixed;
-    bottom: 20px;
+    bottom: 0;
+    transition: left 0.3s, width 0.3s;
+}
+
+/* 相对定位修饰类 */
+.input-container-relative {
+    position: relative;
+    margin: 0 auto;
+}
+
+/* 全宽样式修饰类 */
+.input-container-fullwidth {
+    left: 225px;
+    width: calc(100% - 200px);
+    max-width: 1400px;
+    margin-right: 20px;
+    border-top: 1px solid #eaebee;
+}
+
+/* 居中样式修饰类 */
+.input-container-centered {
     left: 50%;
     transform: translateX(-50%);
+    width: 800px;
+    max-width: 95%;
+    border: 1px solid #eaebee;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+/* 侧边栏收缩时的全宽样式 */
+.sidebar-collapsed .input-container-fullwidth {
+    left: 60px;
+    width: calc(100% - 80px);
+    max-width: 1400px;
+    margin-right: 20px;
+}
+
+/* 应用到具体组件 */
+.chat-input-container {
+    /* 继承基础样式 */
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    z-index: 100;
     box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    max-height: 180px;
+    border: 1px solid rgba(234, 235, 238, 0.5);
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* 欢迎页面输入框容器样式已统一到第545行 */
+
+/* 聊天页面输入框 */
+.chat-page .chat-input-container {
+    /* 使用相对定位，跟随聊天内容区域 */
+    position: relative;
+    bottom: 0;
+    width: 100%;
+    max-height: none !important;
+    /* 移除高度限制，与欢迎页面保持一致 */
+    max-width: 800px;
+    /* 聊天页面保持合理的最大宽度 */
+    margin: 20px auto 0 auto;
+    border: 1px solid rgba(234, 235, 238, 0.5);
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    transition: all 0.3s ease;
     z-index: 100;
 }
 
-/* 滑动到底部按钮 - 位于聊天框上方 */
-.scroll-to-bottom-btn {
-    position: fixed;
-    bottom: 140px;
-    right: 20px;
-    background: #fff;
-    border: 1px solid #eaebee;
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    color: #666;
-    z-index: 99;
-    transition: all 0.2s ease;
+/* 输入框样式 - 增加更高的选择器优先级，但排除ChatInputBox组件 */
+.chat-input-container .chat-input:not(.chat-input-textarea),
+.chat-input-container textarea.chat-input:not(.chat-input-textarea) {
+    width: 100% !important;
+    min-height: 80px !important;
+    height: auto !important;
+    padding: 12px 16px !important;
+    border: 1px solid rgba(234, 235, 238, 0.3) !important;
+    border-radius: 8px !important;
+    background: rgba(255, 255, 255, 0.9) !important;
+    color: #333 !important;
+    font-size: 14px !important;
+    line-height: 1.4 !important;
+    resize: none !important;
+    outline: none !important;
+    font-family: inherit !important;
+    transition: all 0.2s ease !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
 }
 
-.scroll-to-bottom-btn:hover {
-    background: #f5f5f5;
-    transform: scale(1.05);
+/* 确保welcome-page输入框与聊天页面输入框高度完全一致 */
+.welcome-page .chat-input-container .chat-input:not(.chat-input-textarea),
+.welcome-page .chat-input-container textarea.chat-input:not(.chat-input-textarea) {
+    width: 100% !important;
+    min-height: 80px !important;
+    height: auto !important;
+    padding: 12px 16px !important;
+    border: 1px solid rgba(234, 235, 238, 0.3) !important;
+    border-radius: 8px !important;
+    background: rgba(255, 255, 255, 0.9) !important;
+    color: #333 !important;
+    font-size: 14px !important;
+    line-height: 1.4 !important;
+    resize: none !important;
+    outline: none !important;
+    font-family: inherit !important;
+    transition: all 0.2s ease !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
 }
 
-.scroll-to-bottom-btn.hidden {
-    opacity: 0;
-    pointer-events: none;
+/* 针对welcome页面的ChatInputBox组件的textarea样式 - 增加选择器特异性 */
+.welcome-page .chat-input-container .chat-input-box .chat-input-textarea,
+.welcome-page .chat-input-container .chat-input-wrapper .chat-input-textarea,
+.welcome-page .chat-input-container textarea.chat-input-textarea,
+.welcome-page .chat-input-wrapper .chat-input-textarea,
+.welcome-page textarea.chat-input-textarea {
+    flex: 1 !important;
+    width: 100% !important;
+    min-height: 80px !important;
+    height: auto !important;
+    padding: 12px 16px !important;
+    border: 1px solid rgba(234, 235, 238, 0.3) !important;
+    border-radius: 8px !important;
+    background: rgba(255, 255, 255, 0.9) !important;
+    color: #333 !important;
+    font-size: 14px !important;
+    line-height: 1.4 !important;
+    resize: none !important;
+    outline: none !important;
+    font-family: inherit !important;
+    transition: all 0.2s ease !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
 }
 
-/* 右上角session name显示区域 */
-.session-name-display {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: #fff;
-    border: 1px solid #eaebee;
-    border-radius: 8px;
-    padding: 8px 16px;
-    font-size: 14px;
-    font-weight: 500;
-    color: #333;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    z-index: 50;
-    max-width: 200px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+.chat-input-container .chat-input:not(.chat-input-textarea):focus,
+.chat-input-container textarea.chat-input:not(.chat-input-textarea):focus {
+    border-color: #007bff !important;
+    background: rgba(255, 255, 255, 0.95) !important;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.1) !important;
 }
 
-.chat-input {
-    width: 100%;
-    min-height: 60px;
-    max-height: 200px;
-    border: none;
-    resize: none;
-    outline: none;
-    font-size: 14px;
-    font-family: inherit;
-    padding: 8px;
-    line-height: 1.5;
+.chat-input-container .chat-input:not(.chat-input-textarea)::placeholder,
+.chat-input-container textarea.chat-input:not(.chat-input-textarea)::placeholder {
+    color: #999 !important;
+}
+
+/* welcome-page输入框focus状态和placeholder样式 */
+.welcome-page .chat-input-container .chat-input:not(.chat-input-textarea):focus,
+.welcome-page .chat-input-container textarea.chat-input:not(.chat-input-textarea):focus {
+    border-color: #007bff !important;
+    background: rgba(255, 255, 255, 0.95) !important;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.1) !important;
+}
+
+.welcome-page .chat-input-container .chat-input:not(.chat-input-textarea)::placeholder,
+.welcome-page .chat-input-container textarea.chat-input:not(.chat-input-textarea)::placeholder {
+    color: #999 !important;
+}
+
+/* welcome页面ChatInputBox组件的focus状态和placeholder样式 */
+.welcome-page .chat-input-container .chat-input-box .chat-input-textarea:focus,
+.welcome-page .chat-input-container .chat-input-wrapper .chat-input-textarea:focus,
+.welcome-page .chat-input-container textarea.chat-input-textarea:focus,
+.welcome-page .chat-input-wrapper .chat-input-textarea:focus,
+.welcome-page textarea.chat-input-textarea:focus {
+    border-color: #007bff !important;
+    background: rgba(255, 255, 255, 0.95) !important;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.1) !important;
+}
+
+.welcome-page .chat-input-container .chat-input-box .chat-input-textarea::placeholder,
+.welcome-page .chat-input-container .chat-input-wrapper .chat-input-textarea::placeholder,
+.welcome-page .chat-input-container textarea.chat-input-textarea::placeholder,
+.welcome-page .chat-input-wrapper .chat-input-textarea::placeholder,
+.welcome-page textarea.chat-input-textarea::placeholder {
+    color: #999 !important;
 }
 
 .chat-toolbar {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-top: 8px;
+    margin-top: 4px;
+    /* 更小的间距 */
 }
 
 .chat-tools {
@@ -236,7 +333,7 @@
     border: none;
     color: #999;
     cursor: pointer;
-    padding: 6px;
+    padding: 4px;
     border-radius: 4px;
     transition: all 0.2s;
     display: flex;
@@ -249,34 +346,35 @@
     background-color: #f0f2f5;
 }
 
-/* 深度思考按钮样式 */
 .deep-thinking-btn {
     display: flex;
     align-items: center;
-    gap: 4px;
-    padding: 6px 10px !important;
-    border: 1px solid #e0e0e6 !important;
-    background-color: #f7f7f9 !important;
+    justify-content: center;
+    background: none;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 2px 6px;
+    /* 更小的内边距 */
+    cursor: pointer;
+    margin-right: 8px;
+    color: #666;
+    font-size: 12px;
+    transition: all 0.2s;
+}
+
+.deep-thinking-btn.active {
+    background-color: #e6f7ff;
+    border-color: #1890ff;
+    color: #1890ff;
 }
 
 .deep-thinking-btn:hover {
-    background-color: #eeeef2 !important;
-    border-color: #d5d5d9 !important;
-}
-
-/* 深度思考按钮选中状态 */
-.deep-thinking-btn.active {
-    background-color: #e6f7ff !important;
-    border-color: #91caff !important;
-    color: #1890ff !important;
-}
-
-.deep-thinking-btn.active svg {
-    color: #1890ff !important;
+    background: #f5f5f5;
 }
 
 .deep-thinking-btn span {
-    font-size: 13px;
+    font-size: 12px;
+    /* 更小的字体 */
 }
 
 .chat-send {
@@ -284,7 +382,8 @@
     color: white;
     border: none;
     border-radius: 6px;
-    padding: 6px 16px;
+    padding: 4px 12px;
+    /* 更小的内边距 */
     font-size: 14px;
     cursor: pointer;
 }
@@ -292,6 +391,30 @@
 .chat-send:disabled {
     background-color: #d1d5db;
     cursor: not-allowed;
+}
+
+.scroll-to-bottom-btn {
+    position: fixed;
+    right: 20px;
+    bottom: 120px;
+    /* 调整位置，避免与输入框重叠 */
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #f0f0f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    z-index: 1000;
+    opacity: 0.8;
+    transition: opacity 0.3s;
+}
+
+.scroll-to-bottom-btn:hover {
+    opacity: 1;
 }
 
 .show-sidebar-button {
@@ -316,8 +439,27 @@
     background: #f5f5f5;
 }
 
-/* 移除冲突的聊天消息样式，使用ChatMessage.css中的样式 */
+.session-name-display {
+    position: fixed;
+    top: 10px;
+    left: 225px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    font-weight: 500;
+    color: #333;
+    z-index: 15;
+    font-size: 18px;
+    transform: none;
+    margin-left: 15px;
+    transition: left 0.3s;
+}
 
+.sidebar-collapsed+.chat-container .session-name-display {
+    left: 60px;
+}
+
+/* 错误和重连状态提示 */
 .api-error-banner {
     position: fixed;
     top: 0;
@@ -384,39 +526,7 @@
     cursor: pointer;
 }
 
-.no-assistant-selected {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: #fff;
-}
-
-.placeholder-content {
-    text-align: center;
-    color: #757575;
-    padding: 40px;
-}
-
-.placeholder-content h2 {
-    font-size: 24px;
-    font-weight: 500;
-    margin-bottom: 16px;
-    color: #333;
-}
-
-.placeholder-content p {
-    font-size: 14px;
-    color: #666;
-    margin-bottom: 24px;
-}
-
-.placeholder-icon {
-    font-size: 48px;
-    margin-bottom: 20px;
-}
-
-/* 通用页面样式 */
+/* 页面样式 */
 .page {
     flex: 1;
     display: flex;
@@ -424,10 +534,12 @@
     overflow-y: auto;
 }
 
-/* 欢迎页面样式 - 调整布局使三个组件间距相等并居中 */
 .welcome-page {
     padding: 0;
-    max-width: 1000px;
+    width: 50%;
+    /* 设置明确的宽度，确保容器充分利用屏幕宽度 */
+    max-width: none !important;
+    /* 移除最大宽度限制，让容器充分利用屏幕宽度 */
     margin: 0 auto;
     display: flex;
     flex-direction: column;
@@ -437,13 +549,27 @@
     gap: 20px;
 }
 
-/* 增加所有功能页面的聊天框宽度 */
+/* 欢迎页面和功能页面的输入框容器 */
 .welcome-page .chat-input-container {
-    width: 800px;
-    max-width: 95%;
+    position: relative;
+    bottom: 0;
+    width: 100%;
+    /* 移除固定高度，让内容自适应 */
+    max-height: none !important;
+    max-width: 800px;
+    /* 与聊天页面保持一致的最大宽度 */
+    margin: 20px auto 0 auto;
+    /* 与聊天页面保持一致的margin */
+    border: 1px solid rgba(234, 235, 238, 0.5);
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    transition: all 0.3s ease;
+    z-index: 100;
 }
 
-/* 欢迎问候语 - 调整间距 */
 .welcome-greeting {
     font-size: 24px;
     font-weight: 500;
@@ -453,7 +579,6 @@
     padding: 0 20px;
 }
 
-/* 问候语动画效果 */
 @keyframes greetingAppear {
     0% {
         opacity: 0;
@@ -470,7 +595,6 @@
     animation: greetingAppear 0.8s ease-out forwards;
 }
 
-/* 添加 welcome-description 样式 */
 .welcome-description {
     font-size: 16px;
     color: #666;
@@ -482,7 +606,7 @@
     margin-right: auto;
 }
 
-/* 功能卡片样式 */
+/* 功能卡片 */
 .feature-cards {
     display: flex;
     flex-wrap: wrap;
@@ -541,208 +665,235 @@
     color: #666;
 }
 
-/* 功能页面样式 - 减少内边距 */
-.function-page {
-    padding: 20px 20px;
-    /* 减小上边距 */
-    max-width: 900px;
-    margin: 0 auto;
-}
-
-.function-header {
+/* 聊天页面 */
+.chat-page {
+    flex: 1;
     display: flex;
-    align-items: center;
-    margin-bottom: 20px;
-    /* 从30px减小到20px */
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    position: relative;
+    padding-bottom: 50px;
+    /* 减小底部空间 */
 }
 
-.function-icon {
-    width: 52px;
-    height: 52px;
-    border-radius: 10px;
+.chat-page.empty-chat {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 28px;
-    margin-right: 16px;
+    height: calc(100vh - 60px);
+    margin-top: 60px;
 }
 
-.function-title-container {
+.no-assistant-selected {
     flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #fff;
 }
 
-.function-title {
-    margin: 0;
+.placeholder-content {
+    text-align: center;
+    color: #757575;
+    padding: 40px;
+}
+
+.placeholder-content h2 {
     font-size: 24px;
     font-weight: 500;
+    margin-bottom: 16px;
     color: #333;
 }
 
-.function-description {
-    margin: 4px 0 0 0;
+.placeholder-content p {
     font-size: 14px;
     color: #666;
+    margin-bottom: 24px;
 }
 
-.function-suggestions {
-    margin-top: 25px;
-    /* 从40px减小到25px */
-    max-width: 100%;
+.placeholder-icon {
+    font-size: 48px;
+    margin-bottom: 20px;
 }
 
-.function-suggestions h3 {
-    font-size: 16px;
-    font-weight: 500;
-    color: #333;
-    margin-bottom: 16px;
-}
-
-.suggestion-list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.suggestion-item {
-    background-color: #f7f7f9;
-    padding: 12px 16px;
-    border-radius: 8px;
-    font-size: 14px;
-    color: #333;
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
-
-.suggestion-item:hover {
-    background-color: #eeeef2;
-}
-
-/* 聊天页面样式 */
-.chat-page {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    max-width: 900px;
-    margin: 0 auto;
-    width: 100%;
-    box-sizing: border-box;
-}
-
-.chat-input-wrapper {
-    padding: 10px 20px 20px;
-    margin: 0 auto;
-    width: 100%;
-    background-color: #fff;
-    border-top: none;
-    position: sticky;
-    bottom: 0;
-    z-index: 10;
-}
-
-/* 快捷导航栏 */
-.quick-nav {
-    display: flex;
-    padding: 10px 0;
-    border-bottom: none;
-    background-color: #fff;
-    margin-bottom: 10px;
-    position: sticky;
-    top: 0;
-    z-index: 90;
-}
-
-.quick-nav-inner {
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-    max-width: 800px;
-    margin: 0 auto;
-}
-
-.quick-nav-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 8px 16px;
-    cursor: pointer;
-    border-radius: 6px;
-    transition: background-color 0.2s;
-}
-
-.quick-nav-item:hover {
-    background-color: #eaeaea;
-}
-
-.quick-nav-item.active {
-    background-color: #e8f0ff;
-}
-
-.quick-nav-icon {
-    font-size: 20px;
-    margin-bottom: 4px;
-}
-
-.quick-nav-text {
-    font-size: 12px;
-    color: #333;
-}
-
+/* 动画 */
 @keyframes spin {
     to {
         transform: rotate(360deg);
     }
 }
 
-/* 修复可能的移动设备显示问题 */
+/* 移动端适配 */
 @media (max-width: 768px) {
     .sidebar {
         position: fixed;
-        left: -300px;
-        width: 300px;
-        z-index: 1000;
-        transition: left 0.3s ease;
+        left: -100%;
+        top: 0;
         height: 100vh;
+        z-index: 200;
+        transition: left 0.3s ease;
+        width: 280px;
     }
 
-    .sidebar.visible {
+    .sidebar.show {
         left: 0;
     }
 
     .chat-container {
         width: 100%;
+        margin-left: 0;
+        padding: 0;
     }
 
-    /* 移除冲突的message-content样式，使用ChatMessage.css中的样式 */
-
-    .feature-card {
+    .sidebar-collapsed+.chat-container {
         width: 100%;
-        /* 在小屏幕上显示为单列 */
+        margin-left: 0;
     }
 
-    .quick-nav-inner {
-        flex-wrap: wrap;
-        gap: 10px;
-    }
-
-    .quick-nav-item {
-        flex: 1;
-        min-width: calc(50% - 5px);
+    /* 移动端输入框样式 */
+    .chat-input-container {
+        left: 0;
+        width: calc(100% - 16px);
         padding: 8px;
+        margin-left: 8px;
+        margin-right: 8px;
+        transform: none;
     }
 
-    .chat-input-wrapper,
-    .welcome-page,
-    .function-page,
-    .chat-page {
-        padding: 15px 15px;
+    /* 聊天页面移动端输入框 */
+    .chat-page .chat-input-container {
+        left: 0;
+        right: 0;
+        width: calc(100% - 16px);
+        margin-left: 8px;
+        margin-right: 8px;
     }
 
-    .feature-cards {
-        gap: 10px;
+    /* 功能页面在移动端的样式 */
+    .welcome-page .chat-input-container {
+        width: calc(100% - 16px);
+        margin: 0 auto;
+        left: auto;
+        right: auto;
+        transform: none;
+    }
+
+    /* 滑动到底部按钮在移动端的位置 */
+    .scroll-to-bottom-btn {
+        right: 10px;
+        bottom: 90px;
+        z-index: 1001;
     }
 }
 
 .sidebar-collapsed .chat-message {
     width: 100%;
     max-width: 100%;
+}
+
+/* 推荐问题样式 */
+.function-suggestions {
+    margin-top: 40px;
+    width: 100%;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.function-suggestions h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.suggestion-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+}
+
+.suggestion-item {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 16px 20px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-size: 14px;
+    color: #374151;
+    position: relative;
+    overflow: hidden;
+}
+
+.suggestion-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.1), transparent);
+    transition: left 0.6s ease;
+}
+
+.suggestion-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    border-color: #3b82f6;
+    background: linear-gradient(135deg, #fff 0%, #f8fafc 100%);
+}
+
+.suggestion-item:hover::before {
+    left: 100%;
+}
+
+.suggestion-item:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    background: #f1f5f9;
+}
+
+/* 选中动画效果 */
+@keyframes selectPulse {
+    0% {
+        transform: scale(1);
+        background: #3b82f6;
+        color: #fff;
+    }
+    50% {
+        transform: scale(1.02);
+        background: #2563eb;
+    }
+    100% {
+        transform: scale(1);
+        background: #1d4ed8;
+        color: #fff;
+    }
+}
+
+.suggestion-item.selected {
+     animation: selectPulse 0.15s ease-out;
+     border-color: #3b82f6;
+ }
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+    .function-suggestions {
+        margin-top: 30px;
+        padding: 0 16px;
+    }
+    
+    .suggestion-item {
+        padding: 14px 16px;
+        font-size: 13px;
+    }
+    
+    .function-suggestions h3 {
+        font-size: 16px;
+        margin-bottom: 16px;
+    }
 }

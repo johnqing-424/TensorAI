@@ -1,68 +1,111 @@
 .chat-history {
-    width: 100%;
-    height: 100%;
+    flex: 1;
     display: flex;
     flex-direction: column;
-    box-sizing: border-box;
-    /* 移除overflow属性，让滚动发生在浏览器窗口 */
-    max-width: 100%;
-    background-color: #fff;
-    /* 恢复原始背景颜色 */
+    /* 取消垂直滚动 */
+    overflow: visible;
+    padding: 0;
+    margin: 60px auto 70px auto;
+    /* 为顶部和底部留出空间 */
+    width: 100%;
+    max-width: 800px;
 }
 
 .messages-container {
+    display: flex;
+    flex-direction: column;
     width: 100%;
-    max-width: none;
-    padding: 16px 0;
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1;
-    margin: 0;
-    background-color: #fff;
-    /* 恢复原始背景颜色 */
+    padding: 20px;
 }
 
-/* 移除冲突的消息样式，让ChatMessage.css中的样式生效 */
-
-/* 空状态样式优化 */
-.empty-state {
+.message-row {
     display: flex;
-    flex-direction: column;
-    align-items: center;
+    width: 100%;
+    margin-bottom: 16px;
+}
+
+.message-row--user {
+    justify-content: flex-end;
+}
+
+.message-row--assistant {
+    justify-content: flex-start;
+}
+
+.message-row--error {
     justify-content: center;
-    padding: 40px 20px;
-    text-align: center;
-    /* 移除固定高度，使用最小高度 */
-    min-height: 50vh;
 }
 
-/* 确保markdown内容不会超出容器 */
-.ragflow-markdown-content-wrapper {
-    max-width: 100%;
+/* 消息样式 */
+.chat-message {
+    max-width: 80% !important;
+    width: auto !important;
+    margin: 0 !important;
+    box-sizing: border-box;
     overflow-wrap: break-word;
-    word-break: break-word;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    margin: 40px auto;
+    background-color: #f9f9fb;
+    border-radius: 12px;
+    max-width: 500px;
+}
+
+.empty-icon {
+    font-size: 36px;
+    margin-bottom: 10px;
+}
+
+.empty-state h3 {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #333;
+}
+
+.empty-state p {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 20px;
+}
+
+.example-questions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.example-question {
+    background-color: #eaebee;
+    padding: 8px 16px;
+    border-radius: 12px;
+    font-size: 13px;
+    color: #444;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.example-question:hover {
+    background-color: #e0e1e5;
+    transform: translateY(-2px);
+}
+
+.scroll-target {
+    height: 10px;
+    width: 100%;
 }
 
 /* 响应式调整 */
 @media (max-width: 768px) {
-    .messages-container {
-        padding: 0;
+    .chat-history {
+        padding: 0 10px;
+        margin: 60px auto 60px auto;
     }
 
     .chat-message {
-        padding: 0 10px;
-        max-width: 100%;
+        max-width: 90% !important;
     }
-
-    .message-content {
-        max-width: 90%;
-    }
-}
-
-/* 当sidebar收缩时应用的样式 */
-.sidebar-collapsed .chat-messages {
-    width: 100%;
-    max-width: 100%;
-    box-sizing: border-box;
 }

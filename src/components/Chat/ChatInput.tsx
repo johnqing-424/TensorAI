@@ -1,6 +1,8 @@
 import React, { useState, KeyboardEvent } from 'react';
 import { useChatContext } from '../../context/ChatContext';
 
+// 此组件暂时不直接使用，使用ChatLayout中的ChatInputBox代替
+// 保留此文件以便后续可能的重构
 const ChatInput: React.FC = () => {
     const { currentMessage, setCurrentMessage, sendMessage, isTyping } = useChatContext();
     const [isFocused, setIsFocused] = useState(false);

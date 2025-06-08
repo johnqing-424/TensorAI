@@ -4,9 +4,10 @@ import ChatMessage from './ChatMessage';
 import './ChatHistory.css'; // 添加引用CSS文件
 
 const ChatHistory: React.FC = () => {
-    const { messages, isTyping, apiError, latestReference } = useChatContext();
+    const { messages, isTyping, apiError, latestReference, isSidebarVisible } = useChatContext();
     const messagesEndRef = useRef<HTMLDivElement>(null);
-    const [isVisible, setIsVisible] = useState(true);
+    const messagesContainerRef = useRef<HTMLDivElement>(null);
+    const [isAtBottom, setIsAtBottom] = useState(true);
 
     // 调试日志 - 监听消息变化（仅在开发环境下启用）
     useEffect(() => {
@@ -15,40 +16,77 @@ const ChatHistory: React.FC = () => {
         }
     }, [messages.length]); // 只监听消息数量变化，避免频繁重渲染
 
+    // 强化的滚动到底部函数 - 使用容器内滚动
     const scrollToBottom = () => {
-        // 使用 setTimeout 确保在 DOM 更新后执行滚动
+        console.log("执行滚动到底部");
+
+        if (messagesContainerRef.current) {
+            messagesContainerRef.current.scrollTo({
+                top: messagesContainerRef.current.scrollHeight,
+                behavior: 'auto'
+            });
+        }
+
+        // 使用延时确保在DOM更新后滚动到底部
         setTimeout(() => {
-            if (messagesEndRef.current) {
-                // 使用页面滚动而不是容器内滚动
-                const elementTop = messagesEndRef.current.offsetTop;
-                window.scrollTo({
-                    top: elementTop,
+            if (messagesContainerRef.current) {
+                messagesContainerRef.current.scrollTo({
+                    top: messagesContainerRef.current.scrollHeight,
                     behavior: 'smooth'
                 });
             }
         }, 100);
     };
 
+    // 监听消息变化，滚动到底部
     useEffect(() => {
-        const observer = new IntersectionObserver(
-            ([entry]) => {
-                setIsVisible(entry.isIntersecting);
-            },
-            {
-                threshold: 0.1,
-            }
-        );
+        if (messages.length > 0 && isAtBottom) {
+            scrollToBottom();
+        }
+    }, [messages, messages.length, isAtBottom]);
 
-        if (messagesEndRef.current) {
-            observer.observe(messagesEndRef.current);
+    // 单独监听打字状态变化
+    useEffect(() => {
+        if (isTyping && isAtBottom) {
+            scrollToBottom();
+        }
+    }, [isTyping, isAtBottom]);
+
+    // 监听侧边栏状态变化，自动重新调整滚动
+    useEffect(() => {
+        // 侧边栏状态变化后延迟执行滚动，确保布局重新计算完成
+        const timer = setTimeout(() => {
+            if (isAtBottom) {
+                scrollToBottom();
+            }
+        }, 300);
+
+        return () => clearTimeout(timer);
+    }, [isSidebarVisible, isAtBottom]);
+
+    // 监听滚动事件，判断是否在底部
+    useEffect(() => {
+        const handleScroll = () => {
+            if (messagesContainerRef.current) {
+                const { scrollTop, scrollHeight, clientHeight } = messagesContainerRef.current;
+                const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
+                setIsAtBottom(distanceFromBottom < 50);
+            }
+        };
+
+        const container = messagesContainerRef.current;
+        if (container) {
+            container.addEventListener('scroll', handleScroll);
+            // 初始检查一次
+            handleScroll();
         }
 
-        return () => observer.disconnect();
-    }, []); // 移除不必要的依赖项，避免重复创建observer
-
-    useEffect(() => {
-        scrollToBottom();
-    }, [messages, isTyping]);
+        return () => {
+            if (container) {
+                container.removeEventListener('scroll', handleScroll);
+            }
+        };
+    }, []);
 
     const handleDocumentClick = (documentId: string, chunk: any) => {
         console.log('Document clicked:', documentId, chunk);
@@ -56,7 +94,7 @@ const ChatHistory: React.FC = () => {
     };
 
     return (
-        <div className="chat-history">
+        <div className="chat-history" ref={messagesContainerRef}>
             <div className="messages-container">
                 {/* 空状态提示 */}
                 {messages.length === 0 ? (
@@ -72,15 +110,20 @@ const ChatHistory: React.FC = () => {
                     </div>
                 ) : (
                     <>
-                        {/* 消息列表 */}
+                        {/* 消息列表 - 使用message-row实现左右布局 */}
                         {messages.map((message, index) => (
-                            <ChatMessage
-                                key={message.id || `message-${index}`} // 优先使用消息ID，避免不必要的重新渲染
-                                message={message}
-                                isTyping={isTyping && index === messages.length - 1 && message.role === 'assistant'}
-                                reference={message.role === 'assistant' && index === messages.length - 1 ? latestReference || undefined : undefined}
-                                onDocumentClick={handleDocumentClick}
-                            />
+                            <div
+                                key={`row-${message.id || `message-${index}`}-${message.timestamp || index}`}
+                                className={`message-row message-row--${message.role}`}
+                            >
+                                <ChatMessage
+                                    key={`${message.id || `message-${index}`}-${message.timestamp || index}`}
+                                    message={message}
+                                    isTyping={isTyping && index === messages.length - 1 && message.role === 'assistant'}
+                                    reference={message.role === 'assistant' && index === messages.length - 1 ? latestReference || undefined : undefined}
+                                    onDocumentClick={handleDocumentClick}
+                                />
+                            </div>
                         ))}
                         {/* API错误提示 */}
                         {apiError && messages.length > 0 && (
@@ -91,7 +134,8 @@ const ChatHistory: React.FC = () => {
                         )}
                     </>
                 )}
-                <div ref={messagesEndRef} />
+                {/* 放置在最底部，用于滚动目标 */}
+                <div ref={messagesEndRef} className="scroll-target" />
             </div>
         </div>
     );
