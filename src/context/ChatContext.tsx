@@ -463,12 +463,16 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 sessionId,
                 message,
                 (partialResponse: ApiResponse<StreamChatResponse>) => {
+                    console.log('收到流式响应:', partialResponse);
                     if (partialResponse && partialResponse.data) {
                         const newContent = partialResponse.data.answer || '';
+                        console.log('新内容:', newContent);
+                        console.log('当前responseText:', responseText);
 
-                        // 只有当内容真正发生变化时才更新
-                        if (newContent !== responseText) {
+                        // 对于流式响应，每次都更新内容（后端发送的是完整答案，不是增量）
+                        if (newContent.trim() !== '') {
                             responseText = newContent;
+                            console.log('更新responseText为:', responseText);
 
                             // 更新UI中的消息
                             setMessages(currentMessages => {
@@ -501,6 +505,8 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
                                 return newMessages;
                             });
+                        } else {
+                            console.log('跳过空内容更新');
                         }
                     }
 

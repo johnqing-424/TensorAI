@@ -566,7 +566,14 @@ class ApiClient {
                                 console.log('解析到数据块:', chunk);
 
                                 // 检查是否是包含answer的数据块
-                                if (chunk && chunk.answer) {
+                                if (chunk && chunk.answer !== undefined) {
+                                    // 过滤掉空的answer内容，避免覆盖之前的正确内容
+                                    if (chunk.answer.trim() === '') {
+                                        console.log('跳过空的answer内容:', chunk);
+                                        continue;
+                                    }
+                                    
+                                    console.log('处理直接answer格式:', chunk.answer);
                                     // 直接使用RAGFlow返回的数据格式
                                     const streamResponse = {
                                         answer: chunk.answer,
@@ -581,21 +588,31 @@ class ApiClient {
                                 } else if (chunk && chunk.code !== undefined && chunk.data !== undefined) {
                                     // 处理Tensor-AI格式响应
                                     console.log('处理Tensor-AI格式响应:', chunk);
+                                    console.log('chunk.data.answer:', chunk.data?.answer);
 
                                     if (chunk.data && typeof chunk.data === 'object') {
                                         // 处理数据对象包含answer的情况
-                                        if (chunk.data.answer) {
+                                        if (chunk.data.answer !== undefined) {
+                                            // 过滤掉空的answer内容，避免覆盖之前的正确内容
+                                            if (chunk.data.answer.trim() === '') {
+                                                console.log('跳过空的answer内容:', chunk);
+                                                continue;
+                                            }
+                                            
+                                            console.log('处理有效answer内容:', chunk.data.answer);
                                             const streamResponse = {
                                                 answer: chunk.data.answer,
                                                 reference: chunk.data.reference || null,
                                                 session_id: chunk.data.session_id || sessionId
                                             };
 
+                                            console.log('发送streamResponse:', streamResponse);
                                             onChunkReceived({
                                                 code: chunk.code,
                                                 data: streamResponse
                                             });
                                         } else {
+                                            console.log('chunk.data中没有answer，直接传递:', chunk);
                                             // 直接传递整个响应
                                             onChunkReceived(chunk);
                                         }
