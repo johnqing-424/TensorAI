@@ -34,7 +34,7 @@ class ApiClient {
 
     constructor() {
         // 从环境变量或localStorage获取API基础URL
-        this.baseUrl = localStorage.getItem('ragflow_api_url') || 'http://localhost:3001/proxy';
+        this.baseUrl = localStorage.getItem('ragflow_api_url') || 'http://localhost:8080/api';
         this.token = localStorage.getItem('ragflow_api_key');
         this.appid = localStorage.getItem('ragflow_appid') || 'process'; // 默认appid为process
 
@@ -186,7 +186,7 @@ class ApiClient {
         console.log(`请求头: token=${this.token.substring(0, 5)}..., appid=${currentAppId}`);
 
         // 构建请求URL，确保API路径正确
-        const apiEndpoint = endpoint.startsWith('/api/') ? endpoint : `/api${endpoint}`;
+        const apiEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
         const url = `${this.baseUrl}${apiEndpoint}`;
 
         try {

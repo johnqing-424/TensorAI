@@ -41,6 +41,7 @@ import classNames from 'classnames';
 import { pipe } from 'lodash/fp';
 import { vs } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
+import { preprocessLaTeX, replaceThinkToSection, replaceTextByOldReg } from '../../utils/markdownUtils';
 import 'katex/dist/katex.min.css';
 
 const reg = /(~{2}\d+={2})/g;
@@ -61,15 +62,9 @@ const getExtension = (filename: string = '') => {
     return lastDot !== -1 ? filename.slice(lastDot + 1).toLowerCase() : '';
 };
 
-const preprocessLaTeX = (text: string) => {
-    return text
-        .replace(/\$\$([^$]+)\$\$/g, '\n\n$$$$1$$\n\n')
-        .replace(/\$([^$]+)\$/g, '$$$1$$');
-};
+// preprocessLaTeX 函数已移至 utils/markdownUtils.ts 中统一管理
 
-const replaceThinkToSection = (text: string) => {
-    return text.replace(/<think>([\s\S]*?)<\/think>/g, '<section class="think">$1</section>');
-};
+// replaceThinkToSection 函数已移至 utils/markdownUtils.ts 中统一管理
 
 const showImage = (docType: any) => {
     // 确保docType是字符串类型，如果不是则转换为空字符串
@@ -77,12 +72,7 @@ const showImage = (docType: any) => {
     return ['pdf', 'doc', 'docx', 'ppt', 'pptx'].includes(docTypeStr.toLowerCase());
 };
 
-// To be compatible with the old index matching mode
-const replaceTextByOldReg = (text: string) => {
-    return text?.replace(oldReg, function (substring) {
-        return `~~${substring.slice(2, -2)}==`;
-    });
-};
+// replaceTextByOldReg 函数已移至 utils/markdownUtils.ts 中统一管理
 
 // 文件图标组件
 const FileIcon: React.FC<{ extension: string }> = ({ extension }) => {

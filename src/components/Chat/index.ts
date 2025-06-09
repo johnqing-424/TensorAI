@@ -7,8 +7,8 @@ export { default as ErrorMessage } from './ErrorMessage';
 export { default as ReferencePopover } from './ReferencePopover';
 
 // 工具函数导出
-export * from './utils/markdownUtils';
 export * from './utils/fileUtils';
+// 注意：markdownUtils 已统一使用 ../../utils/markdownUtils，避免函数冲突
 
 // 保持向后兼容
 export { default as MarkdownContent } from './MarkdownContent';

@@ -9,13 +9,17 @@
 export const preprocessLaTeX = (content: string): string => {
     if (!content) return '';
 
-    // 处理行内数学公式 $...$
-    content = content.replace(/\$([^$\n]+?)\$/g, '\\($1\\)');
+    let processed = content;
 
-    // 处理块级数学公式 $$...$$
-    content = content.replace(/\$\$([\s\S]*?)\$\$/g, '\\[$1\\]');
+    // 首先处理块级数学公式 $$...$$ (必须在行内公式之前处理)
+    // 使用非贪婪匹配，避免跨越多个公式
+    processed = processed.replace(/\$\$((?:(?!\$\$)[\s\S])*?)\$\$/g, '\\[$1\\]');
 
-    return content;
+    // 然后处理行内数学公式 $...$
+    // 使用非贪婪匹配，避免匹配到已经处理过的块级公式
+    processed = processed.replace(/(?<!\\)\$([^$\n]+?)\$(?!\$)/g, '\\($1\\)');
+
+    return processed;
 };
 
 /**
@@ -32,12 +36,23 @@ export const replaceThinkToSection = (content: string): string => {
 
 /**
  * 替换旧版引用格式
+ * 处理旧版本的引用标记格式
  */
 export const replaceTextByOldReg = (content: string): string => {
     if (!content) return '';
 
-    // 替换旧版引用格式 [1] 为新格式
-    return content.replace(/\[(\d+)\]/g, '<sup data-reference="$1">[$1]</sup>');
+    let processed = content;
+
+    // 替换旧版引用格式 ##数字$$ 为新格式 ((数字))
+    processed = processed.replace(/##(\d+)\$\$/g, '(($1))');
+
+    // 替换旧版引用格式 [ref:数字] 为新格式 ((数字))
+    processed = processed.replace(/\[ref:(\d+)\]/g, '(($1))');
+
+    // 替换其他可能的旧格式
+    processed = processed.replace(/\{ref:(\d+)\}/g, '(($1))');
+
+    return processed;
 };
 
 /**

@@ -15,18 +15,17 @@ class ApiClient {
     private connectionTestInterval: number = 10000; // 10秒内不重复测试连接
 
     constructor() {
-        // 首先从localStorage读取API地址，然后是环境变量，最后是默认值
-        const storedApiUrl = localStorage.getItem('ragflow_api_url');
         // 在开发模式下使用相对路径，以便与代理配置一起工作
         const isLocalDev = process.env.NODE_ENV === 'development';
 
         if (isLocalDev) {
-            // 开发环境下使用本地代理绕过CORS
-            this.baseUrl = 'http://localhost:3001/proxy';
-            console.log(`API客户端初始化（开发模式），使用代理URL: ${this.baseUrl}`);
+            // 开发环境下使用React内置代理，直接使用相对路径
+            this.baseUrl = '';
+            console.log(`API客户端初始化（开发模式），使用React内置代理`);
         } else {
-            // 生产环境使用完整URL
-            this.baseUrl = storedApiUrl || process.env.REACT_APP_API_BASE_URL || 'http://192.168.1.131:8080';
+            // 生产环境使用完整URL，首先从localStorage读取API地址，然后是环境变量，最后是默认值
+            const storedApiUrl = localStorage.getItem('ragflow_api_url');
+            this.baseUrl = storedApiUrl || process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
             console.log(`API客户端初始化，基础URL: ${this.baseUrl}`);
         }
 
@@ -128,7 +127,22 @@ class ApiClient {
         // 进行请求节流
         await this.throttleRequest(endpoint);
 
-        const url = `${this.baseUrl}${endpoint}`;
+        // 在开发模式下，确保endpoint包含/api前缀以配合setupProxy.js
+        const isLocalDev = process.env.NODE_ENV === 'development';
+        let finalEndpoint = endpoint;
+
+        // 如果是开发模式且baseUrl为空（使用代理），需要添加/api前缀
+        if (isLocalDev && this.baseUrl === '' && !endpoint.startsWith('/api')) {
+            finalEndpoint = `/api${endpoint}`;
+        }
+        // 如果baseUrl已经包含/api，避免重复
+        else if (this.baseUrl.endsWith('/api') && endpoint.startsWith('/api')) {
+            finalEndpoint = endpoint.substring(4); // 移除endpoint开头的/api
+        }
+
+        const url = `${this.baseUrl}${finalEndpoint}`;
+        console.log(`API请求: ${method} ${url}`);
+        console.log(`请求头: token=${this.token?.substring(0, 8)}..., appid=${this.appid}`);
         const requestHeaders: HeadersInit = {
             'token': this.token, // 使用token头
             // 添加CORS相关请求头
@@ -469,18 +483,11 @@ class ApiClient {
                         'Content-Type': 'application/json',
                         'token': this.token || '',
                         'Accept': 'text/event-stream',
-                        // 添加Keep-Alive标头以维持连接
-                        'Connection': 'keep-alive',
-                        'Keep-Alive': 'timeout=60, max=1000',
-                        // 添加CORS相关请求头
-                        'Origin': window.location.origin,
-                        'Access-Control-Request-Method': 'POST',
+                        'Cache-Control': 'no-cache',
                         ...(this.appid ? { 'appid': this.appid } : {})
                     },
                     body: JSON.stringify({ sessionId, message }),
                     signal: controller.signal,
-                    mode: 'cors',
-                    credentials: 'include',
                     cache: 'no-store'
                 });
 
@@ -572,7 +579,7 @@ class ApiClient {
                                         console.log('跳过空的answer内容:', chunk);
                                         continue;
                                     }
-                                    
+
                                     console.log('处理直接answer格式:', chunk.answer);
                                     // 直接使用RAGFlow返回的数据格式
                                     const streamResponse = {
@@ -598,7 +605,7 @@ class ApiClient {
                                                 console.log('跳过空的answer内容:', chunk);
                                                 continue;
                                             }
-                                            
+
                                             console.log('处理有效answer内容:', chunk.data.answer);
                                             const streamResponse = {
                                                 answer: chunk.data.answer,
