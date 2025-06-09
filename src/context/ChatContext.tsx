@@ -83,7 +83,18 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const [isTyping, setIsTyping] = useState<boolean>(false);
 
     // 引用状态
-    const [latestReference, setLatestReference] = useState<Reference | null>(null);
+    const [latestReference, setLatestReference] = useState<Reference | null>(
+        // 尝试从localStorage恢复参考文档数据
+        (() => {
+            try {
+                const savedRef = localStorage.getItem('ragflow_latest_reference');
+                return savedRef ? JSON.parse(savedRef) : null;
+            } catch (e) {
+                console.error('恢复参考文档失败:', e);
+                return null;
+            }
+        })()
+    );
 
     // 界面状态
     const [isSidebarVisible, setIsSidebarVisible] = useState<boolean>(true);
@@ -176,7 +187,32 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     // 当选择会话时，更新消息列表
     useEffect(() => {
         if (currentSession) {
-            setMessages(currentSession.messages || []);
+            // 修复：转换消息中的reference字段类型
+            const convertedMessages = currentSession.messages.map(msg => {
+                // 创建一个符合ChatMessage类型的新消息对象
+                const chatMsg: ChatMessage = {
+                    role: msg.role,
+                    content: msg.content
+                };
+
+                // 如果存在reference且为字符串，尝试转换为Reference对象
+                if (msg.reference) {
+                    try {
+                        // 如果是JSON字符串，尝试解析
+                        if (typeof msg.reference === 'string') {
+                            chatMsg.reference = JSON.parse(msg.reference) as Reference;
+                        }
+                    } catch (e) {
+                        console.warn('无法解析消息引用:', e);
+                        // 创建一个空的Reference对象
+                        chatMsg.reference = { total: 0, chunks: [], doc_aggs: [] };
+                    }
+                }
+
+                return chatMsg;
+            });
+
+            setMessages(convertedMessages);
         } else {
             setMessages([]);
         }
@@ -222,10 +258,18 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         clearApiError();
     };
 
-    // 固定警告：responseReference 未使用的问题
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    // 保存参考文档信息
     const handleResponseReference = (ref: Reference | null) => {
-        if (ref) setLatestReference(ref);
+        setLatestReference(ref);
+
+        // 将参考文档保存到localStorage
+        if (ref) {
+            try {
+                localStorage.setItem('ragflow_latest_reference', JSON.stringify(ref));
+            } catch (e) {
+                console.error('保存参考文档失败:', e);
+            }
+        }
     };
 
     // 获取会话列表，带错误处理
@@ -376,11 +420,19 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
                     // 确保格式转换正确
                     const formattedMessages = response.data.map((msg: any) => {
+                        // 检查并恢复引用数据
+                        const msgReference = msg.reference || null;
+                        if (msgReference && msgReference.doc_aggs && msgReference.doc_aggs.length > 0) {
+                            // 保存最新的引用信息
+                            handleResponseReference(msgReference);
+                        }
+
                         return {
                             role: msg.role || "user", // 确保角色有效
                             content: msg.content || "",
                             timestamp: Date.now(),
-                            reference: msg.reference || null
+                            reference: msg.reference || null,
+                            completed: true // 历史消息标记为已完成
                         };
                     });
 
@@ -479,6 +531,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         let responseText = '';
         let validAnswer = ''; // 保存有效的答案内容
         let responseReference: Reference | null = null;
+        let cumulativeReference: Reference = { total: 0, chunks: [], doc_aggs: [] }; // 累积的参考文档信息
 
         // 设置流式响应状态
         setIsReceivingStream(true);
@@ -510,6 +563,55 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                         const newContent = partialResponse.data.answer || '';
                         console.log('新内容:', newContent);
                         console.log('当前responseText:', responseText);
+
+                        // 处理参考文档 - 收集和累积
+                        if (partialResponse.data.reference) {
+                            const newReference = partialResponse.data.reference;
+                            responseReference = newReference;
+
+                            // 更新累积的参考文档信息
+                            if (newReference.doc_aggs) {
+                                // 创建文档ID映射以避免重复
+                                const existingDocs = new Map(
+                                    cumulativeReference.doc_aggs.map(doc => [doc.doc_id, doc])
+                                );
+
+                                // 添加新的文档
+                                newReference.doc_aggs.forEach(doc => {
+                                    if (!existingDocs.has(doc.doc_id)) {
+                                        cumulativeReference.doc_aggs.push(doc);
+                                    }
+                                });
+                            }
+
+                            // 累积chunks
+                            if (newReference.chunks && newReference.chunks.length > 0) {
+                                // 创建chunk ID映射以避免重复
+                                const existingChunks = new Map(
+                                    cumulativeReference.chunks.map(chunk => [chunk.id, chunk])
+                                );
+
+                                // 添加新的chunks
+                                newReference.chunks.forEach(chunk => {
+                                    if (!existingChunks.has(chunk.id)) {
+                                        cumulativeReference.chunks.push(chunk);
+                                    }
+                                });
+                            }
+
+                            // 更新total字段
+                            cumulativeReference.total = Math.max(
+                                cumulativeReference.total,
+                                newReference.total || 0
+                            );
+
+                            // 打印累积的参考文档信息
+                            console.log('累积参考文档信息:', {
+                                total: cumulativeReference.total,
+                                doc_aggs: cumulativeReference.doc_aggs.length,
+                                chunks: cumulativeReference.chunks.length
+                            });
+                        }
 
                         // 对于流式响应，检查内容是否有所更新
                         if (newContent && newContent.trim() !== '') {
@@ -548,6 +650,8 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                                             ...newMessages[lastMessageIndex],
                                             content: (validAnswer || responseText || '...'),  // 优先使用validAnswer
                                             isLoading: true,
+                                            // 添加累积的参考文档信息
+                                            reference: cumulativeReference.doc_aggs.length > 0 ? cumulativeReference : undefined,
                                             // 添加时间戳，强制React识别组件更新
                                             timestamp: Date.now()
                                         };
@@ -575,11 +679,6 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     } else {
                         console.log('接收到无效响应:', partialResponse);
                     }
-
-                    // 如果有引用信息，记录它
-                    if (partialResponse && partialResponse.data && partialResponse.data.reference) {
-                        responseReference = partialResponse.data.reference;
-                    }
                 },
                 () => {
                     // 消息发送成功，更新最终消息
@@ -606,10 +705,13 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                                 }
                             }
 
+                            // 完成消息，包含所有累积的参考文档
                             newMessages[lastMessageIndex] = {
                                 ...newMessages[lastMessageIndex],
                                 content: finalContent || '等待回复...', // 确保不显示空内容
                                 isLoading: false,
+                                // 添加最终的参考文档信息
+                                reference: cumulativeReference.doc_aggs.length > 0 ? cumulativeReference : undefined,
                                 // 添加结束时间戳
                                 timestamp: Date.now(),
                                 completed: true
@@ -632,8 +734,12 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                         return newMessages;
                     });
 
-                    // 处理引用信息
-                    handleResponseReference(responseReference);
+                    // 处理引用信息 - 使用累积的参考文档信息
+                    if (cumulativeReference.doc_aggs.length > 0) {
+                        handleResponseReference(cumulativeReference);
+                    } else {
+                        handleResponseReference(responseReference);
+                    }
 
                     // 完成后取消输入状态
                     setIsTyping(false);

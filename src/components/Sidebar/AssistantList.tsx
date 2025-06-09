@@ -154,7 +154,7 @@ const AssistantList: React.FC = () => {
             case 'process': return '流程制度检索';
             case 'product': return '产品技术检索';
             case 'model': return '大模型知识检索';
-            case 'more': return '更多';
+            case 'more': return '简历筛选助手';
             default: return '聊天';
         }
     };
@@ -241,7 +241,7 @@ const AssistantList: React.FC = () => {
                             <span>{functionIcons[assistant.id as keyof typeof functionIcons]?.icon}</span>
                         </div>
                         <div className="menu-text">{getDisplayName(assistant.id)}</div>
-                        {assistant.id === 'model' && <div className="menu-badge">新</div>}
+                        {assistant.id === 'more' && <div className="menu-badge">新</div>}
                     </div>
                 ))}
             </div>

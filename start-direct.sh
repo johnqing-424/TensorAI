@@ -87,7 +87,7 @@ start_frontend() {
     log_info "按 Ctrl+C 停止应用"
     
     # 设置环境变量
-    export REACT_APP_API_BASE_URL="http://localhost:8080"
+    export REACT_APP_API_BASE_URL="http://192.168.1.131:8080"
     
     # 启动React应用
     npm start

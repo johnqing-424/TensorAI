@@ -34,7 +34,7 @@ class ApiClient {
 
     constructor() {
         // 从环境变量或localStorage获取API基础URL
-        this.baseUrl = localStorage.getItem('ragflow_api_url') || 'http://localhost:8080/api';
+        this.baseUrl = localStorage.getItem('ragflow_api_url') || 'http://192.168.1.131:8080/api';
         this.token = localStorage.getItem('ragflow_api_key');
         this.appid = localStorage.getItem('ragflow_appid') || 'process'; // 默认appid为process
 

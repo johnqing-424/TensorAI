@@ -8,7 +8,7 @@ const path = require('path');
 const fs = require('fs');
 
 // 后端API地址
-const BACKEND_API_URL = 'http://localhost:8080'; // 修改为实际的Tensor-AI后端地址
+const BACKEND_API_URL = 'http://192.168.1.131:8080'; // 修改为实际的Tensor-AI后端地址
 
 // 允许特定源的CORS请求，并支持凭据
 app.use(cors({

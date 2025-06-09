@@ -17,6 +17,7 @@ export interface ChatMessage {
     isError?: boolean;    // 标记消息是否为错误消息
     timestamp?: number;   // 时间戳，用于强制React识别组件更新
     completed?: boolean;  // 标记消息是否已完成生成
+    reference?: Reference; // 添加引用信息字段，用于存储消息的参考文档
 }
 
 // 聊天引用源类型

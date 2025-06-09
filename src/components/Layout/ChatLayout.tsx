@@ -435,8 +435,8 @@ const ChatLayout: React.FC = () => {
                             <span style={{ color: functionIcons.more.color }}>{functionIcons.more.icon}</span>
                         </div>
                         <div className="feature-card-content">
-                            <div className="feature-card-title">更多功能</div>
-                            <div className="feature-card-desc">探索更多AI辅助功能</div>
+                            <div className="feature-card-title">简历筛选助手</div>
+                            <div className="feature-card-desc">智能简历分析与人才匹配</div>
                         </div>
                     </div>
                 </div>
@@ -446,6 +446,21 @@ const ChatLayout: React.FC = () => {
 
     // 渲染功能特定页面
     const renderFunctionPage = (functionId: FunctionIdType) => {
+        // 简历筛选助手使用全屏iframe
+        if (functionId === 'more' as FunctionIdType) {
+            return (
+                <div className="page fullscreen-iframe-page">
+                    <iframe
+                        src="http://192.168.1.131:9222/chat/share?shared_id=79f7de623c6a11f0a18c0242ac140006&from=agent&auth=JhMGQxMDA4NDA1YjExZjBiNjljMWI2YT&locale=zh"
+                        frameBorder="0"
+                        className="fullscreen-iframe"
+                        title="简历筛选助手"
+                    ></iframe>
+                </div>
+            );
+        }
+
+        // 其他功能页面保持原样
         // 根据功能ID显示不同的功能页面
         let title = functionTitles[functionId];
         let description = '';
@@ -471,14 +486,9 @@ const ChatLayout: React.FC = () => {
                 isDeepThinking = modelDeepThinking;
                 toggleDeepThinking = () => setModelDeepThinking(!modelDeepThinking);
                 break;
-            case 'more':
-                description = '探索更多AI辅助功能';
-                placeholder = '请输入您想了解的功能...';
-                isDeepThinking = moreDeepThinking;
-                toggleDeepThinking = () => setMoreDeepThinking(!moreDeepThinking);
-                break;
         }
 
+        // 以下是普通功能页面的渲染
         return (
             <div className="page welcome-page">
                 <h1 className="welcome-greeting">{title}</h1>
@@ -592,38 +602,6 @@ const ChatLayout: React.FC = () => {
                                     }, 150);
                                 }}>
                                     如何评估大语言模型的性能？
-                                </div>
-                            </>
-                        )}
-
-                        {functionId === 'more' && (
-                            <>
-                                <div className={`suggestion-item ${selectedSuggestion === '有哪些功能即将推出？' ? 'selected' : ''}`} onClick={() => {
-                                    setSelectedSuggestion('有哪些功能即将推出？');
-                                    setTimeout(() => {
-                                        setInputValue('有哪些功能即将推出？');
-                                        setSelectedSuggestion(null);
-                                    }, 150);
-                                }}>
-                                    有哪些功能即将推出？
-                                </div>
-                                <div className={`suggestion-item ${selectedSuggestion === '如何使用高级搜索功能？' ? 'selected' : ''}`} onClick={() => {
-                                    setSelectedSuggestion('如何使用高级搜索功能？');
-                                    setTimeout(() => {
-                                        setInputValue('如何使用高级搜索功能？');
-                                        setSelectedSuggestion(null);
-                                    }, 150);
-                                }}>
-                                    如何使用高级搜索功能？
-                                </div>
-                                <div className={`suggestion-item ${selectedSuggestion === '有哪些AI辅助工具？' ? 'selected' : ''}`} onClick={() => {
-                                    setSelectedSuggestion('有哪些AI辅助工具？');
-                                    setTimeout(() => {
-                                        setInputValue('有哪些AI辅助工具？');
-                                        setSelectedSuggestion(null);
-                                    }, 150);
-                                }}>
-                                    有哪些AI辅助工具？
                                 </div>
                             </>
                         )}

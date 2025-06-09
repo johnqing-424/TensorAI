@@ -9,7 +9,7 @@ export const functionIcons = {
     process: { icon: '📝', bgColor: '#e8f4ff', color: '#3370ff' },
     product: { icon: '🔍', bgColor: '#e5f7ed', color: '#10b981' },
     model: { icon: '🤖', bgColor: '#f5f3ff', color: '#8b5cf6' },
-    more: { icon: '✨', bgColor: '#fff4e5', color: '#f59e0b' }
+    more: { icon: '📄', bgColor: '#f2f4f8', color: '#6366f1' }
 };
 
 // 路由映射
@@ -25,7 +25,7 @@ export const functionTitles: Record<FunctionIdType, string> = {
     process: '流程制度检索',
     product: '产品技术检索',
     model: '大模型知识检索',
-    more: '更多功能'
+    more: '简历筛选助手'
 };
 
 const NavigationBar: React.FC = () => {

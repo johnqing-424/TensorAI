@@ -1,0 +1,100 @@
+/* 参考文档样式 */
+.reference-documents {
+    margin-top: 12px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+.reference-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: #666;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+}
+
+.reference-title::before {
+    content: "📚";
+    margin-right: 6px;
+    font-size: 15px;
+}
+
+.reference-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 6px;
+}
+
+.document-link {
+    display: flex;
+    align-items: center;
+    padding: 6px 10px;
+    background-color: #f5f7fa;
+    border: 1px solid #e6e9ed;
+    border-radius: 6px;
+    text-decoration: none;
+    color: #444;
+    font-size: 13px;
+    transition: all 0.3s ease;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.document-link:hover {
+    background-color: #eef2ff;
+    border-color: #c0d0ff;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+    color: #3366ff;
+}
+
+.document-icon {
+    margin-right: 6px;
+    font-size: 16px;
+}
+
+.document-name {
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 500;
+}
+
+/* 淡入动画 */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 暗色模式支持 */
+@media (prefers-color-scheme: dark) {
+    .reference-documents {
+        border-top-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .reference-title {
+        color: #aaa;
+    }
+
+    .document-link {
+        background-color: #2d2d2d;
+        border-color: #3a3a3a;
+        color: #ddd;
+    }
+
+    .document-link:hover {
+        background-color: #333333;
+        border-color: #4a4a8c;
+        color: #a0c0ff;
+    }
+}
