@@ -301,8 +301,6 @@ class ApiClient {
         }
     }
 
-
-
     // 获取会话列表
     async listChatSessions() {
         return this.request<ChatSession[]>('/sessions', 'GET');
@@ -376,13 +374,15 @@ class ApiClient {
         const headers = {
             'Content-Type': 'application/json',
             'token': this.token,
-            'appid': currentAppId || 'process'
+            'appid': currentAppId || 'process',
+            'Accept': 'text/event-stream'
         };
 
         console.log(`使用appid: ${headers.appid} 发送流式请求`);
 
+        // 创建EventSource用于接收流式数据 - 这可能更适合SSE
         try {
-            // 使用EventSource或fetch流式API进行SSE连接
+            // 首先尝试使用fetch API
             const response = await fetch(url, {
                 method: 'POST',
                 headers,
@@ -393,61 +393,169 @@ class ApiClient {
                 throw new Error(`HTTP错误 ${response.status}`);
             }
 
+            console.log('服务器响应状态:', response.status);
+
             // 获取响应流的reader
             const reader = response.body?.getReader();
             if (!reader) {
                 throw new Error("无法获取响应流");
             }
 
-            // 用于存储部分接收的数据
+            // 用于存储部分接收的数据以及累积的消息
             const decoder = new TextDecoder();
             let buffer = '';
+            let accumulatedResponse = '';
+
+            // 辅助函数处理响应数据
+            const handleResponseData = (jsonData: any) => {
+                console.log('处理响应数据:', jsonData);
+
+                // 格式1: {code: 0, data: {...}}
+                if (jsonData.code !== undefined && jsonData.data) {
+                    console.log('标准API响应格式');
+                    onChunkReceived(jsonData);
+                    return;
+                }
+
+                // 格式2: {answer: "..."}
+                if (jsonData.answer !== undefined) {
+                    console.log('包含answer字段的格式');
+                    // 更新累积的响应
+                    accumulatedResponse = jsonData.answer;
+
+                    const formatted: ApiResponse<StreamChatResponse> = {
+                        code: 0,
+                        data: {
+                            answer: jsonData.answer,
+                            session_id: sessionId,
+                            reference: jsonData.reference
+                        }
+                    };
+                    onChunkReceived(formatted);
+                    return;
+                }
+
+                // 格式3: 其他JSON格式
+                console.log('其他JSON格式，原样传递');
+                onChunkReceived({
+                    code: 0,
+                    data: {
+                        answer: JSON.stringify(jsonData),
+                        session_id: sessionId
+                    }
+                });
+            };
 
             // 读取流数据
             while (true) {
                 const { done, value } = await reader.read();
-                if (done) break;
+                if (done) {
+                    console.log('流读取完成');
+
+                    // 处理任何剩余数据
+                    if (buffer.trim()) {
+                        console.log('处理剩余数据:', buffer);
+                        try {
+                            const jsonData = JSON.parse(buffer);
+                            handleResponseData(jsonData);
+                        } catch (e) {
+                            console.warn('无法解析最后的数据:', buffer);
+                        }
+                    }
+
+                    onComplete();
+                    break;
+                }
 
                 // 解码接收到的数据块
                 const chunk = decoder.decode(value, { stream: true });
                 buffer += chunk;
+                console.log('收到原始数据:', chunk);
 
-                // 处理完整的SSE事件
+                // 处理可能的多行JSON或SSE数据
                 const lines = buffer.split('\n');
-                buffer = lines.pop() || '';  // 最后一行可能不完整，保留到下一次
+                // 保留最后一行，可能是不完整的
+                buffer = lines.pop() || '';
 
                 for (const line of lines) {
-                    if (line.trim() === '') continue;
+                    const trimmedLine = line.trim();
+                    if (!trimmedLine) continue;
 
-                    // 解析事件数据
-                    if (line.startsWith('data:')) {
+                    // 处理SSE格式
+                    if (trimmedLine.startsWith('data:')) {
+                        const data = trimmedLine.substring(5).trim();
+                        console.log('解析SSE数据行:', data);
+
+                        // 如果是特殊控制消息
+                        if (data === 'true' || data === 'false') {
+                            console.log('收到控制消息:', data);
+                            if (data === 'true') {
+                                onComplete();
+                                return;
+                            }
+                            continue;
+                        }
+
+                        // 尝试解析JSON
                         try {
-                            const jsonStr = line.substring(5).trim();
-
-                            // 跳过空的或非JSON数据
-                            if (jsonStr === '' || jsonStr === 'true' || jsonStr === 'false') {
-                                continue;
-                            }
-
-                            // 尝试解析JSON，如果失败则跳过该数据块
-                            try {
-                                const parsedData = JSON.parse(jsonStr);
-                                onChunkReceived(parsedData);
-                            } catch (parseError: any) {
-                                console.warn('跳过无效JSON数据:', jsonStr, '错误:', parseError.message);
-                                continue;
-                            }
+                            const jsonData = JSON.parse(data);
+                            handleResponseData(jsonData);
                         } catch (e) {
-                            console.error("解析SSE数据出错", e);
+                            console.warn('无法解析SSE数据:', data, e);
+                        }
+                    }
+                    // 处理事件类型
+                    else if (trimmedLine.startsWith('event:')) {
+                        const eventType = trimmedLine.substring(6).trim();
+                        console.log('收到事件类型:', eventType);
+
+                        if (eventType === 'complete') {
+                            console.log('收到完成事件');
+                            onComplete();
+                            return;
+                        }
+                    }
+                    // 忽略SSE元数据
+                    else if (trimmedLine.startsWith('id:') || trimmedLine.startsWith('retry:')) {
+                        console.log('忽略SSE元数据:', trimmedLine);
+                        continue;
+                    }
+                    // 尝试作为直接JSON解析
+                    else {
+                        try {
+                            const jsonData = JSON.parse(trimmedLine);
+                            console.log('解析为直接JSON数据:', jsonData);
+                            handleResponseData(jsonData);
+                        } catch (e) {
+                            // 不是JSON，可能是其他格式，但忽略明显的元数据格式
+                            console.log('无法解析为JSON:', trimmedLine);
+
+                            // 检查是否是纯文本回复，排除id和retry等元数据格式
+                            if (trimmedLine &&
+                                !trimmedLine.includes('{') &&
+                                !trimmedLine.includes('}') &&
+                                !trimmedLine.startsWith('id:') &&
+                                !trimmedLine.startsWith('retry:')) {
+                                accumulatedResponse += trimmedLine;
+
+                                // 构造一个模拟响应对象
+                                const mockResponse: ApiResponse<StreamChatResponse> = {
+                                    code: 0,
+                                    data: {
+                                        answer: accumulatedResponse,
+                                        session_id: sessionId
+                                    }
+                                };
+                                console.log('构造纯文本响应:', mockResponse);
+                                onChunkReceived(mockResponse);
+                            }
                         }
                     }
                 }
             }
 
-            // 处理完成
-            onComplete();
         } catch (error) {
-            console.error("流式请求失败", error);
+            console.error("流式请求失败:", error);
             onError(error instanceof Error ? error : new Error(String(error)));
         }
     }

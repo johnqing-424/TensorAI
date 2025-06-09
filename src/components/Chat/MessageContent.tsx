@@ -25,11 +25,13 @@ const MessageContent: React.FC<MessageContentProps> = ({
 
     // 确定当前消息的状态
     const messageState = useMemo(() => {
-        if (isLoading) return 'loading';
         if (isError) return 'error';
+        // 仅当消息为空且正在加载时显示加载状态
+        // 当消息已有内容且仍在加载时，显示正常内容（流式显示）
+        if (isLoading && (!content || content === '...')) return 'loading';
         if (isTyping && role === 'assistant') return 'typing';
         return 'normal';
-    }, [isLoading, isError, isTyping, role]);
+    }, [isLoading, isError, isTyping, role, content]);
 
     // 渲染加载状态
     const renderLoading = useCallback(() => (
@@ -55,15 +57,20 @@ const MessageContent: React.FC<MessageContentProps> = ({
             );
         }
 
+        // 计算是否处于流式显示状态
+        const isStreaming: boolean = Boolean(
+            isTyping || (isLoading && content && content !== '...')
+        );
+
         return (
             <MarkdownRenderer
                 content={content || ''}
-                isStreaming={isTyping}
+                isStreaming={isStreaming}
                 reference={reference}
                 onDocumentClick={onDocumentClick}
             />
         );
-    }, [content, isTyping, reference, onDocumentClick]);
+    }, [content, isTyping, isLoading, reference, onDocumentClick]);
 
     // 根据状态渲染对应内容
     const renderContent = useCallback(() => {

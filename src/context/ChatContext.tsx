@@ -1,5 +1,4 @@
-
-import React, { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, ReactNode, useCallback } from 'react';
 import { apiClient } from '../services';
 import { ChatAssistant, ChatMessage, ChatSession, Reference, ApiResponse, ChatCompletion, StreamChatResponse } from '../types';
 import { functionTitles, FunctionIdType } from '../components/Layout/NavigationBar';
@@ -34,6 +33,11 @@ interface ChatContextType {
     setCurrentMessage: (message: string) => void;
     sendMessage: (message: string) => Promise<void>;
     isTyping: boolean;
+
+    // 流式响应控制 - 新增
+    isReceivingStream: boolean;
+    isPaused: boolean;
+    toggleStreamPause: () => void;
 
     // 引用管理
     latestReference: Reference | null;
@@ -98,6 +102,30 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const maxRetries = 2;
     const retryDelay = 5000;
     const lastFetchTime = useRef<number>(0);
+
+    // 添加流式响应控制状态
+    const [isReceivingStream, setIsReceivingStream] = useState<boolean>(false);
+    const [isPaused, setIsPaused] = useState<boolean>(false);
+    const streamController = useRef<AbortController | null>(null);
+
+    // 添加暂停/继续流式响应的方法
+    const toggleStreamPause = useCallback(() => {
+        if (isPaused) {
+            // 如果已暂停，则恢复
+            setIsPaused(false);
+            console.log('恢复流式响应');
+            // 这里可以添加恢复流式响应的逻辑，或者重新发起请求
+        } else {
+            // 如果未暂停，则暂停
+            setIsPaused(true);
+            console.log('暂停流式响应');
+            // 如果有活跃的流式请求，可以中止请求
+            if (streamController.current) {
+                streamController.current.abort();
+                console.log('中止当前流式请求');
+            }
+        }
+    }, [isPaused]);
 
     // 初始化侧边栏状态
     useEffect(() => {
@@ -449,7 +477,15 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const sessionId = targetSession.id;
 
         let responseText = '';
+        let validAnswer = ''; // 保存有效的答案内容
         let responseReference: Reference | null = null;
+
+        // 设置流式响应状态
+        setIsReceivingStream(true);
+        setIsPaused(false);
+
+        // 创建新的AbortController用于控制流式请求
+        streamController.current = new AbortController();
 
         try {
             // 真正发送消息的API调用
@@ -463,37 +499,67 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 sessionId,
                 message,
                 (partialResponse: ApiResponse<StreamChatResponse>) => {
+                    // 如果暂停状态，不处理响应
+                    if (isPaused) {
+                        console.log('流式响应已暂停，忽略新数据');
+                        return;
+                    }
+
                     console.log('收到流式响应:', partialResponse);
                     if (partialResponse && partialResponse.data) {
                         const newContent = partialResponse.data.answer || '';
                         console.log('新内容:', newContent);
                         console.log('当前responseText:', responseText);
 
-                        // 对于流式响应，每次都更新内容（后端发送的是完整答案，不是增量）
-                        if (newContent.trim() !== '') {
-                            responseText = newContent;
-                            console.log('更新responseText为:', responseText);
+                        // 对于流式响应，检查内容是否有所更新
+                        if (newContent && newContent.trim() !== '') {
+                            // 检查内容是否是元数据（包含id:或retry:）
+                            if (newContent.includes('id:') || newContent.includes('retry:')) {
+                                console.log('跳过元数据内容:', newContent);
+                            }
+                            // 检查是否已有有效应答，避免覆盖正确答案
+                            else if (responseText && responseText.trim() &&
+                                !responseText.includes('id:') &&
+                                !responseText.includes('retry:') &&
+                                newContent.length < responseText.length) {
+                                console.log('已有完整答案，忽略更短的新内容');
+                            }
+                            // 正常更新内容
+                            else {
+                                // 对内容进行更新
+                                responseText = newContent;
 
-                            // 更新UI中的消息
-                            setMessages(currentMessages => {
-                                const newMessages = [...currentMessages];
-                                const lastMessageIndex = newMessages.length - 1;
-
-                                // 确保最后一条消息是助手消息
-                                if (lastMessageIndex >= 0 && newMessages[lastMessageIndex].role === 'assistant') {
-                                    newMessages[lastMessageIndex] = {
-                                        ...newMessages[lastMessageIndex],
-                                        content: responseText,
-                                        isLoading: true,
-                                        // 添加时间戳，强制React识别组件更新
-                                        timestamp: Date.now()
-                                    };
+                                // 如果不包含元数据，则更新有效答案
+                                if (!responseText.includes('id:') && !responseText.includes('retry:')) {
+                                    validAnswer = responseText; // 保存有效的答案
+                                    console.log('保存有效答案:', validAnswer);
                                 }
 
-                                // 打印消息状态，帮助调试
-                                console.log('流式更新消息:', newMessages[lastMessageIndex]);
+                                console.log('更新responseText为:', responseText);
 
-                                // 确保UI滚动到底部以查看最新消息
+                                // 立即更新UI中的消息，保证流式体验
+                                setMessages(currentMessages => {
+                                    const newMessages = [...currentMessages];
+                                    const lastMessageIndex = newMessages.length - 1;
+
+                                    // 确保最后一条消息是助手消息
+                                    if (lastMessageIndex >= 0 && newMessages[lastMessageIndex].role === 'assistant') {
+                                        newMessages[lastMessageIndex] = {
+                                            ...newMessages[lastMessageIndex],
+                                            content: (validAnswer || responseText || '...'),  // 优先使用validAnswer
+                                            isLoading: true,
+                                            // 添加时间戳，强制React识别组件更新
+                                            timestamp: Date.now()
+                                        };
+                                    }
+
+                                    // 打印消息状态，帮助调试
+                                    console.log('流式更新消息:', newMessages[lastMessageIndex]);
+
+                                    return newMessages;
+                                });
+
+                                // 立即滚动到底部以查看最新消息
                                 setTimeout(() => {
                                     if (document.documentElement) {
                                         window.scrollTo({
@@ -502,12 +568,12 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                                         });
                                     }
                                 }, 0);
-
-                                return newMessages;
-                            });
+                            }
                         } else {
                             console.log('跳过空内容更新');
                         }
+                    } else {
+                        console.log('接收到无效响应:', partialResponse);
                     }
 
                     // 如果有引用信息，记录它
@@ -522,9 +588,27 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                         const lastMessageIndex = newMessages.length - 1;
 
                         if (lastMessageIndex >= 0 && newMessages[lastMessageIndex].role === 'assistant') {
+                            // 清理可能包含的元数据
+                            let finalContent = validAnswer || responseText; // 优先使用validAnswer
+
+                            // 如果响应内容包含元数据(id:或retry:)，尝试恢复到最后一次有效内容
+                            if (finalContent && (finalContent.includes('id:') || finalContent.includes('retry:'))) {
+                                console.log('完成时检测到元数据内容，尝试恢复最后有效内容');
+                                // 尝试从历史消息中找出最后一次非元数据内容
+                                const lastMessage = currentMessages[lastMessageIndex];
+                                if (lastMessage && lastMessage.content &&
+                                    !lastMessage.content.includes('id:') &&
+                                    !lastMessage.content.includes('retry:')) {
+                                    finalContent = lastMessage.content;
+                                    console.log('恢复为上一条有效消息:', finalContent);
+                                } else {
+                                    finalContent = '等待回复...'; // 无法恢复时的默认内容
+                                }
+                            }
+
                             newMessages[lastMessageIndex] = {
                                 ...newMessages[lastMessageIndex],
-                                content: responseText,
+                                content: finalContent || '等待回复...', // 确保不显示空内容
                                 isLoading: false,
                                 // 添加结束时间戳
                                 timestamp: Date.now(),
@@ -553,6 +637,11 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
                     // 完成后取消输入状态
                     setIsTyping(false);
+
+                    // 重置流式响应状态
+                    setIsReceivingStream(false);
+                    setIsPaused(false);
+                    streamController.current = null;
                 },
                 (error: Error) => {
                     // 消息发送失败
@@ -578,6 +667,11 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
                     // 取消输入状态
                     setIsTyping(false);
+
+                    // 重置流式响应状态
+                    setIsReceivingStream(false);
+                    setIsPaused(false);
+                    streamController.current = null;
                 }
             );
         } catch (error) {
@@ -603,6 +697,11 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
             // 取消输入状态
             setIsTyping(false);
+
+            // 重置流式响应状态
+            setIsReceivingStream(false);
+            setIsPaused(false);
+            streamController.current = null;
         }
     };
 
@@ -651,116 +750,14 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
     };
 
-    // 重命名会话
-    const renameSession = async (sessionId: string, name: string) => {
-        try {
-            // 模拟API响应，因为当前API没有重命名功能
-            const response = { code: 0, message: 'Success' };
-
-            // 假设API调用成功
-            console.log('重命名会话成功:', { sessionId, name });
-
-            // 更新会话列表
-            setChatSessions(prev =>
-                prev.map(s =>
-                    s.id === sessionId ? { ...s, name } : s
-                )
-            );
-
-            // 如果是当前会话，更新当前会话
-            if (currentSession?.id === sessionId) {
-                setCurrentSession(prev => {
-                    if (!prev) return null;
-                    return { ...prev, name };
-                });
-            }
-        } catch (error) {
-            console.error('重命名会话异常:', error);
-            setApiError(`重命名会话异常: ${(error as Error).message}`);
-        }
-    };
-
-    // 使用useEffect监听认证状态变化，自动获取助手和会话列表
-    useEffect(() => {
-        if (isAuthenticated) {
-            // 获取聊天助手
-            fetchChatAssistants();
-
-            // 不要清除本地存储的选择状态，以便页面刷新后能恢复
-            console.log('用户已登录，准备恢复之前的状态');
-        }
-    }, [isAuthenticated]);
-
-    // 页面初始化时尝试恢复会话状态
-    useEffect(() => {
-        if (isAuthenticated && chatSessions.length > 0) {
-            const savedSessionId = localStorage.getItem('ragflow_selected_session');
-            const savedAssistantId = localStorage.getItem('ragflow_selected_assistant');
-
-            console.log('尝试恢复会话状态:', { savedSessionId, savedAssistantId });
-
-            // 恢复助手选择
-            if (savedAssistantId && !selectedChatAssistant) {
-                const matchingAssistant = {
-                    id: savedAssistantId,
-                    name: functionTitles[savedAssistantId as FunctionIdType] || savedAssistantId,
-                    description: '',
-                    create_date: new Date().toISOString(),
-                    update_date: new Date().toISOString(),
-                    avatar: '',
-                    datasets: [],
-                    llm: {
-                        model_name: '',
-                        temperature: 0.7,
-                        top_p: 0.9,
-                        presence_penalty: 0,
-                        frequency_penalty: 0
-                    },
-                    prompt: {
-                        similarity_threshold: 0.7,
-                        keywords_similarity_weight: 0.5,
-                        top_n: 3,
-                        variables: [],
-                        rerank_model: '',
-                        empty_response: '',
-                        opener: '',
-                        prompt: ''
-                    },
-                    status: 'active'
-                };
-
-                console.log('恢复助手选择:', matchingAssistant);
-                setSelectedChatAssistant(matchingAssistant);
-                apiClient.setAppId(savedAssistantId);
-            }
-
-            // 恢复会话选择
-            if (savedSessionId && !currentSession) {
-                const savedSession = chatSessions.find(s => s.id === savedSessionId);
-                if (savedSession) {
-                    console.log('恢复会话选择:', savedSession);
-                    setCurrentSession(savedSession);
-                    getSessionMessages(savedSessionId);
-                }
-            }
-        }
-    }, [isAuthenticated, chatSessions, selectedChatAssistant, currentSession]);
-
-    // 添加选择聊天助手和会话的方法，这些在早期编辑中被移除了
+    // 选择聊天助手
     const selectChatAssistant = (assistant: ChatAssistant | null) => {
         console.log('选择聊天助手:', assistant);
         setSelectedChatAssistant(assistant);
 
-        // 保存选中的助手ID到本地存储，以便刷新页面后恢复
         if (assistant) {
             localStorage.setItem('ragflow_selected_assistant', assistant.id);
-
-            // 设置API客户端的appid，对应后端的多应用配置
-            // 使用assistant.id作为appid，确保与NavigationBar.tsx中的FunctionIdType一致
-            console.log(`设置API客户端appid: ${assistant.id}`);
             apiClient.setAppId(assistant.id);
-
-            // 重新获取会话列表，使用新的appid
             fetchChatSessions();
         } else {
             localStorage.removeItem('ragflow_selected_assistant');
@@ -774,52 +771,81 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const selectSession = (session: ChatSession) => {
         console.log('选择会话:', session);
 
-        // 如果是同一个会话，避免重复选择
         if (currentSession && currentSession.id === session.id) {
             console.log('会话已选中，跳过重复选择');
             return;
         }
 
         setCurrentSession(session);
-
-        // 保存选中的会话ID到本地存储
         localStorage.setItem('ragflow_selected_session', session.id);
-
-        // 无论是否有消息，都重新获取会话消息
-        // 因为后端消息状态可能已更新
         getSessionMessages(session.id);
     };
 
-    const value: ChatContextType = {
-        isAuthenticated,
-        apiKey,
-        setApiKey,
-        logout,
-        chatAssistants,
-        selectedChatAssistant,
-        loadingChatAssistants,
-        fetchChatAssistants,
-        selectChatAssistant,
-        chatSessions,
-        currentSession,
-        loadingSessions,
-        fetchChatSessions,
-        createChatSession,
-        selectSession,
-        deleteSession,
-        renameSession,
-        messages,
-        currentMessage,
-        setCurrentMessage,
-        sendMessage,
-        isTyping,
-        latestReference,
-        isSidebarVisible,
-        toggleSidebar,
-        apiError,
-        clearApiError,
-        reconnecting
+    // 重命名会话
+    const renameSession = async (sessionId: string, name: string) => {
+        try {
+            const response = await apiClient.updateSessionName(sessionId, name);
+
+            if (response && response.code === 0) {
+                console.log('重命名会话成功:', { sessionId, name });
+
+                setChatSessions(prev =>
+                    prev.map(s =>
+                        s.id === sessionId ? { ...s, name } : s
+                    )
+                );
+
+                if (currentSession?.id === sessionId) {
+                    setCurrentSession(prev => {
+                        if (!prev) return null;
+                        return { ...prev, name };
+                    });
+                }
+            } else {
+                console.error('重命名会话失败:', response);
+                setApiError(`重命名会话失败: ${response?.message || '未知错误'}`);
+            }
+        } catch (error) {
+            console.error('重命名会话异常:', error);
+            setApiError(`重命名会话异常: ${(error as Error).message}`);
+        }
     };
 
-    return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;
+    return (
+        <ChatContext.Provider value={{
+            isAuthenticated,
+            apiKey,
+            setApiKey,
+            logout,
+            chatAssistants,
+            selectedChatAssistant,
+            loadingChatAssistants,
+            fetchChatAssistants,
+            selectChatAssistant,
+            chatSessions,
+            currentSession,
+            loadingSessions,
+            fetchChatSessions,
+            createChatSession,
+            selectSession,
+            deleteSession,
+            renameSession,
+            messages,
+            currentMessage,
+            setCurrentMessage,
+            sendMessage,
+            isTyping,
+            latestReference,
+            isSidebarVisible,
+            toggleSidebar,
+            apiError,
+            clearApiError,
+            reconnecting,
+            isReceivingStream,
+            isPaused,
+            toggleStreamPause
+        }}>
+            {children}
+        </ChatContext.Provider>
+    );
 };

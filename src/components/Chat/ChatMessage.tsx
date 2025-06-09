@@ -46,10 +46,12 @@ const ChatMessage: React.FC<ChatMessageProps> = React.memo((
             classes.push('chat-message--assistant');
         }
 
-        // 状态样式
-        if (isLoading) {
-            classes.push('chat-message--loading');
-        }
+        // 状态样式 - 加载状态不再改变气泡样式，仅在内容区域显示加载状态
+        // 移除loading类，确保气泡样式一致
+        // if (isLoading) {
+        //     classes.push('chat-message--loading');
+        // }
+
         if (isError) {
             classes.push('chat-message--error');
         }
@@ -61,7 +63,7 @@ const ChatMessage: React.FC<ChatMessageProps> = React.memo((
         }
 
         return classes.join(' ');
-    }, [role, isLoading, isError, isTyping, completed]);
+    }, [role, isError, isTyping, completed]); // 移除isLoading依赖
 
     // 使用唯一key确保组件正确更新
     const uniqueKey = `${message.id}-${timestamp || Date.now()}-${forceUpdateCounter}`;

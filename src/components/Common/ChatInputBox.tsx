@@ -1,6 +1,7 @@
 import React from 'react';
 import './ChatInputBox.css';
 import './ChatInputBox-welcome-override.css';
+import { useChatContext } from '../../context/ChatContext'; // 引入ChatContext
 
 // 按钮配置接口
 interface ButtonConfig {
@@ -53,10 +54,13 @@ const ChatInputBox: React.FC<ChatInputBoxProps> = ({
     customButtons,
     buttonsPosition = 'bottom'
 }) => {
+    // 从上下文中获取流式响应状态
+    const { isReceivingStream, isPaused, toggleStreamPause } = useChatContext();
+
     // 生成默认按钮（向后兼容）
     const getDefaultButtons = (): ButtonConfig[] => {
         const buttons: ButtonConfig[] = [];
-        
+
         if (showFileUpload) {
             buttons.push({
                 id: 'file-upload',
@@ -73,7 +77,7 @@ const ChatInputBox: React.FC<ChatInputBoxProps> = ({
                 }
             });
         }
-        
+
         if (showDeepThinking) {
             buttons.push({
                 id: 'deep-thinking',
@@ -89,16 +93,16 @@ const ChatInputBox: React.FC<ChatInputBoxProps> = ({
                 onClick: toggleDeepThinking
             });
         }
-        
+
         return buttons;
     };
-    
+
     // 确定最终的按钮配置
-    const finalTopButtons = topButtons.length > 0 ? topButtons : 
+    const finalTopButtons = topButtons.length > 0 ? topButtons :
         (buttonsPosition === 'top' || buttonsPosition === 'both') ? getDefaultButtons() : [];
-    const finalBottomButtons = bottomButtons.length > 0 ? bottomButtons : 
+    const finalBottomButtons = bottomButtons.length > 0 ? bottomButtons :
         (buttonsPosition === 'bottom' || buttonsPosition === 'both') ? getDefaultButtons() : [];
-    
+
     // 处理发送按钮点击
     const handleSend = () => {
         if (inputValue.trim() && !disabled) {
@@ -106,7 +110,7 @@ const ChatInputBox: React.FC<ChatInputBoxProps> = ({
             setInputValue('');
         }
     };
-    
+
     // 处理按键事件（按回车发送）
     const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
         if (e.key === 'Enter' && !e.shiftKey) {
@@ -114,22 +118,22 @@ const ChatInputBox: React.FC<ChatInputBoxProps> = ({
             handleSend();
         }
     };
-    
+
     // 处理textarea变化和自动调整高度
     const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         setInputValue(e.target.value);
-        
+
         // 自动调整文本区域的高度
         const textarea = e.target;
         textarea.style.height = 'auto';
         const newHeight = Math.min(textarea.scrollHeight, maxHeight);
         textarea.style.height = `${newHeight}px`;
     };
-    
+
     // 渲染按钮组
     const renderButtons = (buttons: ButtonConfig[]) => {
         if (buttons.length === 0) return null;
-        
+
         return (
             <div className="chat-input-buttons">
                 {buttons.map((button) => (
@@ -147,7 +151,44 @@ const ChatInputBox: React.FC<ChatInputBoxProps> = ({
             </div>
         );
     };
-    
+
+    // 渲染发送或暂停/继续按钮
+    const renderSendOrPauseButton = () => {
+        // 如果正在接收流式响应，则显示暂停/继续按钮
+        if (isReceivingStream) {
+            return (
+                <button
+                    className="chat-input-send-btn chat-input-pause-btn"
+                    onClick={toggleStreamPause}
+                    title={isPaused ? "继续" : "暂停"}
+                >
+                    {isPaused ? (
+                        // 继续图标（播放按钮）
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                            <path d="M8 5v14l11-7z" />
+                        </svg>
+                    ) : (
+                        // 暂停图标
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                            <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
+                        </svg>
+                    )}
+                </button>
+            );
+        }
+
+        // 否则显示普通发送按钮
+        return (
+            <button
+                className="chat-input-send-btn"
+                onClick={handleSend}
+                disabled={!inputValue.trim() || disabled}
+            >
+                发送
+            </button>
+        );
+    };
+
     return (
         <div className={`chat-input-box ${className}`}>
             {/* 顶部按钮 */}
@@ -156,14 +197,14 @@ const ChatInputBox: React.FC<ChatInputBoxProps> = ({
                     {renderButtons(finalTopButtons)}
                 </div>
             )}
-            
+
             {/* 自定义按钮（兼容性） */}
             {customButtons && (
                 <div className="chat-input-buttons chat-input-buttons-top">
                     {customButtons}
                 </div>
             )}
-            
+
             {/* 输入区域 */}
             <div className="chat-input-wrapper">
                 <textarea
@@ -172,19 +213,14 @@ const ChatInputBox: React.FC<ChatInputBoxProps> = ({
                     value={inputValue}
                     onChange={handleTextareaChange}
                     onKeyDown={handleKeyDown}
-                    disabled={disabled}
+                    disabled={disabled || isReceivingStream} // 流式响应时禁用输入
                     rows={1}
                     style={{ resize: 'none' }}
                 />
-                <button
-                    className="chat-input-send-btn"
-                    onClick={handleSend}
-                    disabled={!inputValue.trim() || disabled}
-                >
-                    发送
-                </button>
+                {/* 渲染发送或暂停/继续按钮 */}
+                {renderSendOrPauseButton()}
             </div>
-            
+
             {/* 底部按钮 */}
             {finalBottomButtons.length > 0 && (
                 <div className="chat-input-buttons chat-input-buttons-bottom">

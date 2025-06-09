@@ -62,8 +62,8 @@ const ChatLayout: React.FC = () => {
 
             setShowScrollToBottom(!isNearBottom);
 
-            // 调试输出
-            console.log(`滚动状态: 距离底部=${distanceFromBottom}px, 显示按钮=${!isNearBottom}`);
+            // 移除调试输出
+            // console.log(`滚动状态: 距离底部=${distanceFromBottom}px, 显示按钮=${!isNearBottom}`);
         };
 
         // 初始检查一次
@@ -514,18 +514,18 @@ const ChatLayout: React.FC = () => {
                                 <div className={`suggestion-item ${selectedSuggestion === '差旅报销制度有哪些规定？' ? 'selected' : ''}`} onClick={() => {
                                     setSelectedSuggestion('差旅报销制度有哪些规定？');
                                     setTimeout(() => {
-                                         setInputValue('差旅报销制度有哪些规定？');
-                                         setSelectedSuggestion(null);
-                                     }, 150);
+                                        setInputValue('差旅报销制度有哪些规定？');
+                                        setSelectedSuggestion(null);
+                                    }, 150);
                                 }}>
                                     差旅报销制度有哪些规定？
                                 </div>
                                 <div className={`suggestion-item ${selectedSuggestion === '新员工入职需要准备哪些材料？' ? 'selected' : ''}`} onClick={() => {
                                     setSelectedSuggestion('新员工入职需要准备哪些材料？');
                                     setTimeout(() => {
-                                         setInputValue('新员工入职需要准备哪些材料？');
-                                         setSelectedSuggestion(null);
-                                     }, 150);
+                                        setInputValue('新员工入职需要准备哪些材料？');
+                                        setSelectedSuggestion(null);
+                                    }, 150);
                                 }}>
                                     新员工入职需要准备哪些材料？
                                 </div>
@@ -537,27 +537,27 @@ const ChatLayout: React.FC = () => {
                                 <div className={`suggestion-item ${selectedSuggestion === '产品的核心功能有哪些？' ? 'selected' : ''}`} onClick={() => {
                                     setSelectedSuggestion('产品的核心功能有哪些？');
                                     setTimeout(() => {
-                                         setInputValue('产品的核心功能有哪些？');
-                                         setSelectedSuggestion(null);
-                                     }, 150);
-                                 }}>
-                                     产品的核心功能有哪些？
-                                 </div>
-                                 <div className={`suggestion-item ${selectedSuggestion === '系统架构是如何设计的？' ? 'selected' : ''}`} onClick={() => {
-                                     setSelectedSuggestion('系统架构是如何设计的？');
-                                     setTimeout(() => {
-                                         setInputValue('系统架构是如何设计的？');
-                                         setSelectedSuggestion(null);
-                                     }, 150);
-                                 }}>
-                                     系统架构是如何设计的？
-                                 </div>
-                                 <div className={`suggestion-item ${selectedSuggestion === '最新版本更新了哪些内容？' ? 'selected' : ''}`} onClick={() => {
-                                     setSelectedSuggestion('最新版本更新了哪些内容？');
-                                     setTimeout(() => {
-                                         setInputValue('最新版本更新了哪些内容？');
-                                         setSelectedSuggestion(null);
-                                     }, 150);
+                                        setInputValue('产品的核心功能有哪些？');
+                                        setSelectedSuggestion(null);
+                                    }, 150);
+                                }}>
+                                    产品的核心功能有哪些？
+                                </div>
+                                <div className={`suggestion-item ${selectedSuggestion === '系统架构是如何设计的？' ? 'selected' : ''}`} onClick={() => {
+                                    setSelectedSuggestion('系统架构是如何设计的？');
+                                    setTimeout(() => {
+                                        setInputValue('系统架构是如何设计的？');
+                                        setSelectedSuggestion(null);
+                                    }, 150);
+                                }}>
+                                    系统架构是如何设计的？
+                                </div>
+                                <div className={`suggestion-item ${selectedSuggestion === '最新版本更新了哪些内容？' ? 'selected' : ''}`} onClick={() => {
+                                    setSelectedSuggestion('最新版本更新了哪些内容？');
+                                    setTimeout(() => {
+                                        setInputValue('最新版本更新了哪些内容？');
+                                        setSelectedSuggestion(null);
+                                    }, 150);
                                 }}>
                                     最新版本更新了哪些内容？
                                 </div>
@@ -569,27 +569,27 @@ const ChatLayout: React.FC = () => {
                                 <div className={`suggestion-item ${selectedSuggestion === '什么是Transformer架构？' ? 'selected' : ''}`} onClick={() => {
                                     setSelectedSuggestion('什么是Transformer架构？');
                                     setTimeout(() => {
-                                         setInputValue('什么是Transformer架构？');
-                                         setSelectedSuggestion(null);
-                                     }, 150);
-                                 }}>
-                                     什么是Transformer架构？
-                                 </div>
-                                 <div className={`suggestion-item ${selectedSuggestion === '大模型的训练方法有哪些？' ? 'selected' : ''}`} onClick={() => {
-                                     setSelectedSuggestion('大模型的训练方法有哪些？');
-                                     setTimeout(() => {
-                                         setInputValue('大模型的训练方法有哪些？');
-                                         setSelectedSuggestion(null);
-                                     }, 150);
-                                 }}>
-                                     大模型的训练方法有哪些？
-                                 </div>
-                                 <div className={`suggestion-item ${selectedSuggestion === '如何评估大语言模型的性能？' ? 'selected' : ''}`} onClick={() => {
-                                     setSelectedSuggestion('如何评估大语言模型的性能？');
-                                     setTimeout(() => {
-                                         setInputValue('如何评估大语言模型的性能？');
-                                         setSelectedSuggestion(null);
-                                     }, 150);
+                                        setInputValue('什么是Transformer架构？');
+                                        setSelectedSuggestion(null);
+                                    }, 150);
+                                }}>
+                                    什么是Transformer架构？
+                                </div>
+                                <div className={`suggestion-item ${selectedSuggestion === '大模型的训练方法有哪些？' ? 'selected' : ''}`} onClick={() => {
+                                    setSelectedSuggestion('大模型的训练方法有哪些？');
+                                    setTimeout(() => {
+                                        setInputValue('大模型的训练方法有哪些？');
+                                        setSelectedSuggestion(null);
+                                    }, 150);
+                                }}>
+                                    大模型的训练方法有哪些？
+                                </div>
+                                <div className={`suggestion-item ${selectedSuggestion === '如何评估大语言模型的性能？' ? 'selected' : ''}`} onClick={() => {
+                                    setSelectedSuggestion('如何评估大语言模型的性能？');
+                                    setTimeout(() => {
+                                        setInputValue('如何评估大语言模型的性能？');
+                                        setSelectedSuggestion(null);
+                                    }, 150);
                                 }}>
                                     如何评估大语言模型的性能？
                                 </div>
@@ -601,27 +601,27 @@ const ChatLayout: React.FC = () => {
                                 <div className={`suggestion-item ${selectedSuggestion === '有哪些功能即将推出？' ? 'selected' : ''}`} onClick={() => {
                                     setSelectedSuggestion('有哪些功能即将推出？');
                                     setTimeout(() => {
-                                         setInputValue('有哪些功能即将推出？');
-                                         setSelectedSuggestion(null);
-                                     }, 150);
-                                 }}>
-                                     有哪些功能即将推出？
-                                 </div>
-                                 <div className={`suggestion-item ${selectedSuggestion === '如何使用高级搜索功能？' ? 'selected' : ''}`} onClick={() => {
-                                     setSelectedSuggestion('如何使用高级搜索功能？');
-                                     setTimeout(() => {
-                                         setInputValue('如何使用高级搜索功能？');
-                                         setSelectedSuggestion(null);
-                                     }, 150);
-                                 }}>
-                                     如何使用高级搜索功能？
-                                 </div>
-                                 <div className={`suggestion-item ${selectedSuggestion === '有哪些AI辅助工具？' ? 'selected' : ''}`} onClick={() => {
-                                     setSelectedSuggestion('有哪些AI辅助工具？');
-                                     setTimeout(() => {
-                                         setInputValue('有哪些AI辅助工具？');
-                                         setSelectedSuggestion(null);
-                                     }, 150);
+                                        setInputValue('有哪些功能即将推出？');
+                                        setSelectedSuggestion(null);
+                                    }, 150);
+                                }}>
+                                    有哪些功能即将推出？
+                                </div>
+                                <div className={`suggestion-item ${selectedSuggestion === '如何使用高级搜索功能？' ? 'selected' : ''}`} onClick={() => {
+                                    setSelectedSuggestion('如何使用高级搜索功能？');
+                                    setTimeout(() => {
+                                        setInputValue('如何使用高级搜索功能？');
+                                        setSelectedSuggestion(null);
+                                    }, 150);
+                                }}>
+                                    如何使用高级搜索功能？
+                                </div>
+                                <div className={`suggestion-item ${selectedSuggestion === '有哪些AI辅助工具？' ? 'selected' : ''}`} onClick={() => {
+                                    setSelectedSuggestion('有哪些AI辅助工具？');
+                                    setTimeout(() => {
+                                        setInputValue('有哪些AI辅助工具？');
+                                        setSelectedSuggestion(null);
+                                    }, 150);
                                 }}>
                                     有哪些AI辅助工具？
                                 </div>
@@ -696,8 +696,8 @@ const ChatLayout: React.FC = () => {
                     <Route path="/:appId/:sessionId" element={renderChatPage()} />
                     <Route path="*" element={
                         // 只有在会话数据加载完成且确实找不到匹配的会话时才重定向
-                        !loadingSessions && chatSessions.length > 0 ? 
-                            <Navigate to="/" replace /> : 
+                        !loadingSessions && chatSessions.length > 0 ?
+                            <Navigate to="/" replace /> :
                             <div className="loading-placeholder">加载中...</div>
                     } />
                 </Routes>
