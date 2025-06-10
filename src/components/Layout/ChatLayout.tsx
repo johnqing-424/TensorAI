@@ -206,9 +206,11 @@ const ChatLayout: React.FC = () => {
                     status: 'active'
                 };
 
-                // 如果是有效的功能ID，选择对应的助手
-                if (Object.keys(functionTitles).includes(appId)) {
-                    selectChatAssistant(matchingAssistant);
+                // 只有在当前没有选中助手或助手ID不匹配时才选择助手
+                if (!selectedChatAssistant || selectedChatAssistant.id !== appId) {
+                    if (Object.keys(functionTitles).includes(appId)) {
+                        selectChatAssistant(matchingAssistant);
+                    }
                 }
 
                 // 选择会话
@@ -217,7 +219,7 @@ const ChatLayout: React.FC = () => {
                 console.log(`未找到会话: ${sessionId}`);
             }
         }
-    }, [params, chatSessions, selectChatAssistant, selectSession]);
+    }, [params, chatSessions, selectChatAssistant, selectSession, selectedChatAssistant]);
 
     // 动态样式，根据API错误状态调整页面位置
     const layoutStyle = {
@@ -319,6 +321,9 @@ const ChatLayout: React.FC = () => {
         navigate(functionRoutes[functionId]);
     };
 
+    // 存储待发送的消息
+    const [pendingMessage, setPendingMessage] = useState<string | null>(null);
+
     // 处理发送消息
     const handleSendMessage = useCallback((message: string) => {
         console.log("发送消息:", message);
@@ -334,9 +339,11 @@ const ChatLayout: React.FC = () => {
                 return;
             }
 
+            // 存储待发送的消息
+            setPendingMessage(message);
             setCreatingSession(true); // 标记正在创建会话
 
-            // 创建新会话并处理导航和发送
+            // 创建新会话并处理导航
             createChatSession(functionTitles[appId as FunctionIdType] || '新对话')
                 .then(newSession => {
                     if (newSession) {
@@ -345,30 +352,17 @@ const ChatLayout: React.FC = () => {
 
                         // 导航到新会话的URL
                         navigate(`/${appId}/${newSession.id}`);
-
-                        // 等待状态更新完成后再发送消息
-                        setTimeout(() => {
-                            console.log(`使用会话 ${newSession.id} 发送消息，当前会话:`, newSession);
-                            // 直接使用会话ID发送消息，避免依赖状态
-                            apiClient.streamChatMessage(
-                                newSession.id,
-                                message,
-                                (chunk: ApiResponse<StreamChatResponse>) => {
-                                    console.log("收到消息响应:", chunk);
-                                },
-                                () => console.log("消息发送完成"),
-                                (error: Error) => console.error("消息发送失败:", error)
-                            );
-                            setCreatingSession(false);
-                        }, 500); // 增加延迟确保状态更新
+                        setCreatingSession(false);
                     } else {
                         console.error("创建会话失败");
+                        setPendingMessage(null); // 清除待发送的消息
                         setCreatingSession(false); // 创建失败也要重置状态
                     }
                 })
                 .catch(error => {
                     console.error("创建会话异常:", error);
                     clearApiError(); // 清除可能的错误
+                    setPendingMessage(null); // 清除待发送的消息
                     setCreatingSession(false); // 发生异常时也要重置状态
                 });
         } else {
@@ -376,6 +370,15 @@ const ChatLayout: React.FC = () => {
             sendMessage(message);
         }
     }, [creatingSession, selectedChatAssistant, currentSession, navigate, createChatSession, sendMessage, clearApiError, setCreatingSession]);
+
+    // 监听会话变化，如果有待发送的消息且已经创建了新会话，则发送消息
+    useEffect(() => {
+        if (currentSession && pendingMessage) {
+            console.log(`使用会话 ${currentSession.id} 发送待发送的消息:`, pendingMessage);
+            sendMessage(pendingMessage);
+            setPendingMessage(null); // 清除待发送的消息
+        }
+    }, [currentSession, pendingMessage, sendMessage]);
 
     // 渲染聊天页面
     const renderChatPage = () => {

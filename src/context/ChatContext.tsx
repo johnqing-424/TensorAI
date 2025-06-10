@@ -82,9 +82,20 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const [urlSessionId, setUrlSessionId] = useState<string | null>(null);
 
     // 消息状态
-    const [messages, setMessages] = useState<ChatMessage[]>([]);
+    const [messages, setMessagesState] = useState<ChatMessage[]>([]);
     const [currentMessage, setCurrentMessage] = useState<string>('');
     const [isTyping, setIsTyping] = useState<boolean>(false);
+
+    const setMessages = (newMessages: ChatMessage[] | ((prevMessages: ChatMessage[]) => ChatMessage[])) => {
+        if (typeof newMessages === 'function') {
+            setMessagesState(prevMessages => {
+                const result = newMessages(prevMessages);
+                return result;
+            });
+        } else {
+            setMessagesState(newMessages);
+        }
+    };
 
     // 引用状态
     const [latestReference, setLatestReference] = useState<Reference | null>(
