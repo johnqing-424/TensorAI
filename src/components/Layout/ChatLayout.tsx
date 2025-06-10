@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useChatContext } from '../../context/ChatContext';
 import { useNavigate, useLocation, Routes, Route, Navigate, useParams } from 'react-router-dom';
 import AssistantList from '../Sidebar/AssistantList';
@@ -6,6 +6,8 @@ import SessionList from '../Sidebar/SessionList';
 import ChatHistory from '../Chat/ChatHistory';
 import NavigationBar, { functionIcons, functionTitles, FunctionIdType, functionRoutes } from './NavigationBar';
 import ChatInputBox from '../Common/ChatInputBox';
+import apiClient from '../../services/api/client';
+import { ApiResponse, StreamChatResponse } from '../../types';
 
 import './ChatLayout.css';
 
@@ -36,6 +38,13 @@ const ChatLayout: React.FC = () => {
 
     // 输入框内容状态
     const [inputValue, setInputValue] = useState<string>('');
+
+    // 添加URL参数的状态变量
+    const [urlAppId, setUrlAppId] = useState<string | null>(null);
+    const [urlSessionId, setUrlSessionId] = useState<string | null>(null);
+
+    // 添加一个创建会话状态标记，防止重复创建会话
+    const [creatingSession, setCreatingSession] = useState<boolean>(false);
 
     // 每个页面独立的深度思考状态
     const [homeDeepThinking, setHomeDeepThinking] = useState<boolean>(false);
@@ -224,16 +233,46 @@ const ChatLayout: React.FC = () => {
     };
 
     // 处理创建新会话
-    const handleCreateNewChat = () => {
+    const handleCreateNewChat = useCallback(() => {
+        // 如果已经在创建会话中，不要重复创建
+        if (creatingSession) {
+            console.log("正在创建会话中，请稍候...");
+            return;
+        }
+
+        // 获取应用ID
         const appId = selectedChatAssistant?.id || 'process';
+
+        // 不需要手动清除当前会话，createChatSession和导航会自动处理
+
+        // 清除localStorage中可能存在的会话ID
+        localStorage.removeItem('ragflow_selected_session');
+
+        // 标记开始创建会话
+        setCreatingSession(true);
+
+        console.log("开始创建新会话...");
 
         createChatSession('新对话').then(newSession => {
             if (newSession) {
-                // 导航到新会话的URL
+                // 导航到新会话的URL - 使用常规路径而非/new
                 navigate(`/${appId}/${newSession.id}`);
+
+                // selectSession会在导航和ChatContext中自动处理
             }
+
+            // 创建成功或失败都要重置状态
+            setTimeout(() => {
+                setCreatingSession(false);
+                console.log("会话创建过程结束");
+            }, 500); // 延迟重置，确保所有状态更新完成
+
+        }).catch((error) => {
+            console.error("创建会话失败:", error);
+            clearApiError(); // 先清除可能存在的错误
+            setCreatingSession(false);
         });
-    };
+    }, [creatingSession, selectedChatAssistant, createChatSession, navigate, setCreatingSession, clearApiError, currentSession, selectSession]);
 
     // 处理选择功能
     const handleSelectFunction = (functionId: FunctionIdType) => {
@@ -268,25 +307,20 @@ const ChatLayout: React.FC = () => {
             status: 'active'
         };
 
+        // 先清除localStorage中保存的会话ID，避免自动恢复历史会话
+        localStorage.removeItem('ragflow_selected_session');
+
         // 选择对应的聊天助手
         if (!selectedChatAssistant || selectedChatAssistant.id !== functionId) {
             selectChatAssistant(matchingAssistant);
         }
 
-        // 创建对应功能的会话并导航到新会话页面
-        createChatSession(functionTitles[functionId]).then(newSession => {
-            if (newSession) {
-                // 导航到新会话的URL
-                navigate(`/${functionId}/${newSession.id}`);
-            } else {
-                // 如果创建失败，仍然导航到功能页面
-                navigate(functionRoutes[functionId]);
-            }
-        });
+        // 直接导航到功能页面，不创建新会话
+        navigate(functionRoutes[functionId]);
     };
 
     // 处理发送消息
-    const handleSendMessage = (message: string) => {
+    const handleSendMessage = useCallback((message: string) => {
         console.log("发送消息:", message);
 
         // 获取当前选中的功能ID
@@ -294,21 +328,54 @@ const ChatLayout: React.FC = () => {
 
         // 如果当前没有会话，先创建一个新会话
         if (!currentSession) {
-            createChatSession(functionTitles[appId as FunctionIdType] || '新对话').then(newSession => {
-                if (newSession) {
-                    // 导航到新会话的URL
-                    navigate(`/${appId}/${newSession.id}`);
-                    // 发送消息
-                    setTimeout(() => {
-                        sendMessage(message);
-                    }, 100); // 短暂延迟确保会话已创建
-                }
-            });
+            // 如果已经在创建会话中，不要重复创建
+            if (creatingSession) {
+                console.log("正在创建会话中，请稍候...");
+                return;
+            }
+
+            setCreatingSession(true); // 标记正在创建会话
+
+            // 创建新会话并处理导航和发送
+            createChatSession(functionTitles[appId as FunctionIdType] || '新对话')
+                .then(newSession => {
+                    if (newSession) {
+                        // 先设置当前会话，确保状态更新
+                        selectSession(newSession);
+
+                        // 导航到新会话的URL
+                        navigate(`/${appId}/${newSession.id}`);
+
+                        // 等待状态更新完成后再发送消息
+                        setTimeout(() => {
+                            console.log(`使用会话 ${newSession.id} 发送消息，当前会话:`, newSession);
+                            // 直接使用会话ID发送消息，避免依赖状态
+                            apiClient.streamChatMessage(
+                                newSession.id,
+                                message,
+                                (chunk: ApiResponse<StreamChatResponse>) => {
+                                    console.log("收到消息响应:", chunk);
+                                },
+                                () => console.log("消息发送完成"),
+                                (error: Error) => console.error("消息发送失败:", error)
+                            );
+                            setCreatingSession(false);
+                        }, 500); // 增加延迟确保状态更新
+                    } else {
+                        console.error("创建会话失败");
+                        setCreatingSession(false); // 创建失败也要重置状态
+                    }
+                })
+                .catch(error => {
+                    console.error("创建会话异常:", error);
+                    clearApiError(); // 清除可能的错误
+                    setCreatingSession(false); // 发生异常时也要重置状态
+                });
         } else {
             // 已有会话，直接发送消息
             sendMessage(message);
         }
-    };
+    }, [creatingSession, selectedChatAssistant, currentSession, navigate, createChatSession, sendMessage, clearApiError, setCreatingSession]);
 
     // 渲染聊天页面
     const renderChatPage = () => {
@@ -613,6 +680,70 @@ const ChatLayout: React.FC = () => {
 
     // 检查是否在首页
     const isHomePage = location.pathname === '/';
+
+    // 从URL解析应用ID和会话ID
+    const parseUrlParams = useCallback(() => {
+        const pathname = window.location.pathname;
+        const pathParts = pathname.split('/').filter(part => part);
+        let appId = null;
+        let sessionId = null;
+        let isNewSession = false;
+
+        if (pathParts.length >= 1) {
+            appId = pathParts[0];
+
+            // 检查是否是有效的应用ID或路由路径
+            const validAppIds = Object.keys(functionRoutes);
+            if (validAppIds.includes(appId)) {
+                // 直接使用应用ID
+            } else {
+                // 检查是否是路由路径
+                for (const [id, route] of Object.entries(functionRoutes)) {
+                    if (route.replace('/', '') === appId) {
+                        appId = id;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (pathParts.length >= 2) {
+            sessionId = pathParts[1];
+
+            // 检测是否是创建新会话的URL
+            if (sessionId === 'new') {
+                isNewSession = true;
+                sessionId = null;
+            }
+        }
+
+        if (isNewSession) {
+            console.log(`URL参数解析: appId=${appId}, sessionId=${sessionId}, isNewSession=true`);
+        }
+
+        // 只在需要时更新URL参数状态
+        setUrlAppId(appId);
+        setUrlSessionId(sessionId);
+
+        return { appId, sessionId, isNewSession };
+    }, [setUrlAppId, setUrlSessionId]);
+
+    // 当URL中包含/new时创建新会话
+    useEffect(() => {
+        // 如果已经在创建会话中，直接返回，避免重复创建
+        if (creatingSession) {
+            console.log('已有创建会话任务，跳过URL触发的创建');
+            return;
+        }
+
+        const { appId, sessionId, isNewSession } = parseUrlParams();
+
+        if (isNewSession) {
+            console.log('检测到/new路径，自动创建新会话');
+            setCreatingSession(true);
+            handleCreateNewChat();
+        }
+    }, [location.pathname, parseUrlParams, creatingSession, handleCreateNewChat]);
 
     return (
         <div className="chat-layout" style={layoutStyle}>

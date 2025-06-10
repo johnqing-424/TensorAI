@@ -605,14 +605,20 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
         let targetSession = currentSession;
 
-        // 如果没有当前会话，创建一个新会话
+        // 如果没有当前会话，需要检查是否正在创建会话中
         if (!targetSession) {
-            const newSession = await createChatSession();
-            if (!newSession) {
-                setApiError('创建会话失败');
+            console.log('sendMessage: 没有当前会话，尝试等待会话创建完成');
+            // 检查是否有最新创建的会话
+            const latestSession = chatSessions.length > 0 ? chatSessions[0] : null;
+
+            if (latestSession) {
+                console.log('找到最新会话，使用它发送消息:', latestSession.id);
+                targetSession = latestSession;
+            } else {
+                console.error('没有可用的会话，无法发送消息');
+                setApiError('发送消息失败：没有活动会话');
                 return;
             }
-            targetSession = newSession;
         }
 
         // 创建用户消息，根据ChatMessage类型定义
@@ -973,6 +979,12 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     // 选择聊天助手
     const selectChatAssistant = (assistant: ChatAssistant | null) => {
         console.log('选择聊天助手:', assistant);
+
+        // 无论是否有assistant，都先清除当前会话状态
+        setCurrentSession(null);
+        setMessages([]);
+
+        // 然后设置新的助手
         setSelectedChatAssistant(assistant);
 
         if (assistant) {
@@ -980,31 +992,10 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             localStorage.setItem('ragflow_selected_assistant', assistant.id);
             apiClient.setAppId(assistant.id);
 
-            // 获取新选定助手的会话列表
-            fetchChatSessions().then(() => {
-                console.log('选择聊天助手后获取会话列表完成');
-
-                // 从localStorage中查找之前选择的会话
-                const previousSessionId = localStorage.getItem('ragflow_selected_session');
-                if (previousSessionId) {
-                    // 尝试在新的会话列表中找到之前选中的会话
-                    const previousSession = chatSessions.find(s => s.id === previousSessionId);
-                    if (previousSession) {
-                        console.log('恢复之前选中的会话:', previousSession.name);
-                        setCurrentSession(previousSession);
-                        getSessionMessages(previousSession.id);
-                        return;
-                    }
-                }
-
-                // 如果没有找到之前的会话，重置会话状态
-                setCurrentSession(null);
-                setMessages([]);
-            });
+            // 获取新选定助手的会话列表，但不自动选择会话
+            fetchChatSessions();
         } else {
             localStorage.removeItem('ragflow_selected_assistant');
-            setCurrentSession(null);
-            setMessages([]);
         }
     };
 

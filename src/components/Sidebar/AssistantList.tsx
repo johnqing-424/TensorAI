@@ -1,16 +1,17 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useChatContext } from '../../context/ChatContext';
 import { useNavigate } from 'react-router-dom';
 import { ChatAssistant } from '../../types';
-import { functionIcons, functionRoutes, functionTitles } from '../Layout/NavigationBar';
+import { functionIcons, functionRoutes, functionTitles, FunctionIdType } from '../Layout/NavigationBar';
 
 const AssistantList: React.FC = () => {
     const navigate = useNavigate();
     const {
+        chatAssistants,
         selectedChatAssistant,
         selectChatAssistant,
-        fetchChatAssistants,
         loadingChatAssistants,
+        fetchChatAssistants,
         logout,
         toggleSidebar,
         createChatSession
@@ -169,14 +170,22 @@ const AssistantList: React.FC = () => {
 
     // 处理创建新会话
     const handleCreateNewChat = () => {
+        // 获取应用ID
         const appId = selectedChatAssistant?.id || 'process';
 
-        createChatSession('新对话').then(newSession => {
-            if (newSession) {
-                // 导航到新会话的URL
-                navigate(`/${appId}/${newSession.id}`);
-            }
-        });
+        // 通过导航来触发ChatLayout中的创建会话逻辑
+        // 但不使用/new路径，而是直接在当前路径上创建会话
+        // 确保handleCreateNewChat不会被URL变化触发两次
+        if (createChatSession) {
+            createChatSession('新对话').then(newSession => {
+                if (newSession) {
+                    navigate(`/${appId}/${newSession.id}`);
+                }
+            });
+        } else {
+            // 备用方案：如果createChatSession不存在，直接导航
+            navigate(`/${appId}`);
+        }
     };
 
     // 添加全局键盘快捷键处理
