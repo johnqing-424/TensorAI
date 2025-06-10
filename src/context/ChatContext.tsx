@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useRef, ReactNode, useCallback } from 'react';
 import { apiClient } from '../services';
 import { ChatAssistant, ChatMessage, ChatSession, Reference, ApiResponse, ChatCompletion, StreamChatResponse } from '../types';
-import { functionTitles, FunctionIdType } from '../components/Layout/NavigationBar';
+import { functionTitles, FunctionIdType, functionRoutes } from '../components/Layout/NavigationBar';
 
 interface ChatContextType {
     // 身份验证状态
@@ -76,6 +76,10 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const [chatSessions, setChatSessions] = useState<ChatSession[]>([]);
     const [currentSession, setCurrentSession] = useState<ChatSession | null>(null);
     const [loadingSessions, setLoadingSessions] = useState<boolean>(false);
+
+    // 从URL获取的路径参数
+    const [urlAppId, setUrlAppId] = useState<string | null>(null);
+    const [urlSessionId, setUrlSessionId] = useState<string | null>(null);
 
     // 消息状态
     const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -179,10 +183,106 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setApiError(null);
     };
 
+    // 从URL解析应用ID和会话ID
+    const parseUrlParams = useCallback(() => {
+        const pathname = window.location.pathname;
+        const pathParts = pathname.split('/').filter(part => part);
+        let appId = null;
+        let sessionId = null;
+
+        if (pathParts.length >= 1) {
+            appId = pathParts[0];
+
+            // 检查是否是有效的应用ID或路由路径
+            const validAppIds = Object.keys(functionRoutes);
+            if (validAppIds.includes(appId)) {
+                // 直接使用应用ID
+            } else {
+                // 检查是否是路由路径
+                for (const [id, route] of Object.entries(functionRoutes)) {
+                    if (route.replace('/', '') === appId) {
+                        appId = id;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (pathParts.length >= 2) {
+            sessionId = pathParts[1];
+        }
+
+        console.log(`URL参数解析: appId=${appId}, sessionId=${sessionId}`);
+
+        // 更新URL参数状态
+        setUrlAppId(appId);
+        setUrlSessionId(sessionId);
+
+        return { appId, sessionId };
+    }, []);
+
     // 当API密钥改变时更新认证状态
     useEffect(() => {
         setIsAuthenticated(!!apiKey);
     }, [apiKey]);
+
+    // 从URL恢复应用状态
+    const restoreStateFromUrl = useCallback(async () => {
+        if (!isAuthenticated) return;
+
+        const { appId, sessionId } = parseUrlParams();
+
+        // 如果URL中有应用ID，恢复选中的聊天助手
+        if (appId) {
+            console.log(`从URL恢复应用: ${appId}`);
+
+            // 保存到localStorage
+            localStorage.setItem('ragflow_selected_assistant', appId);
+
+            // 创建一个临时的聊天助手对象
+            const tempAssistant: ChatAssistant = {
+                id: appId,
+                name: functionTitles[appId as FunctionIdType] || '聊天助手',
+                avatar: '',
+                description: '',
+                datasets: [],
+                llm: {
+                    model_name: 'default',
+                    temperature: 0.7,
+                    top_p: 0.9,
+                    presence_penalty: 0,
+                    frequency_penalty: 0
+                },
+                prompt: {
+                    similarity_threshold: 0.7,
+                    keywords_similarity_weight: 0.5,
+                    top_n: 5,
+                    variables: [],
+                    rerank_model: 'default',
+                    empty_response: '',
+                    opener: '',
+                    prompt: ''
+                },
+                create_date: new Date().toISOString(),
+                update_date: new Date().toISOString(),
+                status: 'active'
+            };
+
+            // 设置应用ID和选中的聊天助手
+            apiClient.setAppId(appId);
+            setSelectedChatAssistant(tempAssistant);
+
+            // 获取会话列表
+            await fetchChatSessions();
+        }
+    }, [isAuthenticated, parseUrlParams]);
+
+    // 在组件初始化和认证状态变化时恢复状态
+    useEffect(() => {
+        if (isAuthenticated) {
+            restoreStateFromUrl();
+        }
+    }, [restoreStateFromUrl, isAuthenticated]);
 
     // 当选择会话时，更新消息列表
     useEffect(() => {
@@ -309,6 +409,20 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 });
 
                 setChatSessions(validSessions);
+
+                // 尝试从URL恢复会话
+                const { sessionId } = parseUrlParams();
+                if (sessionId) {
+                    console.log(`尝试从URL恢复会话: ${sessionId}`);
+                    const targetSession = validSessions.find(s => s.id === sessionId);
+                    if (targetSession) {
+                        console.log(`找到会话: ${targetSession.name}`);
+                        setCurrentSession(targetSession);
+                        getSessionMessages(targetSession.id);
+                    } else {
+                        console.log(`未找到会话ID: ${sessionId}`);
+                    }
+                }
 
                 // 如果之前选中的会话不在新列表中，重置当前会话
                 if (currentSession && !validSessions.find((s: ChatSession) => s.id === currentSession.id)) {
@@ -862,15 +976,36 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setSelectedChatAssistant(assistant);
 
         if (assistant) {
+            // 保存到localStorage以便页面刷新时恢复
             localStorage.setItem('ragflow_selected_assistant', assistant.id);
             apiClient.setAppId(assistant.id);
-            fetchChatSessions();
+
+            // 获取新选定助手的会话列表
+            fetchChatSessions().then(() => {
+                console.log('选择聊天助手后获取会话列表完成');
+
+                // 从localStorage中查找之前选择的会话
+                const previousSessionId = localStorage.getItem('ragflow_selected_session');
+                if (previousSessionId) {
+                    // 尝试在新的会话列表中找到之前选中的会话
+                    const previousSession = chatSessions.find(s => s.id === previousSessionId);
+                    if (previousSession) {
+                        console.log('恢复之前选中的会话:', previousSession.name);
+                        setCurrentSession(previousSession);
+                        getSessionMessages(previousSession.id);
+                        return;
+                    }
+                }
+
+                // 如果没有找到之前的会话，重置会话状态
+                setCurrentSession(null);
+                setMessages([]);
+            });
         } else {
             localStorage.removeItem('ragflow_selected_assistant');
+            setCurrentSession(null);
+            setMessages([]);
         }
-
-        setCurrentSession(null);
-        setMessages([]);
     };
 
     // 选择会话
