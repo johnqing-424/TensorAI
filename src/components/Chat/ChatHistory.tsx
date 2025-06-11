@@ -148,7 +148,7 @@ const ChatHistory: React.FC = () => {
                                     <ChatMessage
                                         message={message}
                                         isTyping={isTyping && index === messages.length - 1 && message.role === 'assistant'}
-                                        reference={message.role === 'assistant' && index === messages.length - 1 ? latestReference || undefined : undefined}
+                                        reference={message.role === 'assistant' ? (message.reference || (index === messages.length - 1 ? latestReference || undefined : undefined)) : undefined}
                                         onDocumentClick={handleDocumentClick}
                                     />
                                 </div>

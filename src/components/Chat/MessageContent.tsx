@@ -72,8 +72,8 @@ const MessageContent: React.FC<MessageContentProps> = ({
 
     // 渲染参考文档列表
     const renderReferenceDocuments = useCallback(() => {
-        // 只有当消息完成且有引用文档时才显示参考文档部分
-        if (!reference || !reference.doc_aggs || reference.doc_aggs.length === 0 || !completed) {
+        // 只要有引用文档就显示参考文档部分，不需要等待消息完成
+        if (!reference || !reference.doc_aggs || reference.doc_aggs.length === 0) {
             return null;
         }
 
@@ -135,7 +135,7 @@ const MessageContent: React.FC<MessageContentProps> = ({
                 </div>
             </div>
         );
-    }, [reference, onDocumentClick, completed]);
+    }, [reference, onDocumentClick]);
 
     // 渲染正常内容
     const renderNormalContent = useCallback(() => {
@@ -161,7 +161,7 @@ const MessageContent: React.FC<MessageContentProps> = ({
                     reference={reference}
                     onDocumentClick={onDocumentClick}
                 />
-                {/* 在内容下方显示参考文档链接，只有在消息完成时才显示 */}
+                {/* 在内容下方显示参考文档链接 */}
                 {renderReferenceDocuments()}
             </>
         );

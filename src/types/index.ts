@@ -48,6 +48,60 @@ export interface Reference {
     }>;
 }
 
+// 消息类型定义
+export interface Message {
+    id: string;
+    content: string;
+    role: 'user' | 'assistant';
+    timestamp: number;
+    references?: Reference[];
+    reference?: IReference; // RAGFlow风格的引用
+}
+
+// RAGFlow风格的引用数据结构
+export interface IReferenceChunk {
+    id: string;
+    content_with_weight: string;
+    document_id: string;
+    document_name: string;
+    dataset_id: string;
+    image_id?: string;
+    important_kwd?: string[];
+    positions?: string[];
+    term_similarity?: number;
+    vector_similarity?: number;
+    content_ltks?: string;
+    content?: string;
+    img_id?: string;
+}
+
+export interface IDocAgg {
+    doc_id: string;
+    doc_name: string;
+    count: number;
+}
+
+export interface IReference {
+    chunks: IReferenceChunk[];
+    doc_aggs: IDocAgg[];
+    total: number;
+}
+
+// 聊天上下文类型
+export interface ChatContextType {
+    messages: Message[];
+    isLoading: boolean;
+    sendMessage: (content: string) => Promise<void>;
+    clearMessages: () => void;
+    currentSession: ChatSession | null;
+    sessions: ChatSession[];
+    createNewSession: () => void;
+    switchSession: (sessionId: string) => void;
+    deleteSession: (sessionId: string) => void;
+    updateSessionTitle: (sessionId: string, title: string) => void;
+    reference?: IReference; // 当前会话的引用数据
+}
+
 // 聊天会话类型
 export interface ChatSession {
     id: string;

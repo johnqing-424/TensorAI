@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useRef, ReactNode, useCallback } from 'react';
 import { apiClient } from '../services';
-import { ChatAssistant, ChatMessage, ChatSession, Reference, ApiResponse, ChatCompletion, StreamChatResponse } from '../types';
+import { ChatAssistant, ChatMessage, ChatSession, Reference, ApiResponse, ChatCompletion, StreamChatResponse, IReference } from '../types';
 import { functionTitles, FunctionIdType, functionRoutes } from '../components/Layout/NavigationBar';
 
 interface ChatContextType {
@@ -41,6 +41,7 @@ interface ChatContextType {
 
     // 引用管理
     latestReference: Reference | null;
+    reference: IReference | undefined;
 
     // 界面状态
     isSidebarVisible: boolean;
@@ -110,6 +111,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             }
         })()
     );
+    const [reference, setReference] = useState<IReference | undefined>(undefined);
 
     // 界面状态
     const [isSidebarVisible, setIsSidebarVisible] = useState<boolean>(true);
@@ -868,6 +870,11 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                                     chunks: cumulativeReference.chunks.length
                                 });
                             }
+
+                            // 实时更新参考文档到上下文，确保流式响应过程中能显示参考文档
+                            if (cumulativeReference.doc_aggs.length > 0) {
+                                handleResponseReference(cumulativeReference);
+                            }
                         }
 
                         // 对于流式响应，检查内容是否有所更新
@@ -985,7 +992,9 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     setIsTyping(false);
 
                     // 保存参考文档信息到上下文
-                    if (responseReference) {
+                    if (cumulativeReference.doc_aggs.length > 0) {
+                        handleResponseReference(cumulativeReference);
+                    } else if (responseReference) {
                         handleResponseReference(responseReference);
                     }
 
@@ -1174,6 +1183,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             sendMessage,
             isTyping,
             latestReference,
+            reference,
             isSidebarVisible,
             toggleSidebar,
             apiError,

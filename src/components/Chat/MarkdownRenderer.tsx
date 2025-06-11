@@ -46,8 +46,8 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
         position: null,
     });
 
-    // 引用标记正则表达式
-    const referenceRegex = /\(\((\d+)\)\)/g;
+    // 引用标记正则表达式 - 匹配ragflow原生格式 ~~数字==
+    const referenceRegex = /(~{2}\d+={2})/g;
     const cursorRegex = /\[\[(\d+)\]\]/g;
 
     // 获取文档ID列表
@@ -126,7 +126,8 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
     const renderReferenceMarkers = useCallback((text: string) => {
         // 替换引用标记
         let replacedText = reactStringReplace(text, referenceRegex, (match, i) => {
-            const index = parseInt(match, 10);
+            // 从 ~~数字== 格式中提取数字
+            const index = parseInt(match.slice(2, -2), 10);
             return (
                 <span
                     key={`ref-${i}`}

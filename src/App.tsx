@@ -12,8 +12,8 @@ const clearAllData = () => {
   localStorage.removeItem('ragflow_api_key');
   localStorage.removeItem('ragflow_appid');
   apiClient.clearApiKey();
-  // 刷新页面，重新加载应用
-  window.location.reload();
+  // 导航到登录页面，而不是刷新当前页面
+  window.location.href = '/login';
 };
 
 // 受保护的路由组件
@@ -33,7 +33,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactElement }) => {
 const LoginPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const from = (location.state as any)?.from?.pathname || '/';
+  const from = (location.state as any)?.from?.pathname || '/chat';
 
   // 当登录成功时的回调
   const onLoginSuccess = () => {
