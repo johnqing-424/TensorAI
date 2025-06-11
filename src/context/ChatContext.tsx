@@ -643,7 +643,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const tempAssistantMessage: ChatMessage = {
             id: `assistant-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
             role: 'assistant',
-            content: '...',
+            content: '',
             isLoading: true
         };
 
@@ -671,12 +671,50 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         // 创建新的AbortController用于控制流式请求
         streamController.current = new AbortController();
 
+        // 添加流式响应防抖
+        let updateDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+        const debounceDelay = 100; // 100毫秒防抖延迟
+
+        // 防抖UI更新函数
+        const debouncedUpdateUI = (content: string, ref?: Reference) => {
+            if (updateDebounceTimer) {
+                clearTimeout(updateDebounceTimer);
+            }
+
+            updateDebounceTimer = setTimeout(() => {
+                setMessages(currentMessages => {
+                    const newMessages = [...currentMessages];
+                    const lastMessageIndex = newMessages.length - 1;
+
+                    // 确保最后一条消息是助手消息
+                    if (lastMessageIndex >= 0 && newMessages[lastMessageIndex].role === 'assistant') {
+                        newMessages[lastMessageIndex] = {
+                            ...newMessages[lastMessageIndex],
+                            content: content || '',
+                            isLoading: true,
+                            reference: ref,
+                            timestamp: Date.now()
+                        };
+                    }
+
+                    // 只在开发环境输出详细日志
+                    if (process.env.NODE_ENV === 'development') {
+                        console.log('流式更新消息:', newMessages[lastMessageIndex]);
+                    }
+
+                    return newMessages;
+                });
+            }, debounceDelay);
+        };
+
         try {
             // 真正发送消息的API调用
-            console.log('发送消息:', {
-                sessionId,
-                message
-            });
+            if (process.env.NODE_ENV === 'development') {
+                console.log('发送消息:', {
+                    sessionId,
+                    message
+                });
+            }
 
             // 使用流式接口获取回复
             await apiClient.streamChatMessage(
@@ -685,15 +723,23 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 (partialResponse: ApiResponse<StreamChatResponse>) => {
                     // 如果暂停状态，不处理响应
                     if (isPaused) {
-                        console.log('流式响应已暂停，忽略新数据');
+                        if (process.env.NODE_ENV === 'development') {
+                            console.log('流式响应已暂停，忽略新数据');
+                        }
                         return;
                     }
 
-                    console.log('收到流式响应:', partialResponse);
+                    if (process.env.NODE_ENV === 'development') {
+                        console.log('收到流式响应:', partialResponse);
+                    }
+
                     if (partialResponse && partialResponse.data) {
                         const newContent = partialResponse.data.answer || '';
-                        console.log('新内容:', newContent);
-                        console.log('当前responseText:', responseText);
+
+                        if (process.env.NODE_ENV === 'development') {
+                            console.log('新内容:', newContent);
+                            console.log('当前responseText:', responseText);
+                        }
 
                         // 处理参考文档 - 收集和累积
                         if (partialResponse.data.reference) {
@@ -736,26 +782,34 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                                 newReference.total || 0
                             );
 
-                            // 打印累积的参考文档信息
-                            console.log('累积参考文档信息:', {
-                                total: cumulativeReference.total,
-                                doc_aggs: cumulativeReference.doc_aggs.length,
-                                chunks: cumulativeReference.chunks.length
-                            });
+                            // 仅在开发环境输出详细日志
+                            if (process.env.NODE_ENV === 'development') {
+                                console.log('累积参考文档信息:', {
+                                    total: cumulativeReference.total,
+                                    doc_aggs: cumulativeReference.doc_aggs.length,
+                                    chunks: cumulativeReference.chunks.length
+                                });
+                            }
                         }
 
                         // 对于流式响应，检查内容是否有所更新
                         if (newContent && newContent.trim() !== '') {
                             // 检查内容是否是元数据（包含id:或retry:）
                             if (newContent.includes('id:') || newContent.includes('retry:')) {
-                                console.log('跳过元数据内容:', newContent);
+                                // 仅在开发环境输出详细日志
+                                if (process.env.NODE_ENV === 'development') {
+                                    console.log('跳过元数据内容:', newContent);
+                                }
                             }
                             // 检查是否已有有效应答，避免覆盖正确答案
                             else if (responseText && responseText.trim() &&
                                 !responseText.includes('id:') &&
                                 !responseText.includes('retry:') &&
                                 newContent.length < responseText.length) {
-                                console.log('已有完整答案，忽略更短的新内容');
+                                // 仅在开发环境输出详细日志
+                                if (process.env.NODE_ENV === 'development') {
+                                    console.log('已有完整答案，忽略更短的新内容');
+                                }
                             }
                             // 正常更新内容
                             else {
@@ -765,53 +819,43 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                                 // 如果不包含元数据，则更新有效答案
                                 if (!responseText.includes('id:') && !responseText.includes('retry:')) {
                                     validAnswer = responseText; // 保存有效的答案
-                                    console.log('保存有效答案:', validAnswer);
+                                    // 仅在开发环境输出详细日志
+                                    if (process.env.NODE_ENV === 'development') {
+                                        console.log('保存有效答案:', validAnswer);
+                                    }
                                 }
 
-                                console.log('更新responseText为:', responseText);
+                                // 仅在开发环境输出详细日志
+                                if (process.env.NODE_ENV === 'development') {
+                                    console.log('更新responseText为:', responseText);
+                                }
 
-                                // 立即更新UI中的消息，保证流式体验
-                                setMessages(currentMessages => {
-                                    const newMessages = [...currentMessages];
-                                    const lastMessageIndex = newMessages.length - 1;
-
-                                    // 确保最后一条消息是助手消息
-                                    if (lastMessageIndex >= 0 && newMessages[lastMessageIndex].role === 'assistant') {
-                                        newMessages[lastMessageIndex] = {
-                                            ...newMessages[lastMessageIndex],
-                                            content: (validAnswer || responseText || '...'),  // 优先使用validAnswer
-                                            isLoading: true,
-                                            // 添加累积的参考文档信息
-                                            reference: cumulativeReference.doc_aggs.length > 0 ? cumulativeReference : undefined,
-                                            // 添加时间戳，强制React识别组件更新
-                                            timestamp: Date.now()
-                                        };
-                                    }
-
-                                    // 打印消息状态，帮助调试
-                                    console.log('流式更新消息:', newMessages[lastMessageIndex]);
-
-                                    return newMessages;
-                                });
-
-                                // 立即滚动到底部以查看最新消息
-                                setTimeout(() => {
-                                    if (document.documentElement) {
-                                        window.scrollTo({
-                                            top: document.documentElement.scrollHeight,
-                                            behavior: 'auto'
-                                        });
-                                    }
-                                }, 0);
+                                // 使用防抖更新UI
+                                debouncedUpdateUI(
+                                    (validAnswer || responseText || ''),
+                                    cumulativeReference.doc_aggs.length > 0 ? cumulativeReference : undefined
+                                );
                             }
                         } else {
-                            console.log('跳过空内容更新');
+                            // 仅在开发环境输出详细日志
+                            if (process.env.NODE_ENV === 'development') {
+                                console.log('跳过空内容更新');
+                            }
                         }
                     } else {
-                        console.log('接收到无效响应:', partialResponse);
+                        // 仅在开发环境输出详细日志
+                        if (process.env.NODE_ENV === 'development') {
+                            console.log('接收到无效响应:', partialResponse);
+                        }
                     }
                 },
                 () => {
+                    // 清除任何未执行的防抖更新
+                    if (updateDebounceTimer) {
+                        clearTimeout(updateDebounceTimer);
+                        updateDebounceTimer = null;
+                    }
+
                     // 消息发送成功，更新最终消息
                     setMessages(currentMessages => {
                         const newMessages = [...currentMessages];
@@ -823,14 +867,20 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
                             // 如果响应内容包含元数据(id:或retry:)，尝试恢复到最后一次有效内容
                             if (finalContent && (finalContent.includes('id:') || finalContent.includes('retry:'))) {
-                                console.log('完成时检测到元数据内容，尝试恢复最后有效内容');
+                                // 仅在开发环境输出详细日志
+                                if (process.env.NODE_ENV === 'development') {
+                                    console.log('完成时检测到元数据内容，尝试恢复最后有效内容');
+                                }
                                 // 尝试从历史消息中找出最后一次非元数据内容
                                 const lastMessage = currentMessages[lastMessageIndex];
                                 if (lastMessage && lastMessage.content &&
                                     !lastMessage.content.includes('id:') &&
                                     !lastMessage.content.includes('retry:')) {
                                     finalContent = lastMessage.content;
-                                    console.log('恢复为上一条有效消息:', finalContent);
+                                    // 仅在开发环境输出详细日志
+                                    if (process.env.NODE_ENV === 'development') {
+                                        console.log('恢复为上一条有效消息:', finalContent);
+                                    }
                                 } else {
                                     finalContent = '等待回复...'; // 无法恢复时的默认内容
                                 }
@@ -849,43 +899,32 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                             };
                         }
 
-                        // 打印完成状态
-                        console.log('完成消息更新:', newMessages[lastMessageIndex]);
-
-                        // 消息完成后也确保滚动到底部
-                        setTimeout(() => {
-                            if (document.documentElement) {
-                                window.scrollTo({
-                                    top: document.documentElement.scrollHeight,
-                                    behavior: 'smooth'
-                                });
-                            }
-                        }, 100);
-
                         return newMessages;
                     });
 
-                    // 处理引用信息 - 使用累积的参考文档信息
-                    if (cumulativeReference.doc_aggs.length > 0) {
-                        handleResponseReference(cumulativeReference);
-                    } else {
+                    // 重置流式响应状态
+                    setIsReceivingStream(false);
+                    setIsTyping(false);
+
+                    // 保存参考文档信息到上下文
+                    if (responseReference) {
                         handleResponseReference(responseReference);
                     }
 
-                    // 完成后取消输入状态
-                    setIsTyping(false);
-
-                    // 重置流式响应状态
-                    setIsReceivingStream(false);
-                    setIsPaused(false);
-                    streamController.current = null;
+                    // 刷新会话列表，以更新最新的会话信息和预览
+                    fetchChatSessions();
                 },
-                (error: Error) => {
-                    // 消息发送失败
-                    console.error('发送消息失败:', error.message);
+                (error) => {
+                    // 清除任何未执行的防抖更新
+                    if (updateDebounceTimer) {
+                        clearTimeout(updateDebounceTimer);
+                        updateDebounceTimer = null;
+                    }
+
+                    console.error('流式消息请求失败:', error);
                     setApiError(`发送消息失败: ${error.message}`);
 
-                    // 更新失败的消息状态
+                    // 更新错误状态到最后一条消息
                     setMessages(currentMessages => {
                         const newMessages = [...currentMessages];
                         const lastMessageIndex = newMessages.length - 1;
@@ -893,52 +932,30 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                         if (lastMessageIndex >= 0 && newMessages[lastMessageIndex].role === 'assistant') {
                             newMessages[lastMessageIndex] = {
                                 ...newMessages[lastMessageIndex],
-                                content: '消息发送失败，请重试。',
+                                content: `发送消息失败: ${error.message}`,
+                                isLoading: false,
                                 isError: true,
-                                isLoading: false
+                                timestamp: Date.now(),
+                                completed: true
                             };
                         }
 
                         return newMessages;
                     });
 
-                    // 取消输入状态
-                    setIsTyping(false);
-
                     // 重置流式响应状态
                     setIsReceivingStream(false);
-                    setIsPaused(false);
-                    streamController.current = null;
-                }
-            );
+                    setIsTyping(false);
+                });
+
         } catch (error) {
-            console.error('发送消息异常:', error);
-            setApiError(`发送消息异常: ${(error as Error).message}`);
-
-            // 更新失败的消息状态
-            setMessages(currentMessages => {
-                const newMessages = [...currentMessages];
-                const lastMessageIndex = newMessages.length - 1;
-
-                if (lastMessageIndex >= 0 && newMessages[lastMessageIndex].role === 'assistant') {
-                    newMessages[lastMessageIndex] = {
-                        ...newMessages[lastMessageIndex],
-                        content: '发生错误，请重试。',
-                        isError: true,
-                        isLoading: false
-                    };
-                }
-
-                return newMessages;
-            });
-
-            // 取消输入状态
-            setIsTyping(false);
-
             // 重置流式响应状态
             setIsReceivingStream(false);
-            setIsPaused(false);
-            streamController.current = null;
+            setIsTyping(false);
+
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            console.error('发送消息异常:', errorMessage);
+            setApiError(`发送消息异常: ${errorMessage}`);
         }
     };
 

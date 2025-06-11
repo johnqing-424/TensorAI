@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect, useState } from 'react';
+import React, { useMemo, useEffect, useState, useRef } from 'react';
 import { ChatMessage as MessageType, Reference, ReferenceChunk } from '../../types';
 import MessageContent from './MessageContent';
 import './ChatMessage.css';
@@ -17,20 +17,42 @@ const ChatMessage: React.FC<ChatMessageProps> = React.memo((
     { message, isTyping = false, reference, onDocumentClick }
 ) => {
     const { role, isLoading, isError, content, timestamp, completed } = message;
-    // 使用本地state强制更新组件
-    const [forceUpdateCounter, setForceUpdateCounter] = useState(0);
 
-    // 添加调试日志，监控流式消息更新
+    // 使用useRef跟踪内容变化，避免不必要的重渲染
+    const lastContentRef = useRef(content);
+
+    // 使用useRef跟踪上次更新时间，实现节流
+    const lastUpdateRef = useRef(0);
+
+    // 减少重渲染次数的计数器
+    const [updateCounter, setUpdateCounter] = useState(0);
+
+    // 控制重渲染频率的节流时间间隔（毫秒）
+    const throttleInterval = 100;
+
+    // 优化的更新机制，使用节流减少重渲染
     useEffect(() => {
-        if (role === 'assistant' && (isLoading || timestamp)) {
-            console.log(
-                `消息更新 [${completed ? '完成' : '加载中'}]: ${content.substring(0, 15)}... (${timestamp})`,
-                message
-            );
+        if (role === 'assistant' && isLoading) {
+            const now = Date.now();
 
-            // 流式消息内容更新时强制组件重新渲染
-            if (isLoading) {
-                setForceUpdateCounter(prev => prev + 1);
+            // 只在开发环境记录日志，且仅当内容有明显变化时
+            if (process.env.NODE_ENV === 'development' &&
+                (content.length - lastContentRef.current.length > 10 || completed)) {
+                console.log(
+                    `消息更新 [${completed ? '完成' : '加载中'}]: ${content.substring(0, 15)}... (${timestamp})`,
+                    { content: content.length, isLoading, timestamp, completed }
+                );
+            }
+
+            // 当内容变化且距离上次更新超过节流间隔时才触发更新
+            if ((content !== lastContentRef.current) &&
+                (now - lastUpdateRef.current > throttleInterval || completed)) {
+
+                lastContentRef.current = content;
+                lastUpdateRef.current = now;
+
+                // 使用功能性更新避免依赖过期状态
+                setUpdateCounter(prev => prev + 1);
             }
         }
     }, [role, content, isLoading, timestamp, completed]);
@@ -46,12 +68,7 @@ const ChatMessage: React.FC<ChatMessageProps> = React.memo((
             classes.push('chat-message--assistant');
         }
 
-        // 状态样式 - 加载状态不再改变气泡样式，仅在内容区域显示加载状态
-        // 移除loading类，确保气泡样式一致
-        // if (isLoading) {
-        //     classes.push('chat-message--loading');
-        // }
-
+        // 状态样式
         if (isError) {
             classes.push('chat-message--error');
         }
@@ -63,10 +80,12 @@ const ChatMessage: React.FC<ChatMessageProps> = React.memo((
         }
 
         return classes.join(' ');
-    }, [role, isError, isTyping, completed]); // 移除isLoading依赖
+    }, [role, isError, isTyping, completed]);
 
-    // 使用唯一key确保组件正确更新
-    const uniqueKey = `${message.id}-${timestamp || Date.now()}-${forceUpdateCounter}`;
+    // 使用唯一key确保组件正确更新，但减少不必要的更改
+    const uniqueKey = useMemo(() => (
+        `${message.id}-${updateCounter}`
+    ), [message.id, updateCounter]);
 
     return (
         <div className={messageClassName} key={uniqueKey}>

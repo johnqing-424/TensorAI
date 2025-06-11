@@ -359,16 +359,10 @@ class ApiClient {
 
         // 获取当前的appid
         const currentAppId = this.getAppId();
-        if (!currentAppId) {
-            console.warn("未设置appid，使用默认值'process'");
-        }
 
         // 构建请求URL和请求体
         const url = `${this.baseUrl}/messages/stream`;
-        const requestBody = {
-            sessionId,
-            message
-        };
+        const requestBody = { sessionId, message };
 
         // 构建请求头
         const headers = {
@@ -378,11 +372,12 @@ class ApiClient {
             'Accept': 'text/event-stream'
         };
 
-        console.log(`使用appid: ${headers.appid} 发送流式请求`);
+        // 只在开发环境输出日志
+        if (process.env.NODE_ENV === 'development') {
+            console.log(`使用appid: ${headers.appid} 发送流式请求`);
+        }
 
-        // 创建EventSource用于接收流式数据 - 这可能更适合SSE
         try {
-            // 首先尝试使用fetch API
             const response = await fetch(url, {
                 method: 'POST',
                 headers,
@@ -393,7 +388,10 @@ class ApiClient {
                 throw new Error(`HTTP错误 ${response.status}`);
             }
 
-            console.log('服务器响应状态:', response.status);
+            // 开发环境输出日志
+            if (process.env.NODE_ENV === 'development') {
+                console.log('服务器响应状态:', response.status);
+            }
 
             // 获取响应流的reader
             const reader = response.body?.getReader();
@@ -406,20 +404,36 @@ class ApiClient {
             let buffer = '';
             let accumulatedResponse = '';
 
+            // 使用防抖机制处理流式更新，减少UI更新频率
+            let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+            const debounceDelay = 50; // 50毫秒的防抖延迟
+
+            // 防抖包装函数
+            const debouncedChunkReceiver = (data: ApiResponse<StreamChatResponse>) => {
+                if (debounceTimer) {
+                    clearTimeout(debounceTimer);
+                }
+
+                debounceTimer = setTimeout(() => {
+                    onChunkReceived(data);
+                }, debounceDelay);
+            };
+
             // 辅助函数处理响应数据
             const handleResponseData = (jsonData: any) => {
-                console.log('处理响应数据:', jsonData);
+                // 仅在开发环境输出详细日志
+                if (process.env.NODE_ENV === 'development') {
+                    console.log('处理响应数据:', jsonData);
+                }
 
                 // 格式1: {code: 0, data: {...}}
                 if (jsonData.code !== undefined && jsonData.data) {
-                    console.log('标准API响应格式');
-                    onChunkReceived(jsonData);
+                    debouncedChunkReceiver(jsonData);
                     return;
                 }
 
                 // 格式2: {answer: "..."}
                 if (jsonData.answer !== undefined) {
-                    console.log('包含answer字段的格式');
                     // 更新累积的响应
                     accumulatedResponse = jsonData.answer;
 
@@ -431,13 +445,12 @@ class ApiClient {
                             reference: jsonData.reference
                         }
                     };
-                    onChunkReceived(formatted);
+                    debouncedChunkReceiver(formatted);
                     return;
                 }
 
                 // 格式3: 其他JSON格式
-                console.log('其他JSON格式，原样传递');
-                onChunkReceived({
+                debouncedChunkReceiver({
                     code: 0,
                     data: {
                         answer: JSON.stringify(jsonData),
@@ -450,17 +463,28 @@ class ApiClient {
             while (true) {
                 const { done, value } = await reader.read();
                 if (done) {
-                    console.log('流读取完成');
+                    // 仅在开发环境输出详细日志
+                    if (process.env.NODE_ENV === 'development') {
+                        console.log('流读取完成');
+                    }
 
                     // 处理任何剩余数据
                     if (buffer.trim()) {
-                        console.log('处理剩余数据:', buffer);
                         try {
                             const jsonData = JSON.parse(buffer);
                             handleResponseData(jsonData);
                         } catch (e) {
-                            console.warn('无法解析最后的数据:', buffer);
+                            // 仅在开发环境输出警告
+                            if (process.env.NODE_ENV === 'development') {
+                                console.warn('无法解析最后的数据:', buffer);
+                            }
                         }
+                    }
+
+                    // 清除任何未执行的防抖
+                    if (debounceTimer) {
+                        clearTimeout(debounceTimer);
+                        debounceTimer = null;
                     }
 
                     onComplete();
@@ -470,7 +494,11 @@ class ApiClient {
                 // 解码接收到的数据块
                 const chunk = decoder.decode(value, { stream: true });
                 buffer += chunk;
-                console.log('收到原始数据:', chunk);
+
+                // 仅在开发环境输出详细日志
+                if (process.env.NODE_ENV === 'development') {
+                    console.log('收到原始数据:', chunk);
+                }
 
                 // 处理可能的多行JSON或SSE数据
                 const lines = buffer.split('\n');
@@ -484,12 +512,19 @@ class ApiClient {
                     // 处理SSE格式
                     if (trimmedLine.startsWith('data:')) {
                         const data = trimmedLine.substring(5).trim();
-                        console.log('解析SSE数据行:', data);
+
+                        // 仅在开发环境输出详细日志
+                        if (process.env.NODE_ENV === 'development') {
+                            console.log('解析SSE数据行:', data);
+                        }
 
                         // 如果是特殊控制消息
                         if (data === 'true' || data === 'false') {
-                            console.log('收到控制消息:', data);
                             if (data === 'true') {
+                                if (debounceTimer) {
+                                    clearTimeout(debounceTimer);
+                                    debounceTimer = null;
+                                }
                                 onComplete();
                                 return;
                             }
@@ -501,35 +536,35 @@ class ApiClient {
                             const jsonData = JSON.parse(data);
                             handleResponseData(jsonData);
                         } catch (e) {
-                            console.warn('无法解析SSE数据:', data, e);
+                            // 仅在开发环境输出警告
+                            if (process.env.NODE_ENV === 'development') {
+                                console.warn('无法解析SSE数据:', data);
+                            }
                         }
                     }
                     // 处理事件类型
                     else if (trimmedLine.startsWith('event:')) {
                         const eventType = trimmedLine.substring(6).trim();
-                        console.log('收到事件类型:', eventType);
 
                         if (eventType === 'complete') {
-                            console.log('收到完成事件');
+                            if (debounceTimer) {
+                                clearTimeout(debounceTimer);
+                                debounceTimer = null;
+                            }
                             onComplete();
                             return;
                         }
                     }
-                    // 忽略SSE元数据
+                    // 忽略SSE元数据，不记录日志
                     else if (trimmedLine.startsWith('id:') || trimmedLine.startsWith('retry:')) {
-                        console.log('忽略SSE元数据:', trimmedLine);
                         continue;
                     }
                     // 尝试作为直接JSON解析
                     else {
                         try {
                             const jsonData = JSON.parse(trimmedLine);
-                            console.log('解析为直接JSON数据:', jsonData);
                             handleResponseData(jsonData);
                         } catch (e) {
-                            // 不是JSON，可能是其他格式，但忽略明显的元数据格式
-                            console.log('无法解析为JSON:', trimmedLine);
-
                             // 检查是否是纯文本回复，排除id和retry等元数据格式
                             if (trimmedLine &&
                                 !trimmedLine.includes('{') &&
@@ -546,8 +581,7 @@ class ApiClient {
                                         session_id: sessionId
                                     }
                                 };
-                                console.log('构造纯文本响应:', mockResponse);
-                                onChunkReceived(mockResponse);
+                                debouncedChunkReceiver(mockResponse);
                             }
                         }
                     }
@@ -555,7 +589,10 @@ class ApiClient {
             }
 
         } catch (error) {
-            console.error("流式请求失败:", error);
+            // 仅在开发环境输出详细错误
+            if (process.env.NODE_ENV === 'development') {
+                console.error("流式请求失败:", error);
+            }
             onError(error instanceof Error ? error : new Error(String(error)));
         }
     }

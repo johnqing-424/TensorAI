@@ -109,3 +109,34 @@
         max-width: 90% !important;
     }
 }
+
+/* 添加或更新滚动到底部按钮样式 */
+.scroll-to-bottom-button {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: rgba(0, 0, 0, 0.6);
+    color: white;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border: none;
+    outline: none;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    z-index: 100;
+    transition: all 0.2s ease;
+}
+
+.scroll-to-bottom-button:hover {
+    background-color: rgba(0, 0, 0, 0.8);
+    transform: scale(1.05);
+}
+
+.scroll-to-bottom-button:active {
+    transform: scale(0.95);
+}
