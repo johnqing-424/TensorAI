@@ -242,8 +242,45 @@ const ChatLayout: React.FC = () => {
             return;
         }
 
-        // 获取应用ID
-        const appId = selectedChatAssistant?.id || 'process';
+        // 获取应用ID，如果在欢迎页面（/chat），则使用'chat'作为默认appId
+        let appId = selectedChatAssistant?.id || 'process';
+
+        // 如果当前在欢迎页面（/chat），则使用'chat'作为appId
+        if (location.pathname === '/chat') {
+            appId = 'chat';
+
+            // 为chat应用创建一个虚拟的助手对象
+            const chatAssistant = {
+                id: 'chat',
+                name: '智能助手',
+                description: '通用智能对话助手',
+                create_date: new Date().toISOString(),
+                update_date: new Date().toISOString(),
+                avatar: '',
+                datasets: [],
+                llm: {
+                    model_name: '',
+                    temperature: 0.7,
+                    top_p: 0.9,
+                    presence_penalty: 0,
+                    frequency_penalty: 0
+                },
+                prompt: {
+                    similarity_threshold: 0.7,
+                    keywords_similarity_weight: 0.5,
+                    top_n: 3,
+                    variables: [],
+                    rerank_model: '',
+                    empty_response: '',
+                    opener: '',
+                    prompt: ''
+                },
+                status: 'active'
+            };
+
+            // 选择chat助手
+            selectChatAssistant(chatAssistant);
+        }
 
         // 不需要手动清除当前会话，createChatSession和导航会自动处理
 
@@ -255,10 +292,10 @@ const ChatLayout: React.FC = () => {
 
         console.log("开始创建新会话...");
 
-        createChatSession('新对话').then(newSession => {
+        createChatSession('新对话', appId).then(newSession => {
             if (newSession) {
                 // 导航到新会话的URL - 使用常规路径而非/new
-                navigate(`/${appId}/${newSession.id}`);
+                navigate(`/chat/${appId}/${newSession.id}`);
 
                 // selectSession会在导航和ChatContext中自动处理
             }
@@ -328,8 +365,45 @@ const ChatLayout: React.FC = () => {
     const handleSendMessage = useCallback((message: string) => {
         console.log("发送消息:", message);
 
-        // 获取当前选中的功能ID
-        const appId = selectedChatAssistant?.id || 'process';
+        // 获取当前选中的功能ID，如果在欢迎页面，则使用'chat'
+        let appId = selectedChatAssistant?.id || 'process';
+
+        // 如果当前在欢迎页面（/chat），则使用'chat'作为appId
+        if (location.pathname === '/chat') {
+            appId = 'chat';
+
+            // 为chat应用创建一个虚拟的助手对象
+            const chatAssistant = {
+                id: 'chat',
+                name: '智能助手',
+                description: '通用智能对话助手',
+                create_date: new Date().toISOString(),
+                update_date: new Date().toISOString(),
+                avatar: '',
+                datasets: [],
+                llm: {
+                    model_name: '',
+                    temperature: 0.7,
+                    top_p: 0.9,
+                    presence_penalty: 0,
+                    frequency_penalty: 0
+                },
+                prompt: {
+                    similarity_threshold: 0.7,
+                    keywords_similarity_weight: 0.5,
+                    top_n: 3,
+                    variables: [],
+                    rerank_model: '',
+                    empty_response: '',
+                    opener: '',
+                    prompt: ''
+                },
+                status: 'active'
+            };
+
+            // 选择chat助手
+            selectChatAssistant(chatAssistant);
+        }
 
         // 如果当前没有会话，先创建一个新会话
         if (!currentSession) {
@@ -344,14 +418,14 @@ const ChatLayout: React.FC = () => {
             setCreatingSession(true); // 标记正在创建会话
 
             // 创建新会话并处理导航
-            createChatSession(functionTitles[appId as FunctionIdType] || '新对话')
+            createChatSession(appId === 'chat' ? '智能对话' : (functionTitles[appId as FunctionIdType] || '新对话'), appId)
                 .then(newSession => {
                     if (newSession) {
                         // 先设置当前会话，确保状态更新
                         selectSession(newSession);
 
                         // 导航到新会话的URL
-                        navigate(`/${appId}/${newSession.id}`);
+                        navigate(`/chat/${appId}/${newSession.id}`);
                         setCreatingSession(false);
                     } else {
                         console.error("创建会话失败");
@@ -369,7 +443,7 @@ const ChatLayout: React.FC = () => {
             // 已有会话，直接发送消息
             sendMessage(message);
         }
-    }, [creatingSession, selectedChatAssistant, currentSession, navigate, createChatSession, sendMessage, clearApiError, setCreatingSession]);
+    }, [creatingSession, selectedChatAssistant, currentSession, navigate, createChatSession, sendMessage, clearApiError, setCreatingSession, location.pathname, selectChatAssistant]);
 
     // 监听会话变化，如果有待发送的消息且已经创建了新会话，则发送消息
     useEffect(() => {
@@ -692,31 +766,25 @@ const ChatLayout: React.FC = () => {
         let sessionId = null;
         let isNewSession = false;
 
-        if (pathParts.length >= 1) {
-            appId = pathParts[0];
+        // 新的路由格式: /chat/appId/sessionId
+        if (pathParts.length >= 2 && pathParts[0] === 'chat') {
+            appId = pathParts[1];
 
-            // 检查是否是有效的应用ID或路由路径
-            const validAppIds = Object.keys(functionRoutes);
-            if (validAppIds.includes(appId)) {
-                // 直接使用应用ID
-            } else {
-                // 检查是否是路由路径
-                for (const [id, route] of Object.entries(functionRoutes)) {
-                    if (route.replace('/', '') === appId) {
-                        appId = id;
-                        break;
-                    }
-                }
+            // 检查是否是有效的应用ID
+            const validAppIds = Object.keys(functionRoutes).map(key => key);
+            if (!validAppIds.includes(appId)) {
+                // 如果不是有效的应用ID，可能是功能页面路径，保持原样
+                appId = pathParts[1];
             }
-        }
 
-        if (pathParts.length >= 2) {
-            sessionId = pathParts[1];
+            if (pathParts.length >= 3) {
+                sessionId = pathParts[2];
 
-            // 检测是否是创建新会话的URL
-            if (sessionId === 'new') {
-                isNewSession = true;
-                sessionId = null;
+                // 检测是否是创建新会话的URL
+                if (sessionId === 'new') {
+                    isNewSession = true;
+                    sessionId = null;
+                }
             }
         }
 
@@ -799,17 +867,16 @@ const ChatLayout: React.FC = () => {
 
                 {/* 基于路由渲染页面内容 */}
                 <Routes>
-                    <Route path="/" element={renderWelcomePage()} />
-                    <Route path="/process" element={renderFunctionPage('process')} />
-                    <Route path="/product" element={renderFunctionPage('product')} />
-                    <Route path="/model" element={renderFunctionPage('model')} />
-                    <Route path="/more" element={renderFunctionPage('more')} />
-                    <Route path="/chat" element={renderChatPage()} />
-                    <Route path="/:appId/:sessionId" element={renderChatPage()} />
+                    <Route path="/chat" element={renderWelcomePage()} />
+                    <Route path="/chat/process" element={renderFunctionPage('process')} />
+                    <Route path="/chat/product" element={renderFunctionPage('product')} />
+                    <Route path="/chat/model" element={renderFunctionPage('model')} />
+                    <Route path="/chat/more" element={renderFunctionPage('more')} />
+                    <Route path="/chat/:appId/:sessionId" element={renderChatPage()} />
                     <Route path="*" element={
                         // 只有在会话数据加载完成且确实找不到匹配的会话时才重定向
                         !loadingSessions && chatSessions.length > 0 ?
-                            <Navigate to="/" replace /> :
+                            <Navigate to="/chat" replace /> :
                             <div className="loading-placeholder">加载中...</div>
                     } />
                 </Routes>

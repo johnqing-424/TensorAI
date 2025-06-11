@@ -22,7 +22,7 @@ interface ChatContextType {
     currentSession: ChatSession | null;
     loadingSessions: boolean;
     fetchChatSessions: () => Promise<void>;
-    createChatSession: (name?: string) => Promise<ChatSession | null>;
+    createChatSession: (name?: string, appId?: string) => Promise<ChatSession | null>;
     selectSession: (session: ChatSession) => void;
     deleteSession: (sessionId: string) => Promise<boolean>;
     renameSession: (sessionId: string, name: string) => Promise<void>;
@@ -201,26 +201,20 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         let appId = null;
         let sessionId = null;
 
-        if (pathParts.length >= 1) {
-            appId = pathParts[0];
+        // 新的路由格式: /chat/appId/sessionId
+        if (pathParts.length >= 2 && pathParts[0] === 'chat') {
+            appId = pathParts[1];
 
-            // 检查是否是有效的应用ID或路由路径
-            const validAppIds = Object.keys(functionRoutes);
-            if (validAppIds.includes(appId)) {
-                // 直接使用应用ID
-            } else {
-                // 检查是否是路由路径
-                for (const [id, route] of Object.entries(functionRoutes)) {
-                    if (route.replace('/', '') === appId) {
-                        appId = id;
-                        break;
-                    }
-                }
+            // 检查是否是有效的应用ID
+            const validAppIds = Object.keys(functionRoutes).map(key => key);
+            if (!validAppIds.includes(appId)) {
+                // 如果不是有效的应用ID，可能是功能页面路径，保持原样
+                appId = pathParts[1];
             }
-        }
 
-        if (pathParts.length >= 2) {
-            sessionId = pathParts[1];
+            if (pathParts.length >= 3) {
+                sessionId = pathParts[2];
+            }
         }
 
         console.log(`URL参数解析: appId=${appId}, sessionId=${sessionId}`);
@@ -458,14 +452,26 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
 
     // 创建会话
-    const createChatSession = async (name: string = '新会话') => {
+    const createChatSession = async (name: string = '新会话', appId?: string) => {
         if (!selectedChatAssistant) {
             console.error('创建会话失败: 未选择聊天助手');
             return null;
         }
 
         try {
+            // 如果提供了appId，临时设置到apiClient中
+            const originalAppId = apiClient.getAppId();
+            if (appId) {
+                console.log(`为创建会话临时设置appId: ${appId}`);
+                apiClient.setAppId(appId);
+            }
+
             const response = await apiClient.createChatSession(name);
+
+            // 恢复原来的appId（如果有修改的话）
+            if (appId && originalAppId) {
+                apiClient.setAppId(originalAppId);
+            }
 
             if (response.code === 0 && response.data) {
                 console.log('创建会话成功:', response.data);

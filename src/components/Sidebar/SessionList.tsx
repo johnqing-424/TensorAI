@@ -97,7 +97,7 @@ const SessionList: React.FC = () => {
         selectSession(session);
 
         // 导航到具体会话的URL
-        navigate(`/${appId}/${session.id}`);
+        navigate(`/chat/${appId}/${session.id}`);
     };
 
     // 显示下拉菜单

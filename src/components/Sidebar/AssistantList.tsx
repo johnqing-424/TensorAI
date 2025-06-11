@@ -165,7 +165,7 @@ const AssistantList: React.FC = () => {
         // 清除选中的聊天助手，设置为null
         selectChatAssistant(null as any);
         // 导航到首页
-        navigate('/');
+        navigate('/chat');
     };
 
     // 处理创建新会话
@@ -179,12 +179,12 @@ const AssistantList: React.FC = () => {
         if (createChatSession) {
             createChatSession('新对话').then(newSession => {
                 if (newSession) {
-                    navigate(`/${appId}/${newSession.id}`);
+                    navigate(`/chat/${appId}/${newSession.id}`);
                 }
             });
         } else {
             // 备用方案：如果createChatSession不存在，直接导航
-            navigate(`/${appId}`);
+            navigate(`/chat/${appId}`);
         }
     };
 

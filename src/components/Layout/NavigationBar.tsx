@@ -2,22 +2,24 @@ import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 // 根据原有功能定义功能类型
-export type FunctionIdType = 'process' | 'product' | 'model' | 'more';
+export type FunctionIdType = 'process' | 'product' | 'model' | 'more' | 'chat';
 
 // 功能图标定义
 export const functionIcons = {
     process: { icon: '📝', bgColor: '#e8f4ff', color: '#3370ff' },
     product: { icon: '🔍', bgColor: '#e5f7ed', color: '#10b981' },
     model: { icon: '🤖', bgColor: '#f5f3ff', color: '#8b5cf6' },
-    more: { icon: '📄', bgColor: '#f2f4f8', color: '#6366f1' }
+    more: { icon: '📄', bgColor: '#f2f4f8', color: '#6366f1' },
+    chat: { icon: '💬', bgColor: '#fef3c7', color: '#f59e0b' }
 };
 
-// 路由映射
+// 功能路由映射
 export const functionRoutes: Record<FunctionIdType, string> = {
-    process: '/process',
-    product: '/product',
-    model: '/model',
-    more: '/more'
+    process: '/chat/process',
+    product: '/chat/product',
+    model: '/chat/model',
+    more: '/chat/more',
+    chat: '/chat'
 };
 
 // 功能标题映射
@@ -25,7 +27,8 @@ export const functionTitles: Record<FunctionIdType, string> = {
     process: '流程制度检索',
     product: '产品技术检索',
     model: '大模型知识检索',
-    more: '简历筛选助手'
+    more: '简历筛选助手',
+    chat: '智能助手'
 };
 
 const NavigationBar: React.FC = () => {
@@ -35,10 +38,14 @@ const NavigationBar: React.FC = () => {
 
     // 获取当前功能ID
     const getCurrentFunction = (): FunctionIdType | null => {
-        const path = currentPath === '/' ? '/process' : currentPath;
+        // 如果是根路径，重定向到chat
+        if (currentPath === '/') {
+            return 'chat';
+        }
 
+        // 检查是否匹配功能路由
         for (const [key, route] of Object.entries(functionRoutes)) {
-            if (path === route) {
+            if (currentPath === route || currentPath.startsWith(route + '/')) {
                 return key as FunctionIdType;
             }
         }
@@ -81,4 +88,4 @@ const NavigationBar: React.FC = () => {
     );
 };
 
-export default NavigationBar; 
+export default NavigationBar;

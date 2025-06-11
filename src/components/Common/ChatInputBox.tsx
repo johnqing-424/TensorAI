@@ -39,7 +39,7 @@ interface ChatInputBoxProps {
 const ChatInputBox: React.FC<ChatInputBoxProps> = ({
     inputValue,
     setInputValue,
-    placeholder = '发消息，输入 @ 选择技能或选择文件',
+    placeholder = '与大模型聊天，输入您想问的任何内容...',
     onSend = () => { },
     className = '',
     disabled = false,
