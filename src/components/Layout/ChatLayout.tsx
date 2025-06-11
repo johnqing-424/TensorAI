@@ -248,38 +248,6 @@ const ChatLayout: React.FC = () => {
         // 如果当前在欢迎页面（/chat），则使用'chat'作为appId
         if (location.pathname === '/chat') {
             appId = 'chat';
-
-            // 为chat应用创建一个虚拟的助手对象
-            const chatAssistant = {
-                id: 'chat',
-                name: '智能助手',
-                description: '通用智能对话助手',
-                create_date: new Date().toISOString(),
-                update_date: new Date().toISOString(),
-                avatar: '',
-                datasets: [],
-                llm: {
-                    model_name: '',
-                    temperature: 0.7,
-                    top_p: 0.9,
-                    presence_penalty: 0,
-                    frequency_penalty: 0
-                },
-                prompt: {
-                    similarity_threshold: 0.7,
-                    keywords_similarity_weight: 0.5,
-                    top_n: 3,
-                    variables: [],
-                    rerank_model: '',
-                    empty_response: '',
-                    opener: '',
-                    prompt: ''
-                },
-                status: 'active'
-            };
-
-            // 选择chat助手
-            selectChatAssistant(chatAssistant);
         }
 
         // 不需要手动清除当前会话，createChatSession和导航会自动处理
@@ -371,38 +339,6 @@ const ChatLayout: React.FC = () => {
         // 如果当前在欢迎页面（/chat），则使用'chat'作为appId
         if (location.pathname === '/chat') {
             appId = 'chat';
-
-            // 为chat应用创建一个虚拟的助手对象
-            const chatAssistant = {
-                id: 'chat',
-                name: '智能助手',
-                description: '通用智能对话助手',
-                create_date: new Date().toISOString(),
-                update_date: new Date().toISOString(),
-                avatar: '',
-                datasets: [],
-                llm: {
-                    model_name: '',
-                    temperature: 0.7,
-                    top_p: 0.9,
-                    presence_penalty: 0,
-                    frequency_penalty: 0
-                },
-                prompt: {
-                    similarity_threshold: 0.7,
-                    keywords_similarity_weight: 0.5,
-                    top_n: 3,
-                    variables: [],
-                    rerank_model: '',
-                    empty_response: '',
-                    opener: '',
-                    prompt: ''
-                },
-                status: 'active'
-            };
-
-            // 选择chat助手
-            selectChatAssistant(chatAssistant);
         }
 
         // 如果当前没有会话，先创建一个新会话
@@ -490,6 +426,7 @@ const ChatLayout: React.FC = () => {
                     <ChatInputBox
                         inputValue={inputValue}
                         setInputValue={setInputValue}
+                        placeholder={selectedChatAssistant?.description ? `与${selectedChatAssistant.name}对话，${selectedChatAssistant.description}...` : '与AI助手对话，输入您想问的任何问题...'}
                         onSend={handleSendMessage}
                         isDeepThinking={chatDeepThinking}
                         toggleDeepThinking={() => setChatDeepThinking(!chatDeepThinking)}
@@ -749,6 +686,8 @@ const ChatLayout: React.FC = () => {
                                 </div>
                             </>
                         )}
+
+
                     </div>
                 </div>
             </div>
@@ -867,6 +806,7 @@ const ChatLayout: React.FC = () => {
 
                 {/* 基于路由渲染页面内容 */}
                 <Routes>
+                    <Route path="/" element={renderWelcomePage()} />
                     <Route path="/chat" element={renderWelcomePage()} />
                     <Route path="/chat/process" element={renderFunctionPage('process')} />
                     <Route path="/chat/product" element={renderFunctionPage('product')} />

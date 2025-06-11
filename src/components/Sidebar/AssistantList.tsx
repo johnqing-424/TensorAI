@@ -20,6 +20,33 @@ const AssistantList: React.FC = () => {
     // 定义固定的聊天助手列表，对应后端的多应用配置
     const fixedAssistants: ChatAssistant[] = [
         {
+            id: 'chat',
+            name: 'TensorChat',
+            description: '智能对话助手',
+            create_date: new Date().toISOString(),
+            update_date: new Date().toISOString(),
+            avatar: '',
+            datasets: [],
+            llm: {
+                model_name: '',
+                temperature: 0.7,
+                top_p: 0.9,
+                presence_penalty: 0,
+                frequency_penalty: 0
+            },
+            prompt: {
+                similarity_threshold: 0.7,
+                keywords_similarity_weight: 0.5,
+                top_n: 3,
+                variables: [],
+                rerank_model: '',
+                empty_response: '',
+                opener: '',
+                prompt: ''
+            },
+            status: 'active'
+        },
+        {
             id: 'process',  // 修改为与NavigationBar.tsx中定义的FunctionIdType一致
             name: '流程制度检索',
             description: '专业的流程制度查询助手',
@@ -156,16 +183,21 @@ const AssistantList: React.FC = () => {
             case 'product': return '产品技术检索';
             case 'model': return '大模型知识检索';
             case 'more': return '简历筛选助手';
+            case 'chat': return 'TensorChat';
             default: return '聊天';
         }
     };
 
     // 点击TensorAI标识导航到首页
     const handleLogoClick = () => {
-        // 清除选中的聊天助手，设置为null
-        selectChatAssistant(null as any);
-        // 导航到首页
+        // 导航到首页，保持 chat 功能的选中状态
         navigate('/chat');
+
+        // 确保选中 chat 功能
+        const chatAssistant = fixedAssistants.find(assistant => assistant.id === 'chat');
+        if (chatAssistant && (!selectedChatAssistant || selectedChatAssistant.id !== 'chat')) {
+            selectChatAssistant(chatAssistant);
+        }
     };
 
     // 处理创建新会话

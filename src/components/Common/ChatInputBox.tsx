@@ -61,38 +61,40 @@ const ChatInputBox: React.FC<ChatInputBoxProps> = ({
     const getDefaultButtons = (): ButtonConfig[] => {
         const buttons: ButtonConfig[] = [];
 
-        if (showFileUpload) {
-            buttons.push({
-                id: 'file-upload',
-                label: '上传文件',
-                title: '上传文件',
-                icon: (
-                    <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2" fill="none">
-                        <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48" />
-                    </svg>
-                ),
-                onClick: () => {
-                    // 文件上传逻辑
-                    console.log('文件上传');
-                }
-            });
-        }
+        // 暂时注释掉上传文件按钮
+        // if (showFileUpload) {
+        //     buttons.push({
+        //         id: 'file-upload',
+        //         label: '上传文件',
+        //         title: '上传文件',
+        //         icon: (
+        //             <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2" fill="none">
+        //                 <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48" />
+        //             </svg>
+        //         ),
+        //         onClick: () => {
+        //             // 文件上传逻辑
+        //             console.log('文件上传');
+        //         }
+        //     });
+        // }
 
-        if (showDeepThinking) {
-            buttons.push({
-                id: 'deep-thinking',
-                label: '深度思考',
-                title: '深度思考',
-                active: isDeepThinking,
-                icon: (
-                    <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-                        <path d="M15.5 8c.827 0 1.5-.673 1.5-1.5S16.327 5 15.5 5 14 5.673 14 6.5 14.673 8 15.5 8zm-7 0c.827 0 1.5-.673 1.5-1.5S9.327 5 8.5 5 7 5.673 7 6.5 7.673 8 8.5 8zm3.5 9.5c-2.49 0-4.5-2.01-4.5-4.5S9.51 8.5 12 8.5s4.5 2.01 4.5 4.5-2.01 4.5-4.5 4.5zm0-1c1.933 0 3.5-1.567 3.5-3.5S13.933 9.5 12 9.5 8.5 11.067 8.5 13s1.567 3.5 3.5 3.5z" />
-                        <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10zm0-2a8 8 0 100-16 8 8 0 000 16z" />
-                    </svg>
-                ),
-                onClick: toggleDeepThinking
-            });
-        }
+        // 暂时注释掉深度思考按钮
+        // if (showDeepThinking) {
+        //     buttons.push({
+        //         id: 'deep-thinking',
+        //         label: '深度思考',
+        //         title: '深度思考',
+        //         active: isDeepThinking,
+        //         icon: (
+        //             <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+        //                 <path d="M15.5 8c.827 0 1.5-.673 1.5-1.5S16.327 5 15.5 5 14 5.673 14 6.5 14.673 8 15.5 8zm-7 0c.827 0 1.5-.673 1.5-1.5S9.327 5 8.5 5 7 5.673 7 6.5 7.673 8 8.5 8zm3.5 9.5c-2.49 0-4.5-2.01-4.5-4.5S9.51 8.5 12 8.5s4.5 2.01 4.5 4.5-2.01 4.5-4.5 4.5zm0-1c1.933 0 3.5-1.567 3.5-3.5S13.933 9.5 12 9.5 8.5 11.067 8.5 13s1.567 3.5 3.5 3.5z" />
+        //                 <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10zm0-2a8 8 0 100-16 8 8 0 000 16z" />
+        //             </svg>
+        //         ),
+        //         onClick: toggleDeepThinking
+        //     });
+        // }
 
         return buttons;
     };
@@ -183,8 +185,12 @@ const ChatInputBox: React.FC<ChatInputBoxProps> = ({
                 className="chat-input-send-btn"
                 onClick={handleSend}
                 disabled={!inputValue.trim() || disabled}
+                title="发送消息"
             >
-                发送
+                {/* 发送图标 - 纸飞机样式 */}
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+                </svg>
             </button>
         );
     };

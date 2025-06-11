@@ -48,7 +48,7 @@ const ReferencePanel: React.FC = () => {
                                 <h4>{group.document_name}</h4>
                             </div>
                             {group.chunks.map((chunk, index) => (
-                                <div key={`${chunk.id}-${index}`} className="reference-chunk">
+                                <div key={chunk.id || `chunk-${index}`} className="reference-chunk">
                                     <div className="chunk-similarity">
                                         相关度: {(chunk.similarity * 100).toFixed(0)}%
                                     </div>
@@ -71,4 +71,4 @@ const ReferencePanel: React.FC = () => {
     );
 };
 
-export default ReferencePanel; 
+export default ReferencePanel;

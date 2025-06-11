@@ -82,13 +82,8 @@ const ChatMessage: React.FC<ChatMessageProps> = React.memo((
         return classes.join(' ');
     }, [role, isError, isTyping, completed]);
 
-    // 使用唯一key确保组件正确更新，但减少不必要的更改
-    const uniqueKey = useMemo(() => (
-        `${message.id}-${updateCounter}`
-    ), [message.id, updateCounter]);
-
     return (
-        <div className={messageClassName} key={uniqueKey}>
+        <div className={messageClassName}>
             <div className="chat-message-body">
                 <MessageContent
                     message={message}

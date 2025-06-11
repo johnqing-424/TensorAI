@@ -137,20 +137,23 @@ const ChatHistory: React.FC = () => {
                 ) : (
                     <>
                         {/* 消息列表 - 使用message-row实现左右布局 */}
-                        {messages.map((message, index) => (
-                            <div
-                                key={`row-${message.id || `message-${index}`}-${message.timestamp || index}`}
-                                className={`message-row message-row--${message.role}`}
-                            >
-                                <ChatMessage
-                                    key={`${message.id || `message-${index}`}-${message.timestamp || index}`}
-                                    message={message}
-                                    isTyping={isTyping && index === messages.length - 1 && message.role === 'assistant'}
-                                    reference={message.role === 'assistant' && index === messages.length - 1 ? latestReference || undefined : undefined}
-                                    onDocumentClick={handleDocumentClick}
-                                />
-                            </div>
-                        ))}
+                        {messages.map((message, index) => {
+                            // 使用稳定的key确保正确的渲染顺序
+                            const messageKey = message.id || `message-${index}`;
+                            return (
+                                <div
+                                    key={`row-${messageKey}`}
+                                    className={`message-row message-row--${message.role}`}
+                                >
+                                    <ChatMessage
+                                        message={message}
+                                        isTyping={isTyping && index === messages.length - 1 && message.role === 'assistant'}
+                                        reference={message.role === 'assistant' && index === messages.length - 1 ? latestReference || undefined : undefined}
+                                        onDocumentClick={handleDocumentClick}
+                                    />
+                                </div>
+                            );
+                        })}
                         {/* API错误提示 */}
                         {apiError && messages.length > 0 && (
                             <div className="api-error-banner">

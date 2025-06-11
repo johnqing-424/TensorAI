@@ -25,11 +25,35 @@ const MessageContent: React.FC<MessageContentProps> = ({
 
     // 确定当前消息的状态
     const messageState = useMemo(() => {
-        if (isError) return 'error';
+        // 临时调试日志 - 跟踪所有助手消息的状态
+        if (role === 'assistant') {
+            console.log('MessageContent组件渲染状态:', {
+                role,
+                isLoading,
+                isError,
+                isTyping,
+                completed,
+                content: content ? content.substring(0, 50) + '...' : '(空内容)',
+                contentLength: content ? content.length : 0,
+                isEmpty: !content || content === '',
+                messageId: message.id,
+                timestamp: message.timestamp,
+                loadingCondition: isLoading && (!content || content === '...'),
+                finalState: isError ? 'error' : (isLoading && (!content || content === '...')) ? 'loading' : (isTyping && role === 'assistant') ? 'typing' : 'normal'
+            });
+        }
+
+        if (isError) {
+            return 'error';
+        }
         // 仅当消息为空且正在加载时显示加载状态
         // 当消息已有内容且仍在加载时，显示正常内容（流式显示）
-        if (isLoading && (!content || content === '...')) return 'loading';
-        if (isTyping && role === 'assistant') return 'typing';
+        if (isLoading && (!content || content === '...')) {
+            return 'loading';
+        }
+        if (isTyping && role === 'assistant') {
+            return 'typing';
+        }
         return 'normal';
     }, [isLoading, isError, isTyping, role, content]);
 

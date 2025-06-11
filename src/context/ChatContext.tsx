@@ -236,18 +236,27 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         if (!isAuthenticated) return;
 
         const { appId, sessionId } = parseUrlParams();
+        const currentPath = window.location.pathname;
 
-        // 如果URL中有应用ID，恢复选中的聊天助手
-        if (appId) {
-            console.log(`从URL恢复应用: ${appId}`);
+        // 确定要选择的应用ID
+        let targetAppId = appId;
+
+        // 如果是 /chat 路径（没有具体的应用ID），默认选择 chat 功能
+        if (currentPath === '/chat' && !appId) {
+            targetAppId = 'chat';
+        }
+
+        // 如果URL中有应用ID或者是 /chat 路径，恢复选中的聊天助手
+        if (targetAppId) {
+            console.log(`从URL恢复应用: ${targetAppId}`);
 
             // 保存到localStorage
-            localStorage.setItem('ragflow_selected_assistant', appId);
+            localStorage.setItem('ragflow_selected_assistant', targetAppId);
 
             // 创建一个临时的聊天助手对象
             const tempAssistant: ChatAssistant = {
-                id: appId,
-                name: functionTitles[appId as FunctionIdType] || '聊天助手',
+                id: targetAppId,
+                name: functionTitles[targetAppId as FunctionIdType] || '聊天助手',
                 avatar: '',
                 description: '',
                 datasets: [],
@@ -274,7 +283,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             };
 
             // 设置应用ID和选中的聊天助手
-            apiClient.setAppId(appId);
+            apiClient.setAppId(targetAppId);
             setSelectedChatAssistant(tempAssistant);
 
             // 获取会话列表
@@ -289,15 +298,64 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
     }, [restoreStateFromUrl, isAuthenticated]);
 
+    // 监听路径变化，确保在 /chat 路径时选中 chat 功能
+    useEffect(() => {
+        if (!isAuthenticated) return;
+
+        const currentPath = window.location.pathname;
+
+        // 如果当前在 /chat 路径且没有选中助手，或者选中的助手不是 chat
+        if (currentPath === '/chat' && (!selectedChatAssistant || selectedChatAssistant.id !== 'chat')) {
+            console.log('检测到 /chat 路径，自动选择 chat 功能');
+
+            const chatAssistant: ChatAssistant = {
+                id: 'chat',
+                name: 'TensorChat',
+                avatar: '',
+                description: '智能对话助手',
+                datasets: [],
+                llm: {
+                    model_name: 'default',
+                    temperature: 0.7,
+                    top_p: 0.9,
+                    presence_penalty: 0,
+                    frequency_penalty: 0
+                },
+                prompt: {
+                    similarity_threshold: 0.7,
+                    keywords_similarity_weight: 0.5,
+                    top_n: 5,
+                    variables: [],
+                    rerank_model: 'default',
+                    empty_response: '',
+                    opener: '',
+                    prompt: ''
+                },
+                create_date: new Date().toISOString(),
+                update_date: new Date().toISOString(),
+                status: 'active'
+            };
+
+            localStorage.setItem('ragflow_selected_assistant', 'chat');
+            apiClient.setAppId('chat');
+            setSelectedChatAssistant(chatAssistant);
+            fetchChatSessions();
+        }
+    }, [isAuthenticated, selectedChatAssistant]);
+
     // 当选择会话时，更新消息列表
     useEffect(() => {
         if (currentSession) {
             // 修复：转换消息中的reference字段类型
-            const convertedMessages = currentSession.messages.map(msg => {
+            const convertedMessages = currentSession.messages.map((msg, index) => {
                 // 创建一个符合ChatMessage类型的新消息对象
                 const chatMsg: ChatMessage = {
+                    id: `restored-${Date.now()}-${index}`, // 后端消息没有id，生成一个
                     role: msg.role,
-                    content: msg.content
+                    content: msg.content,
+                    timestamp: Date.now() + index, // 后端消息没有timestamp，生成一个递增的时间戳
+                    completed: true, // 后端消息默认为已完成
+                    isLoading: false // 后端消息默认不在加载中
                 };
 
                 // 如果存在reference且为字符串，尝试转换为Reference对象
@@ -306,6 +364,8 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                         // 如果是JSON字符串，尝试解析
                         if (typeof msg.reference === 'string') {
                             chatMsg.reference = JSON.parse(msg.reference) as Reference;
+                        } else {
+                            chatMsg.reference = msg.reference;
                         }
                     } catch (e) {
                         console.warn('无法解析消息引用:', e);
@@ -475,16 +535,40 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
             if (response.code === 0 && response.data) {
                 console.log('创建会话成功:', response.data);
+
+                // 处理后端返回的初始消息
+                const initialMessages = response.data.messages || [];
+                const baseTimestamp = Date.now();
+                const formattedInitialMessages = initialMessages.map((msg: any, index: number) => {
+                    const messageContent = msg.content || '';
+                    console.log(`初始消息 #${index}:`, {
+                        role: msg.role,
+                        content: messageContent,
+                        contentLength: messageContent.length,
+                        isEmpty: !messageContent || messageContent === ''
+                    });
+                    return {
+                        id: `initial-${baseTimestamp}-${index}-${Math.random().toString(36).substr(2, 9)}`,
+                        role: msg.role || 'assistant',
+                        content: messageContent,
+                        reference: msg.reference || null,
+                        timestamp: baseTimestamp + index, // 确保每个消息有唯一的时间戳
+                        completed: true,
+                        isLoading: false // 明确设置初始消息不在加载状态
+                    };
+                });
+
                 const newSession: ChatSession = {
                     ...response.data,
                     id: response.data.id || '',
                     name: name,
-                    messages: []
+                    messages: formattedInitialMessages
                 };
 
                 setChatSessions(prev => [newSession, ...prev]);
                 setCurrentSession(newSession);
-                setMessages([]);
+                // 设置初始消息到当前消息列表
+                setMessages(formattedInitialMessages);
 
                 return newSession;
             } else {
@@ -532,23 +616,11 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     // 获取会话消息
     const getSessionMessages = async (sessionId: string) => {
         try {
-            console.log(`尝试获取会话[${sessionId}]的消息`);
             const response = await apiClient.getMessages(sessionId);
 
-            console.log('获取会话消息响应:', response);
-
             if (response.code === 0 && response.data) {
-                console.log('获取会话消息成功:', response.data);
-
                 // 检查消息数据格式
                 if (Array.isArray(response.data)) {
-                    console.log(`收到${response.data.length}条消息`);
-
-                    // 详细打印每条消息的结构，以便调试
-                    response.data.forEach((msg, index) => {
-                        console.log(`消息 #${index}:`, JSON.stringify(msg));
-                    });
-
                     // 确保格式转换正确
                     const formattedMessages = response.data.map((msg: any) => {
                         // 检查并恢复引用数据
@@ -563,15 +635,13 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                             content: msg.content || "",
                             timestamp: Date.now(),
                             reference: msg.reference || null,
-                            completed: true // 历史消息标记为已完成
+                            completed: true, // 历史消息标记为已完成
+                            isLoading: false // 明确设置历史消息不在加载状态
                         };
                     });
 
-                    console.log("格式化后的消息:", formattedMessages);
-
                     // 更新当前消息列表
                     setMessages(formattedMessages);
-                    console.log("消息列表已更新", formattedMessages.length);
 
                     // 更新当前会话中的消息
                     if (currentSession && currentSession.id === sessionId) {
@@ -582,7 +652,6 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                                 messages: formattedMessages
                             };
                         });
-                        console.log("当前会话消息已更新");
                     }
 
                     // 更新会话列表中的对应会话
@@ -597,7 +666,6 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                             return s;
                         });
                     });
-                    console.log("会话列表已更新");
                 } else {
                     console.warn("返回的消息不是数组格式:", typeof response.data);
                 }
@@ -639,21 +707,25 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
 
         // 创建用户消息，根据ChatMessage类型定义
+        const baseTimestamp = Date.now();
         const userMessage: ChatMessage = {
-            id: `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            id: `user-${baseTimestamp}-${Math.random().toString(36).substr(2, 9)}`,
             role: 'user',
-            content: message
+            content: message,
+            timestamp: baseTimestamp
         };
 
         // 创建临时助手消息，根据ChatMessage类型定义
         const tempAssistantMessage: ChatMessage = {
-            id: `assistant-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            id: `assistant-${baseTimestamp + 1}-${Math.random().toString(36).substr(2, 9)}`,
             role: 'assistant',
             content: '',
-            isLoading: true
+            isLoading: true,
+            timestamp: baseTimestamp + 1 // 确保助手消息的时间戳晚于用户消息
         };
 
-        // 添加消息到UI中
+        // 添加消息到UI中 - 确保正确的消息顺序
+        // 如果当前消息列表中有初始助手消息，需要将用户消息插入到合适位置
         const newMessages = [...messages, userMessage, tempAssistantMessage];
         setMessages(newMessages);
 

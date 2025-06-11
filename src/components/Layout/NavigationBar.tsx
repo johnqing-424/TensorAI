@@ -28,7 +28,7 @@ export const functionTitles: Record<FunctionIdType, string> = {
     product: '产品技术检索',
     model: '大模型知识检索',
     more: '简历筛选助手',
-    chat: '智能助手'
+    chat: 'TensorChat'
 };
 
 const NavigationBar: React.FC = () => {
@@ -40,6 +40,11 @@ const NavigationBar: React.FC = () => {
     const getCurrentFunction = (): FunctionIdType | null => {
         // 如果是根路径，重定向到chat
         if (currentPath === '/') {
+            return 'chat';
+        }
+
+        // 如果是/chat路径（根目录），选中chat功能
+        if (currentPath === '/chat') {
             return 'chat';
         }
 
