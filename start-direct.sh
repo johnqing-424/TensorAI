@@ -50,10 +50,10 @@ check_dependencies() {
 check_backend() {
     log_info "检查Tensor-AI后端服务..."
     
-    if curl -s http://localhost:8080/api/health > /dev/null 2>&1; then
+    if curl -s http://192.168.1.131:8080/api/health > /dev/null 2>&1; then
         log_success "Tensor-AI后端服务正在运行"
     else
-        log_warning "无法连接到Tensor-AI后端服务 (http://localhost:8080)"
+        log_warning "无法连接到Tensor-AI后端服务 (http://192.168.1.131:8080)"
         log_warning "请确保Tensor-AI后端服务已启动并配置了CORS"
         read -p "是否继续启动前端？(y/n): " -n 1 -r
         echo
@@ -83,7 +83,7 @@ install_dependencies() {
 start_frontend() {
     log_info "启动前端React应用..."
     log_info "前端地址: http://localhost:3000"
-    log_info "后端地址: http://localhost:8080"
+    log_info "后端地址: http://192.168.1.131:8080"
     log_info "按 Ctrl+C 停止应用"
     
     # 设置环境变量

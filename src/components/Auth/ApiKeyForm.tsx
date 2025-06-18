@@ -282,12 +282,12 @@ const ApiKeyForm: React.FC<ApiKeyFormProps> = ({ onSuccess }) => {
                         <button
                             type="button"
                             onClick={() => {
-                                setApiUrl('http://localhost:8080');
-                                setDebugInfo('已设置API地址: http://localhost:8080');
+                                setApiUrl('http://192.168.1.131:8080');
+                                setDebugInfo('已设置API地址: http://192.168.1.131:8080');
                             }}
                             style={{ padding: '4px 8px', background: '#4a90e2', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}
                         >
-                            localhost:8080
+                            192.168.1.131:8080
                         </button>
                         <button
                             type="button"
@@ -353,7 +353,7 @@ const ApiKeyForm: React.FC<ApiKeyFormProps> = ({ onSuccess }) => {
                                 setDebugInfo('正在测试多个API服务器...');
                                 const servers = [
                                     'http://192.168.1.131:8080',
-                                    'http://localhost:8080',
+                                    'http://192.168.1.131:8080',
                                     'http://127.0.0.1:8080',
                                     'http://192.168.1.131:9380',
                                     'http://localhost:9380',

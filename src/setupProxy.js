@@ -4,7 +4,7 @@ module.exports = function (app) {
     app.use(
         '/api',
         createProxyMiddleware({
-            target: 'http://localhost:8080',
+            target: 'http://192.168.1.131:8080',
             changeOrigin: true,
             logLevel: 'debug',
             // 支持流式响应
