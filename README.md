@@ -129,3 +129,5 @@ ragflow-chat/          # 前端项目
 - **浏览器**: 支持现代浏览器（Chrome, Firefox, Edge, Safari）
 - **网络**: 稳定的网络连接
 - **后端**: 需要后端API服务正常运行
+
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/johnqing-424/ragflow-chat)
