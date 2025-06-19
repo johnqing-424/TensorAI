@@ -1,0 +1,333 @@
+Controller 接口文档说明
+除登录接口外，所有接口都需要在Header中提供token和appid,无效token会返回401未授权错误
+示例域名:文档中的localhost:8080需替换为实际部署域名
+
+1. 登录接口
+URL: POST /api/login
+功能: 用户登录获取访问令牌
+
+curl -X POST -H "Content-Type: application/json" -d "{\"mobile\":\"12345678901\",\"code\":\"12345\"}" http://localhost:8080/api/login
+
+请求体:
+{
+  "mobile": "12345678901",
+  "code": "12345"
+}
+
+成功响应:
+{
+  "code": 0,
+  "message": null,
+  "data": "token_123456"
+}
+
+
+2. 获取会话列表
+URL: GET /api/sessions
+功能: 获取当前应用的会话列表
+请求头:
+token: <登录返回的token>
+appid: <应用ID>
+
+curl -H "token: token_123456" -H "appid: process" http://localhost:8080/api/sessions
+成功响应:
+
+{
+    "code": 0,
+    "message": null,
+    "data": [
+        {
+            "id": "2968c1b866d2490a8a43d2a50ae6e0e6",
+            "name": "报销流程是怎么样的？",
+            "messages": [
+                {
+                    "role": "assistant",
+                    "content": "Hi! I'm your assistant, what can I do for you?",
+                    "metadata": null,
+                    "reference": ""
+                },
+                {
+                    "role": "user",
+                    "content": "报销流程是怎么样的？",
+                    "metadata": null,
+                    "reference": ""
+                },
+                {
+                    "role": "assistant",
+                    "content": "根据知识库内容，腾视科技的费用报销流程主要分为以下两种情况 ##6$$ ##2$$",
+                    "metadata": null,
+                    "reference": ""
+                }
+            ],
+            "create_time": 1747642046070,
+            "update_time": 1747712022159
+        }
+    ]
+}
+
+3. 创建会话
+URL: POST /api/sessions
+功能: 创建新的会话
+
+请求头:
+token: <登录返回的token>
+appid: <应用ID>
+
+curl -H "token: token_123456" -H "appid: process" http://localhost:8080/api/sessions
+
+请求体:
+{
+  "name": "新会话名称"
+}
+响应：
+{
+"code":0,
+"message":null,
+"data":{
+"chat_id":"ac4df552048b11f0b44b0242ac120006",
+"create_date":"Tue, 03 Jun 2025 15:54:50 GMT",
+"create_time":1748937290276,
+"id":"06b7e296405011f09afb0242ac120006",
+"messages":[
+{
+"role":"assistant",
+"content":"Hi! I'm your assistant, what can I do for you?",
+"reference":null
+}
+],
+"name":"新会话名称",
+"update_date":"Tue, 03 Jun 2025 15:54:50 GMT",
+"update_time":1748937290276
+}
+}
+
+4. 修改会话名称
+URL: PUT /api/sessions/update
+功能: 创建新的会话
+
+请求头:
+token: <登录返回的token>
+appid: <应用ID>
+
+curl -H "token: token_123456" -H "appid: process" -d "{\"sessionId\":\"2968c1b866d2490a8a43d2a50ae6e0e6\",\"name\":\"项目需求讨论会\"}" http://localhost:8080/api/sessions/update
+
+请求体:
+{
+  "sessionId": "需要更新的会话ID"
+  "name": "新会话名称"
+}
+
+成功响应：
+{
+  "code": 0,
+  "message": null,
+  "data": null
+}
+
+5. 删除会话
+URL: DELETE /api/sessions
+功能: 批量删除会话
+请求头:
+token: <登录返回的token>
+appid: <应用ID>
+请求体:
+{
+  "ids": ["sess_001", "sess_002"]
+}
+
+curl -X DELETE -H "token: token_123456" -H "appid: process" -H "Content-Type: application/json" -d "{\"ids\":[\"06b7e296405011f09afb0242ac120006\"]}" http://localhost:8080/api/sessions
+
+成功响应:
+{
+  "code": 0,
+  "message": null,
+  "data": null
+}
+
+6. 获取消息记录
+URL: GET /api/messages?sessionId=<会话ID>
+功能: 获取会话消息历史，可以是全部会话或指定会话
+请求头:
+token: <登录返回的token>
+appid: <应用ID>
+查询参数:
+sessionId: 会话ID
+
+curl -H "token: token_123456" -H "appid: process" "http://localhost:8080/api/messages?sessionId=2968c1b866d2490a8a43d2a50ae6e0e6"
+
+成功响应:
+{
+"code":0,
+"message":null,
+"data":[
+{
+"id":"2968c1b866d2490a8a43d2a50ae6e0e6",
+"name":"报销流程是怎么样的？",
+"messages":[
+{
+"role":"assistant",
+"content":"Hi! I'm your assistant, what can I do for you?",
+"metadata":null,
+"reference":""
+},
+{
+"role":"user",
+"content":"报销流程是怎么样的？",
+"metadata":null,
+"reference":""
+},
+{
+"role":"assistant",
+"content":"根据知识库内容，腾视科技的费用报销流程主要分为以下两种情况 ##6$$ ##2$$",
+"metadata":null,
+"reference":""
+}
+],
+"create_time":1747642046070,
+"update_time":1747712022159
+}
+]
+}
+
+7. 发送流式消息 (SSE流式)
+URL: POST /api/messages/stream
+功能: 向指定会话发送消息并获取流式响应
+请求头:
+token: <登录返回的token>
+appid: <应用ID>
+Accept: text/event-stream
+请求体:
+{
+  "sessionId": "sess_001", //可为空
+  "message": "报销流程"
+}
+
+curl -N -H "token: token_123456" -H "appid: process" -H "Content-Type: application/json" -H "Accept: text/event-stream" -d "{\"sessionId\":\"2968c1b866d2490a8a43d2a50ae6e0e6\",\"message\":\"报销流程？\"}" http://localhost:8080/api/messages/stream
+
+流式接口直接返回SSE格式的数据流:
+
+data:{"code": 0, "data": {"answer": "腾视科技2024年最新智能报销", "reference": {"chunks": []}, "audio_binary": null, "id": "f791dd4a-a998-4a73-bfdb-b6cfa460f0e9", "session_id": "2968c1b866d2490a8a43d2a50ae6e0e6"}}
+id:f5ef9b62-2b00-4963-af6f-e1ed799c2e46
+retry:3000
+
+data:{"code": 0, "data": {"answer": "腾视科技2024年最新智能报销流程如下：\n\n一、全流程智能化操作（", "reference": {"chunks": []}, "audio_binary": null, "id": "f791dd4a-a998-4a73-bfdb-b6cfa460f0e9", "session_id": "2968c1b866d2490a8a43d2a50ae6e0e6"}}
+id:76c7ec41-33f3-4cb6-bcfc-87ee328c646f
+retry:3000
+
+data:{"code": 0, "data": {"answer": "腾视科技2024年最新智能报销流程如下：\n\n一、全流程智能化操作（平均处理时长2.3天）\n1. 移动", "reference": {"chunks": []}, "audio_binary": null, "id": "f791dd4a-a998-4a73-bfdb-b6cfa460f0e9", "session_id": "2968c1b866d2490a8a43d2a50ae6e0e6"}}
+id:e4ee1c08-a1da-42f3-ae41-7644fad1946a
+retry:3000
+
+data:{"code": 0, "data": {"answer": "腾视科技2024年最新智能报销流程如下：\n\n一、全流程智能化操作（平均处理时长2.3天）\n1. 移动端智能填报（企业微信/钉钉）\n- 发票智能识别：直接拍照上传自动提取关键信息\n- 智能关联单据：自动匹配差旅申请/采购订单/招待预审单\n- 费用智能分类：AI自动判断费用类型并匹配预算科目\n\n2. 三级风控审核体系\n▶ AI预审（即时完成）\n- 实时校验：发票真伪/抬头税号/连号检测/消费合理性\n- 自动提醒：16类常见填报错误实时提示\n\n▶ 分级审批（系统自动路由）\n• 常规费用 ≤5000元：直属主管→区域财务（1个工作日内）\n• 重点费用 5001-20000元：+部门总监审批\n• 特殊费用 >20000元：+CFO终审\n• 红色预警费用：自动触发审计介入\n\n▶ 财务机器人处理\n- 自动完成：付款执行/凭证生成/进项税认证\n- 多系统同步：实时更新ERP/OA/税务系统\n\n二、四大智能创新点\n1. 无纸化报销 ##3$$ ##0$$\n- 电子发票自动归集 ##2$$\n- 纸质票据扫码上传\n- 电子归档保存7年\n\n2. 智能预警系统\n- 消费异常检测（时间/地点/金额异常）\n- 预算超标实时提醒\n- 供应商黑名单自动拦截\n\n3. 极速支付通道\n- 标准通道：T+1工作日到账\n- 加急通道：2小时到账（月度限额3次）\n- 大额通道：单笔超5万元需提前报备\n\n4. 员工自助服务\n- 报销进度实时追踪\n- 常见问题智能客服\n- 个人报销数据分析\n\n三、新员工快速指南\n1. 首次报销必修：\n- 完成15分钟VR实训课程\n- 通过线上考试（80分以上）\n\n2. 专属特权：\n- 前3次报销享\"新手护航\"（人工优先审核）\n- 首月报销差错免追责\n\n四、特殊情形处理\n1. 跨境报销：\n- 支持8种外币自动折算\n- 必需上传出入境记录\n- 额外增加合规审核\n\n2. 历史遗留问题：\n- 2023年前票据需走特殊通道\n- 需附加《情况说明》并经财务总监特批\n\n（注：本流程已通过ISO27001信息安全认证，所有数据加密传输。最新操作手册请访问内网\"财务数字化转型\"专区，支持AR实景导航）", "reference": {"total": 64, "chunks": [{"id": "43a48e6116ce073b", "content": "TENSORTEC腾视\n主动安全驾驶专家\n五、费用报销的审批权限及基本流程\n（一）核准权限：\n日常经营管理产生的费用报销的核准权限及核准人：非总经理报销由直属系统的部门负责人审批，\n财务费用专员审核，财务负责人复核，总经理核准；总经理报销由办公室行政部负责人审批，财务\n费用专员审核，财务负责人复核，经公司授权人审核\n1.总流程\n总监签字\n财务（晓丹或陈霞）\n经办人填\n部门负责人\n财务部费用\n写报销单\n审批签字\n审核报销凭\n财务部费用专员\n总经理审批\n财务负责人审批\n生成会计凭证\n注意：经办人把流程走到\n第三步财务即可，接下来\n出纳付款并通\n经办人领款签\n流程由财务部汇总同事完\n知经办人\n字结束", "document_id": "c987734235e511f083c60242ac120006", "document_name": "腾视科技报销制度演示文稿-20200320.pdf", "dataset_id": "851a5a9435db11f0b3e30242ac120006", "image_id": "851a5a9435db11f0b3e30242ac120006-43a48e6116ce073b", "positions": [[12, 0, 2160, 0, 1620]], "url": null, "similarity": 0.5828673901734165, "vector_similarity": 0.6385944017688135, "term_similarity": 0.49927687278032085, "doc_type": ""}, {"id": "ba586239cf0ea727", "content": "<table><caption>费用报销单</caption>\n<tr><th  >申请人</th><th  >申请部门 报销明细及项目内容</th><th  >申请日期</th><th  >金额（元）</th><th  >备注</th><th  >报销单据数量</th></tr>\n<tr><th></th><th></th><th></th><th></th><th></th><th  >张</th></tr>\n<tr><td></td><td></td><td></td><td></td><td></td><td  >张</td></tr>\n<tr><td></td><td></td><td></td><td></td><td></td><td  >张</td></tr>\n<tr><td></td><td  >小计</td><td></td><td></td><td  >¥0.00尼 后附费用清单</td><td  >是口否</td></tr>\n<tr><td  >合计金额大写人民币零元整</td><td></td><td></td><td></td><td  >预借金额 应退金额</td><td></td></tr>\n<tr><td  >付款方式</td><td  >口现金</td><td  >口网银转账</td><td  >其他</td><td  >应付金额</td><td></td></tr>\n<tr><td  >收款账户信息</td><td></td><td  >默认</td><td></td><td  rowspan=2 >是否付讫</td><td></td></tr>\n<tr><td  >情况紧急程度</td><td  >口紧急</td><td  >口普通</td><td  >口延缓</td><td></td></tr>\n<tr><td  >注：无特殊情况，统一默认打款至工资卡，此表单填写完毕后请在ERP提交电子审批流程。</td><td></td><td></td><td></td><td></td><td></td></tr>\n</table>", "document_id": "c41ce6d035db11f0b63f0242ac120006", "document_name": "财务文件/ZJTS--CW01  费用报销及合同付款制度（试行版）(1).pdf", "dataset_id": "851a5a9435db11f0b3e30242ac120006", "image_id": "851a5a9435db11f0b3e30242ac120006-ba586239cf0ea727", "positions": [[10, 73, 526, 230, 440]], "url": null, "similarity": 0.5799440003222862, "vector_similarity": 0.6337220853502631, "term_similarity": 0.49927687278032085, "doc_type": "image"}, {"id": "7dd8b7edd0e1abd1", "content": "第二条报销发起人根据要求整理粘贴发票及相关纸质单据，制作报销单，并将报销单及附件扫描上传至金蝶ERP提交电子审批流程，同时将纸质件递交财务核对审核。第三条费用报销审批流程①报销金额≤5000元∶报销发起人→会计助理初审→部门负责人→财务部负责人→总经理助理→会计终审并自动生成②报销金额>5000元∶报销发起人→会计助理初审→部门负责人→财务部负责人→总经理→会计终审并自动生成待审批完成后，出纳打印审批单操作汇款，报销汇款周期为每周五。报销人与收款人必须一致，收款人不得要求出纳把报销款转付他人。第四条业务招待费报销要求①凡在出差期间因业务需要招待客户及客人来访发生的招待费用，需提前在企业微信上提交《招待申请单》审批流程，并注明招待事由、具体出席对象姓名、人数及发生金额，报销时，需将审批通过的《招待申请单》与发票及清单小票作为附件按正常流程报销②采用送礼品方式招待客户的，需提前在企业微信上提交《礼品申请》，原则上需由行政部统一采购，遇特殊情况，需由总经理批准后方可执行，未经批准自行采购的，一律不予报销。第五条差旅费详细报销标准参照\"出差管理制度\"相关规定执行，出差人员返回3个工作日内提交差旅费报销审批流程办理报销手续。", "document_id": "c41316e635db11f0b63f0242ac120006", "document_name": "财务文件/ZJTS--CW01  费用报销及合同付款制度（试行版）(OCR)(1).pdf", "dataset_id": "851a5a9435db11f0b3e30242ac120006", "image_id": "851a5a9435db11f0b3e30242ac120006-7dd8b7edd0e1abd1", "positions": [[3, 98, 528, 297, 372], [3, 97, 527, 385, 400], [3, 150, 581, 415, 460], [3, 150, 581, 474, 488], [3, 150, 581, 503, 518], [3, 151, 581, 533, 608], [3, 97, 528, 620, 635], [3, 149, 580, 651, 754], [4, 150, 581, 121, 194], [4, 98, 528, 208, 253]], "url": null, "similarity": 0.5744088598152105, "vector_similarity": 0.6244968511718036, "term_similarity": 0.49927687278032085, "doc_type": ""}, {"id": "83e8de6058167c5a", "content": "九、其他费用报销要求\n1、除上述“六至九”项费用外的其他费用由各职能部门根据公司会议纪要、审批文件、协议、合同或政府规定的收费标准等有关文件填写《费用报销单》，经审核后办理付款。经办部门应提供完整的内部审核文件，无法提供的，财务部不予受理。 \n2、费用报销审批及流程遵循“五、费用报销的审批权限及基本流程”", "document_id": "c45145ec35db11f0b63f0242ac120006", "document_name": "财务文件/腾视科技报销制度演示文稿-20200320(1).pptx", "dataset_id": "851a5a9435db11f0b3e30242ac120006", "image_id": "851a5a9435db11f0b3e30242ac120006-83e8de6058167c5a", "positions": [[20, 0, 360, 0, 270]], "url": null, "similarity": 0.573613231578189, "vector_similarity": 0.6231708041101011, "term_similarity": 0.49927687278032085, "doc_type": "image"}], "doc_aggs": [{"doc_name": "腾视科技报销制度演示文稿-20200320.pdf", "doc_id": "c987734235e511f083c60242ac120006", "count": 1}, {"doc_name": "财务文件/ZJTS--CW01  费用报销及合同付款制度（试行版）(OCR)(1).pdf", "doc_id": "c41316e635db11f0b63f0242ac120006", "count": 1}, {"doc_name": "财务文件/腾视科技报销制度演示文稿-20200320(1).pptx", "doc_id": "c45145ec35db11f0b63f0242ac120006", "count": 1}]},
+ "prompt": "You are an intelligent assistant. Please summarize the content of the knowledge base to answer the question. Please list the data in the knowledge base and answer in detail. When all knowledge base content is irrelevant to the question, your answer must include the sentence \"The answer you are looking for is not found in the knowledge base!\" Answers need to consider chat history.  \n      Here is the knowledge base:  \n        \n------  \n  \nDocument: 腾视科技报销制度演示文稿-20200320.pdf   \nRelevant fragments as following:  \n---  \nID: 0  \nTENSORTEC腾视  \n主动安全驾驶专家  \n五、费用报销的审批权限及基本流程  \n（一）核准权限：  \n日常经营管理产生的费用报销的核准权限及核准人：非总经理报销由直属系统的部门负责人审批，  \n财务费用专员审核，财务负责人复核，总经理核准；总经理报销由办公室行政部负责人审批，财务  \n费用专员审核，财务负责人复核，经公司授权人审核  \n1.总流程  \n总监签字  \n财务（晓丹或陈霞）  \n经办人填  \n部门负责人  \n财务部费用  \n写报销单  \n审批签字  \n审核报销凭  \n财务部费用专员  \n总经理审批  \n财务负责人审批  \n生成会计凭证  \n注意：经办人把流程走到  \n第三步财务即可，接下来  \n出纳付款并通  \n经办人领款签  \n流程由财务部汇总同事完  \n知经办人  \n字结束  \n  \n  \n------  \n  \n  \nDocument: 财务文件/ZJTS--CW01  费用报销及合同付款制度（试行版）(1).pdf   \nRelevant fragments as following:  \n---  \nID: 1  \n<table><caption>费用报销单</caption>  \n<tr><th  >申请人</th><th  >申请部门 报销明细及项目内容</th><th  >申请日期</th><th  >金额（元）</th><th  >备注</th><th  >报销单据数量</th></tr>  \n<tr><th></th><th></th><th></th><th></th><th></th><th  >张</th></tr>  \n<tr><td></td><td></td><td></td><td></td><td></td><td  >张</td></tr>  \n<tr><td></td><td></td><td></td><td></td><td></td><td  >张</td></tr>  \n<tr><td></td><td  >小计</td><td></td><td></td><td  >¥0.00尼 后附费用清单</td><td  >是口否</td></tr>  \n<tr><td  >合计金额大写人民币零元整</td><td></td><td></td><td></td><td  >预借金额 应退金额</td><td></td></tr>  \n<tr><td  >付款方式</td><td  >口现金</td><td  >口网银转账</td><td  >其他</td><td  >应付金额</td><td></td></tr>  \n<tr><td  >收款账户信息</td><td></td><td  >默认</td><td></td><td  rowspan=2 >是否付讫</td><td></td></tr>  \n<tr><td  >情况紧急程度</td><td  >口紧急</td><td  >口普通</td><td  >口延缓</td><td></td></tr>  \n<tr><td  >注：无特殊情况，统一默认打款至工资卡，此表单填写完毕后请在ERP提交电子审批流程。</td><td></td><td></td><td></td><td></td><td></td></tr>  \n</table>  \n  \n  \n------  \n  \n  \nDocument: 财务文件/ZJTS--CW01  费用报销及合同付款制度（试行版）(OCR)(1).pdf   \nRelevant fragments as following:  \n---  \nID: 2  \n第二条报销发起人根据要求整理粘贴发票及相关纸质单据，制作报销单，并将报销单及附件扫描上传至金蝶ERP提交电子审批流程，同时将纸质件递交财务核对审核。第三条费用报销审批流程①报销金额≤5000元∶报销发起人→会计助理初审→部门负责人→财务部负责人→总经理助理→会计终审并自动生成②报销金额>5000元∶报销发起人→会计助理初审→部门负责人→财务部负责人→总经理→会计终审并自动生成待审批完成后，出纳打印审批单操作汇款，报销汇款周期为每周五。报销人与收款人必须一致，收款人不得要求出纳把报销款转付他人。第四条业务招待费报销要求①凡在出差期间因业务需要招待客户及客人来访发生的招待费用，需提前在企业微信上提交《招待申请单》审批流程，并注明招待事由、具体出席对象姓名、人数及发生金额，报销时，需将审批通过的《招待申请单》与发票及清单小票作为附件按正常流程报销②采用送礼品方式招待客户的，需提前在企业微信上提交《礼品申请》，原则上需由行政部统一采购，遇特殊情况，需由总经理批准后方可执行，未经批准自行采购的，一律不予报销。第五条差旅费详细报销标准参照\"出差管理制度\"相关规定执行，出差人员返回3个工作日内提交差旅费报销审批流程办理报销手续。  \n  \n  \n------  \n  \n  \nDocument: 财务文件/腾视科技报销制度演示文稿-20200320(1).pptx   \nRelevant fragments as following:  \n---  \nID: 3  \n九、其他费用报销要求  \n1、除上述“六至九”项费用外的其他费用由各职能部门根据公司会议纪要、审批文件、协议、合同或政府规定的收费标准等有关文件填写《费用报销单》，经审核后办理付款。经办部门应提供完整的内部审核文件，无法提供的，财务部不予受理。   \n2、费用报销审批及流程遵循“五、费用报销的审批权限及基本流程”  \n  \n      The above is the knowledge base.  \n  \n
+### Query:  \n报销流程是怎么样的？  \n  \n## Time elapsed:  \n  - Total: 47184.5ms  \n  - Check LLM: 5.5ms  \n  - Check Langfuse tracer: 1.4ms  \n  - Create retriever: 2.7ms  \n  - Bind embedding: 11.7ms  \n  - Bind LLM: 51.7ms  \n  - Multi-turn optimization: 11515.7ms  \n  - Bind reranker: 0.0ms  \n  - Generate keyword: 0.0ms  \n  - Retrieval: 638.9ms  \n  - Generate answer: 34957.0ms  \n  \n## Token usage:  \n  - Generated tokens(approximately): 881  \n  - Token speed: 25/s", "created_at": 1748412985.986154, "id": "f791dd4a-a998-4a73-bfdb-b6cfa460f0e9", "session_id": "2968c1b866d2490a8a43d2a50ae6e0e6"}}
+id:fac438ee-d61e-4cf9-889e-96d4fbb3654e
+retry:3000
+
+data:{"code": 0, "data": true}
+id:bf89f9ef-f2b8-4957-8d22-27fdd23666c1
+retry:3000
+
+event:complete
+
+8. 发送消息
+URL: POST /api/messages
+功能: 向指定会话发送消息并获取单次响应
+请求头:
+token: <登录返回的token>
+appid: <应用ID>
+请求体:
+{
+  "sessionId": "sess_001", //sessionId可选，如果提供，值必须有效
+  "message": "报销流程？"
+}
+
+curl -X POST -H "token: token_123456" -H "appid: process" -H "Content-Type: application/json" -d "{\"sessionId\":\"2968c1b866d2490a8a43d2a50ae6e0e6\",\"message\":\"报销流程？\"}" http://localhost:8080/api/messages
+成功响应:
+{
+    "code": 0,
+    "data": {
+        "answer": "根据知识库内容，腾视科技（TENSORTEC）的费用报销流程如下：\n\n---\n\n### **一、报销审批权限**\n1. **常规报销**：\n   - 非总经理报销：部门负责人审批 → 财务专员审核 → 财务负责人复核 → 总经理核准  \n   - 总经理报销：行政部审批 → 财务专员审核 → 财务负责人复核 → 公司授权人审核  \n\n2. **金额分级审批**：\n   - ≤5000元：部门负责人 → 财务初审 → 财务负责人 → 总经理助理  \n   - ＞5000元：增加总经理审批环节  \n\n---\n\n### **二、报销基本流程**\n1. **发起阶段**：\n   - 填写《费用报销单》并附完整凭证（发票、审批单等）  \n   - 扫描上传至金蝶ERP系统，同步提交纸质件  \n\n2. **财务审核**：\n   - 审核要点：  \n     ✓ 票据合法性（增值税发票/行政收据等）  \n     ✓ 业务真实性（需附刷卡记录、审批单等外部/内部凭证）  \n     ✓ 预算符合性  \n\n3. **付款执行**：\n   - 审批完成后，出纳每周五统一付款  \n   - 款项直接支付至报销人工资卡（禁止转付第三方）  \n\n---\n\n### **三、特殊费用要求**\n1. **业务招待费**：\n   - 需提前提交《招待申请单》（注明事由、参与人、预算）  \n   - 礼品采购需行政部统一执行（特殊情况需总经理特批）  \n\n2. **差旅费**：\n   - 出差前需审批《出差申请单》  \n   - 返回后3个工作日内提交报销  \n\n3. **替票报销**：\n   - 无法取得合规发票时，需附情况说明+部门领导签字  \n\n---\n\n### **四、违规处理**\n- 虚构业务报销：追回款项并处罚  \n- 票据不完整：财务有权退回  \n\n**注**：完整流程详见知识库文档《ZJTS--CW01 费用报销及合同付款制度》##7$$ ##11$$。如需具体操作指南（如金蝶ERP填报），可进一步说明！",
+        "audio_binary": null,
+        "created_at": 1748344207.625702,
+        "id": "172a05ee-2a3f-4b32-b7cc-d994475844a0",
+        "prompt": "xxxxxxxxxxx"
+        "reference": {
+            "chunks": [
+                {
+                    "content": "TENSORTEC腾视\n主动安全驾驶专家\n五、费用报销的审批权限及基本流程\n（一）核准权限：\n日常经营管理产生的费用报销的核准权限及核准人：非总经理报销由直属系统的部门负责人审批，\n财务费用专员审核，财务负责人复核，总经理核准；总经理报销由办公室行政部负责人审批，财务\n费用专员审核，财务负责人复核，经公司授权人审核\n1.总流程\n总监签字\n财务（晓丹或陈霞）\n经办人填\n部门负责人\n财务部费用\n写报销单\n审批签字\n审核报销凭\n财务部费用专员\n总经理审批\n财务负责人审批\n生成会计凭证\n注意：经办人把流程走到\n第三步财务即可，接下来\n出纳付款并通\n经办人领款签\n流程由财务部汇总同事完\n知经办人\n字结束",
+                    "dataset_id": "851a5a9435db11f0b3e30242ac120006",
+                    "doc_type": "",
+                    "document_id": "c987734235e511f083c60242ac120006",
+                    "document_name": "腾视科技报销制度演示文稿-20200320.pdf",
+                    "id": "43a48e6116ce073b",
+                    "image_id": "851a5a9435db11f0b3e30242ac120006-43a48e6116ce073b",
+                    "positions": [
+                        [
+                            12,
+                            0,
+                            2160,
+                            0,
+                            1620
+                        ]
+                    ],
+                    "similarity": 0.5988653893272667,
+                    "term_similarity": 0.49927687278032085,
+                    "url": null,
+                    "vector_similarity": 0.6652577336918973
+                },
+                {
+                    "content": "③查看全部（填写全部信息）>申请借款（填写账号信息）④上传附件>保存或提交⑤借款报销>填写各项明细信息>保存或提交⑥注意事项1.1若报销金额大于借款金额，勾选“申请付款”，结算方式请选择“电汇”，开户银行请具体到支行，填过一次后，以后报销可以点开户银行上方的“查询历史交易账号”选择付款信息；若报销金额小于借款金额，勾选“申请退款”；若报销金额等于借款金额，无须勾选“申请付款”或“申请退款”；1.2  不确定的可以先“保存”（草稿），询问财务部同事，确认无误后再提交；1.3 每一个行程对应不同的明细，多个行程须按行程分别填写明细信息。费用付款/借款单→费用报销单1.电脑端①工作台>财务会计>人人报销>费用付款/借款单②填写必填信息（带*号），保存后上传“附件”（所有纸质材料合成一个PDF，可以用全能扫描王或公司的打印机），无误后提交走审批流程。注：带“*”为必录项，重点信息包括：申请人、申请部门、事由、结算方式、往来单位类型、往来单位、费用项目、申请金额、费用承担部门等。③费用申请单注意事项1.1上传附件前需要先“保存”，填写完所有必填信息后才能保存；1.2 申请付款勾选“申请借款”，结算方式请选择“电汇”，开户银行请具体到支行，填过一次后，以后报销可以点开户银行上方的“查询历史交易账号”选择付款信息；",
+                    "dataset_id": "851a5a9435db11f0b3e30242ac120006",
+                    "doc_type": "",
+                    "document_id": "be2ea75435db11f083770242ac120006",
+                    "document_name": "财务文件/金蝶云星空费用报销及合同付款操作指南V2.0.docx",
+                    "id": "2f9f0c341d42a57b",
+                    "image_id": "851a5a9435db11f0b3e30242ac120006-2f9f0c341d42a57b",
+                    "positions": [],
+                    "similarity": 0.5881440592327425,
+                    "term_similarity": 0.49927687278032085,
+                    "url": null,
+                    "vector_similarity": 0.6473888502010237
+                }
+           ],
+            "doc_aggs": [
+                {
+                    "count": 2,
+                    "doc_id": "c41ce6d035db11f0b63f0242ac120006",
+                    "doc_name": "财务文件/ZJTS--CW01  费用报销及合同付款制度（试行版）(1).pdf"
+                }
+            ],
+            "total": 2
+        },
+        "session_id": "75e8d0b63a1b11f0a5880242ac120003"
+    }
+}
+
+9. 获取用户应用列表
+URL: GET /api/applications
+功能: 获取当前用户名下关联的应用列表（每个应用包含id、name、type）
+
+请求头
+token: <登录返回的token>（必填，用于身份验证，无效token返回401未授权错误）
+appid: <应用ID>（必填，标识所属应用，当前接口未使用但需保留以符合规范）
+
+curl -H "token: token_123456" "http://localhost:8080/api/applications"
+
+成功响应:
+{
+  "code": 0,
+  "message": null,
+  "data": [
+    {
+      "id": "product",
+      "name": "name",  #扩展用，目前不需要
+      "type": "type"   #扩展用，目前不需要
+    },
+    {
+      "id": "process",
+      "name": "name",
+      "type": "type"
+    }
+  ]
+}

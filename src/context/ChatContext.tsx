@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useRef, ReactNod
 import { apiClient } from '../services';
 import { ChatAssistant, ChatMessage, ChatSession, Reference, ApiResponse, ChatCompletion, StreamChatResponse, IReference } from '../types';
 import { functionTitles, FunctionIdType, functionRoutes } from '../components/Layout/NavigationBar';
+import { replaceTextByOldReg } from '../utils/markdownUtils';
 
 interface ChatContextType {
     // 身份验证状态
@@ -87,6 +88,13 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const [currentMessage, setCurrentMessage] = useState<string>('');
     const [isTyping, setIsTyping] = useState<boolean>(false);
 
+    // 基于会话的状态管理
+    const [sessionStates, setSessionStates] = useState<Record<string, {
+        isTyping: boolean;
+        isReceivingStream: boolean;
+        isPaused: boolean;
+    }>>({});
+
     const setMessages = (newMessages: ChatMessage[] | ((prevMessages: ChatMessage[]) => ChatMessage[])) => {
         if (typeof newMessages === 'function') {
             setMessagesState(prevMessages => {
@@ -131,29 +139,53 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const retryDelay = 5000;
     const lastFetchTime = useRef<number>(0);
 
-    // 添加流式响应控制状态
-    const [isReceivingStream, setIsReceivingStream] = useState<boolean>(false);
-    const [isPaused, setIsPaused] = useState<boolean>(false);
-    const streamController = useRef<AbortController | null>(null);
+    // 添加流式响应控制状态 - 现在基于会话管理
+    const streamControllers = useRef<Record<string, AbortController>>({});
+
+    // 获取当前会话的状态
+    const getCurrentSessionState = useCallback((sessionId?: string) => {
+        if (!sessionId) return { isTyping: false, isReceivingStream: false, isPaused: false };
+        return sessionStates[sessionId] || { isTyping: false, isReceivingStream: false, isPaused: false };
+    }, [sessionStates]);
+
+    // 更新会话状态
+    const updateSessionState = useCallback((sessionId: string, updates: Partial<{
+        isTyping: boolean;
+        isReceivingStream: boolean;
+        isPaused: boolean;
+    }>) => {
+        setSessionStates(prev => ({
+            ...prev,
+            [sessionId]: {
+                ...getCurrentSessionState(sessionId),
+                ...updates
+            }
+        }));
+    }, [getCurrentSessionState]);
 
     // 添加暂停/继续流式响应的方法
     const toggleStreamPause = useCallback(() => {
-        if (isPaused) {
+        if (!currentSession) return;
+        
+        const sessionId = currentSession.id;
+        const currentState = getCurrentSessionState(sessionId);
+        
+        if (currentState.isPaused) {
             // 如果已暂停，则恢复
-            setIsPaused(false);
+            updateSessionState(sessionId, { isPaused: false });
             console.log('恢复流式响应');
             // 这里可以添加恢复流式响应的逻辑，或者重新发起请求
         } else {
             // 如果未暂停，则暂停
-            setIsPaused(true);
+            updateSessionState(sessionId, { isPaused: true });
             console.log('暂停流式响应');
             // 如果有活跃的流式请求，可以中止请求
-            if (streamController.current) {
-                streamController.current.abort();
+            if (streamControllers.current[sessionId]) {
+                streamControllers.current[sessionId].abort();
                 console.log('中止当前流式请求');
             }
         }
-    }, [isPaused]);
+    }, [currentSession, getCurrentSessionState, updateSessionState]);
 
     // 初始化侧边栏状态
     useEffect(() => {
@@ -586,6 +618,11 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
 
     // 删除会话
+    /**
+     * 删除会话
+     * @param sessionId 要删除的会话ID
+     * @returns 删除是否成功
+     */
     const deleteSession = async (sessionId: string) => {
         try {
             const response = await apiClient.deleteSession([sessionId]);
@@ -593,11 +630,31 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             if (response.code === 0) {
                 console.log('删除会话成功:', sessionId);
 
-                // 更新会话列表
-                setChatSessions(prev => prev.filter(s => s.id !== sessionId));
+                // 在删除前找到要删除的会话在列表中的位置
+                const sessionIndex = chatSessions.findIndex(s => s.id === sessionId);
+                const isCurrentSession = currentSession && currentSession.id === sessionId;
 
-                // 如果删除的是当前会话，重置当前会话
-                if (currentSession && currentSession.id === sessionId) {
+                // 更新会话列表
+                const updatedSessions = chatSessions.filter(s => s.id !== sessionId);
+                setChatSessions(updatedSessions);
+
+                // 如果删除的是当前会话，自动选择下一个会话
+                if (isCurrentSession && updatedSessions.length > 0) {
+                    // 选择策略：优先选择删除位置的下一个会话，如果没有则选择前一个
+                    let nextSessionIndex = sessionIndex;
+
+                    // 如果删除的是最后一个会话，选择新的最后一个会话
+                    if (nextSessionIndex >= updatedSessions.length) {
+                        nextSessionIndex = updatedSessions.length - 1;
+                    }
+
+                    const nextSession = updatedSessions[nextSessionIndex];
+                    console.log('自动选择下一个会话:', nextSession.id);
+
+                    // 选择下一个会话
+                    selectSession(nextSession);
+                } else if (isCurrentSession) {
+                    // 如果没有其他会话了，重置当前会话
                     setCurrentSession(null);
                     setMessages([]);
                 }
@@ -692,21 +749,18 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
         let targetSession = currentSession;
 
-        // 如果没有当前会话，需要检查是否正在创建会话中
+        // 如果没有当前会话，无法发送消息
         if (!targetSession) {
-            console.log('sendMessage: 没有当前会话，尝试等待会话创建完成');
-            // 检查是否有最新创建的会话
-            const latestSession = chatSessions.length > 0 ? chatSessions[0] : null;
-
-            if (latestSession) {
-                console.log('找到最新会话，使用它发送消息:', latestSession.id);
-                targetSession = latestSession;
-            } else {
-                console.error('没有可用的会话，无法发送消息');
-                setApiError('发送消息失败：没有活动会话');
-                return;
-            }
+            console.error('sendMessage: 没有当前会话，无法发送消息');
+            setApiError('发送消息失败：没有活动会话');
+            return;
         }
+        
+        console.log('sendMessage: 使用会话发送消息:', {
+            sessionId: targetSession.id,
+            currentMessagesCount: messages.length,
+            sessionMessagesCount: targetSession.messages?.length || 0
+        });
 
         // 创建用户消息，根据ChatMessage类型定义
         const baseTimestamp = Date.now();
@@ -727,29 +781,93 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         };
 
         // 添加消息到UI中 - 确保正确的消息顺序
-        // 如果当前消息列表中有初始助手消息，需要将用户消息插入到合适位置
-        const newMessages = [...messages, userMessage, tempAssistantMessage];
-        setMessages(newMessages);
+        // 使用当前会话的消息列表，而不是全局messages状态
+        const currentSessionMessages = targetSession.messages || [];
+        
+        // 转换现有消息为ChatSession.messages格式
+        const updatedMessages = currentSessionMessages.map(msg => ({
+            role: msg.role,
+            content: msg.content,
+            metadata: msg.metadata || null,
+            reference: msg.reference || null
+        }));
+        
+        // 创建符合ChatSession.messages类型的用户消息和临时助手消息
+        const sessionUserMessage = {
+            role: userMessage.role as "user" | "assistant" | "system",
+            content: userMessage.content,
+            metadata: null,
+            reference: null
+        };
+
+        const sessionTempAssistantMessage = {
+            role: tempAssistantMessage.role as "user" | "assistant" | "system",
+            content: tempAssistantMessage.content,
+            metadata: null,
+            reference: null
+        };
+        
+        // 将用户消息和临时助手消息添加到消息列表末尾
+        const newMessages = [...updatedMessages, sessionUserMessage, sessionTempAssistantMessage];
+        
+        // 为UI显示创建ChatMessage格式的消息列表
+          const uiMessages = [...currentSessionMessages.map((msg, index) => ({
+              id: `session-msg-${targetSession?.id || 'unknown'}-${index}`,
+              role: msg.role,
+              content: msg.content,
+              isLoading: false,
+              completed: true,
+              timestamp: Date.now(),
+              reference: msg.reference ? {
+                  total: 0,
+                  chunks: [],
+                  doc_aggs: []
+              } : undefined
+          } as ChatMessage)), userMessage, tempAssistantMessage];
+         setMessages(uiMessages);
+        
+        // 同时更新会话中的消息列表
+        if (targetSession) {
+            const updatedSession = {
+                ...targetSession,
+                messages: newMessages
+            };
+            setCurrentSession(updatedSession);
+            
+            // 更新会话列表中的对应会话
+            setChatSessions(prev => prev.map(session => 
+                session.id === targetSession!.id ? updatedSession : session
+            ));
+        }
+        
+        console.log('发送消息时的消息列表状态:', {
+            sessionId: targetSession?.id || 'unknown',
+            originalSessionMessagesCount: currentSessionMessages.length,
+            updatedMessagesCount: newMessages.length,
+            userMessage: userMessage,
+            tempAssistantMessage: tempAssistantMessage,
+            hasInitialMessages: currentSessionMessages.some(msg => msg.role === 'assistant' && msg.content)
+        });
 
         // 清空当前消息输入
         setCurrentMessage('');
 
-        // 标记正在输入状态
-        setIsTyping(true);
-
         const sessionId = targetSession.id;
+
+        // 标记正在输入状态 - 基于会话
+        updateSessionState(sessionId, { 
+            isTyping: true, 
+            isReceivingStream: true, 
+            isPaused: false 
+        });
 
         let responseText = '';
         let validAnswer = ''; // 保存有效的答案内容
         let responseReference: Reference | null = null;
         let cumulativeReference: Reference = { total: 0, chunks: [], doc_aggs: [] }; // 累积的参考文档信息
 
-        // 设置流式响应状态
-        setIsReceivingStream(true);
-        setIsPaused(false);
-
         // 创建新的AbortController用于控制流式请求
-        streamController.current = new AbortController();
+        streamControllers.current[sessionId] = new AbortController();
 
         // 添加流式响应防抖
         let updateDebounceTimer: ReturnType<typeof setTimeout> | null = null;
@@ -768,9 +886,12 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
                     // 确保最后一条消息是助手消息
                     if (lastMessageIndex >= 0 && newMessages[lastMessageIndex].role === 'assistant') {
+                        // 处理引用格式转换
+                        const processedContent = replaceTextByOldReg(content || '');
+                        
                         newMessages[lastMessageIndex] = {
                             ...newMessages[lastMessageIndex],
-                            content: content || '',
+                            content: processedContent,
                             isLoading: true,
                             reference: ref,
                             timestamp: Date.now()
@@ -802,7 +923,8 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 message,
                 (partialResponse: ApiResponse<StreamChatResponse>) => {
                     // 如果暂停状态，不处理响应
-                    if (isPaused) {
+                    const currentState = getCurrentSessionState(sessionId);
+                    if (currentState.isPaused) {
                         if (process.env.NODE_ENV === 'development') {
                             console.log('流式响应已暂停，忽略新数据');
                         }
@@ -971,10 +1093,13 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                                 }
                             }
 
+                            // 处理引用格式转换
+                            const processedFinalContent = replaceTextByOldReg(finalContent || '等待回复...');
+                            
                             // 完成消息，包含所有累积的参考文档
                             newMessages[lastMessageIndex] = {
                                 ...newMessages[lastMessageIndex],
-                                content: finalContent || '等待回复...', // 确保不显示空内容
+                                content: processedFinalContent, // 确保不显示空内容
                                 isLoading: false,
                                 // 添加最终的参考文档信息
                                 reference: cumulativeReference.doc_aggs.length > 0 ? cumulativeReference : undefined,
@@ -987,15 +1112,27 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                         return newMessages;
                     });
 
-                    // 重置流式响应状态
-                    setIsReceivingStream(false);
-                    setIsTyping(false);
+                    // 重置流式响应状态 - 基于会话
+                    updateSessionState(sessionId, { 
+                        isReceivingStream: false, 
+                        isTyping: false 
+                    });
 
                     // 保存参考文档信息到上下文
                     if (cumulativeReference.doc_aggs.length > 0) {
                         handleResponseReference(cumulativeReference);
                     } else if (responseReference) {
                         handleResponseReference(responseReference);
+                    }
+
+                    // 如果这是会话的第一条用户消息，自动更新会话名称
+                    if (targetSession && targetSession.messages.length <= 1) {
+                        // 截取消息前20个字符作为会话名称
+                        const sessionName = message.length > 20 ? message.substring(0, 20) + '...' : message;
+                        console.log('自动更新会话名称为:', sessionName);
+
+                        // 调用重命名会话函数
+                        renameSession(targetSession.id, sessionName);
                     }
 
                     // 刷新会话列表，以更新最新的会话信息和预览
@@ -1030,15 +1167,19 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                         return newMessages;
                     });
 
-                    // 重置流式响应状态
-                    setIsReceivingStream(false);
-                    setIsTyping(false);
+                    // 重置流式响应状态 - 基于会话
+                    updateSessionState(sessionId, { 
+                        isReceivingStream: false, 
+                        isTyping: false 
+                    });
                 });
 
         } catch (error) {
-            // 重置流式响应状态
-            setIsReceivingStream(false);
-            setIsTyping(false);
+            // 重置流式响应状态 - 基于会话
+            updateSessionState(sessionId, { 
+                isReceivingStream: false, 
+                isTyping: false 
+            });
 
             const errorMessage = error instanceof Error ? error.message : String(error);
             console.error('发送消息异常:', errorMessage);
@@ -1181,7 +1322,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             currentMessage,
             setCurrentMessage,
             sendMessage,
-            isTyping,
+            isTyping: currentSession ? getCurrentSessionState(currentSession.id).isTyping : false,
             latestReference,
             reference,
             isSidebarVisible,
@@ -1189,8 +1330,8 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             apiError,
             clearApiError,
             reconnecting,
-            isReceivingStream,
-            isPaused,
+            isReceivingStream: currentSession ? getCurrentSessionState(currentSession.id).isReceivingStream : false,
+            isPaused: currentSession ? getCurrentSessionState(currentSession.id).isPaused : false,
             toggleStreamPause
         }}>
             {children}

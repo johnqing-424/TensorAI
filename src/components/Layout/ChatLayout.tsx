@@ -385,8 +385,13 @@ const ChatLayout: React.FC = () => {
     useEffect(() => {
         if (currentSession && pendingMessage) {
             console.log(`使用会话 ${currentSession.id} 发送待发送的消息:`, pendingMessage);
-            sendMessage(pendingMessage);
-            setPendingMessage(null); // 清除待发送的消息
+            // 使用setTimeout确保会话状态完全更新后再发送消息
+            const timer = setTimeout(() => {
+                sendMessage(pendingMessage);
+                setPendingMessage(null); // 清除待发送的消息
+            }, 100); // 延迟100ms确保状态更新完成
+            
+            return () => clearTimeout(timer);
         }
     }, [currentSession, pendingMessage, sendMessage]);
 

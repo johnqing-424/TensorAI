@@ -19,6 +19,7 @@ import { getFileExtension, showImage } from './utils/fileUtils';
 import { preprocessLaTeX, replaceThinkToSection } from '../../utils/chatUtils';
 import { replaceTextByOldReg } from '../../utils/markdownUtils';
 import { pipe } from 'lodash/fp';
+import LoadingIndicator from './LoadingIndicator';
 import 'katex/dist/katex.min.css';
 import './MarkdownContent.css';
 
@@ -374,7 +375,7 @@ const MarkdownContent: React.FC<MarkdownContentProps> = ({
     if (!processedContent) {
         return loading ? (
             <div className="markdown-loading">
-                <span className="cursor"></span>
+                <LoadingIndicator type="typing" size="small" />
             </div>
         ) : null;
     }
