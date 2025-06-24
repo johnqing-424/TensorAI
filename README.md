@@ -35,8 +35,8 @@ TensorAI是一个基于大语言模型和向量检索的智能知识库检索系
 # 进入项目目录
 cd ragflow-chat
 
-# 直接启动（无代理模式）
-./start-direct.sh
+# 启动开发模式
+PORT=3001 npm start
 ```
 
 ### 登录系统
