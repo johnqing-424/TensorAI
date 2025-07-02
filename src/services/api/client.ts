@@ -428,6 +428,15 @@ class ApiClient {
 
                 // 格式1: {code: 0, data: {...}}
                 if (jsonData.code !== undefined && jsonData.data) {
+                    // 确保引用数据被正确处理
+                    if (jsonData.data.reference && typeof jsonData.data.reference === 'string') {
+                        try {
+                            jsonData.data.reference = JSON.parse(jsonData.data.reference);
+                        } catch (e) {
+                            // 解析失败时保留原始字符串
+                            console.warn('无法解析reference JSON字符串:', e);
+                        }
+                    }
                     debouncedChunkReceiver(jsonData);
                     return;
                 }
@@ -437,12 +446,23 @@ class ApiClient {
                     // 更新累积的响应
                     accumulatedResponse = jsonData.answer;
 
+                    // 处理引用数据
+                    let referenceData = jsonData.reference;
+                    if (referenceData && typeof referenceData === 'string') {
+                        try {
+                            referenceData = JSON.parse(referenceData);
+                        } catch (e) {
+                            console.warn('无法解析reference字段:', e);
+                            referenceData = null;
+                        }
+                    }
+
                     const formatted: ApiResponse<StreamChatResponse> = {
                         code: 0,
                         data: {
                             answer: jsonData.answer,
                             session_id: sessionId,
-                            reference: jsonData.reference
+                            reference: referenceData
                         }
                     };
                     debouncedChunkReceiver(formatted);

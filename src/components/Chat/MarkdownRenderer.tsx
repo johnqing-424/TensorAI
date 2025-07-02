@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback, useState } from 'react';
+import React, { useMemo, useCallback } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vs } from 'react-syntax-highlighter/dist/esm/styles/prism';
@@ -26,6 +26,12 @@ interface MarkdownRendererProps {
     onDocumentClick?: (documentId: string, chunk: ReferenceChunk) => void;
 }
 
+// 定义引用标记正则表达式 - 使用和ragflow原生相同的格式
+const reg = /(~{2}\d+={2})/g;
+
+// 从引用标记中提取索引数字
+const getChunkIndex = (match: string): number => Number(match.slice(2, -2));
+
 /**
  * Markdown渲染器组件 - 负责渲染Markdown内容和处理引用
  */
@@ -35,19 +41,6 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
     reference,
     onDocumentClick
 }) => {
-    // 引用弹窗状态
-    const [referencePopover, setReferencePopover] = useState<{
-        visible: boolean;
-        index: number | null;
-        position: { top: number; left: number } | null;
-    }>({
-        visible: false,
-        index: null,
-        position: null,
-    });
-
-    // 引用标记正则表达式 - 匹配ragflow原生格式 ~~数字==
-    const referenceRegex = /(~{2}\d+={2})/g;
     const cursorRegex = /\[\[(\d+)\]\]/g;
 
     // 获取文档ID列表
@@ -57,52 +50,22 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
     }, [reference]);
 
     // 获取文档缩略图
-    const documentThumbnails = useDocumentThumbnails(documentIds);
+    const { thumbnails: fileThumbnails } = useDocumentThumbnails(documentIds);
 
     // 预处理内容
     const processedContent = useMemo(() => {
         if (!content) return '';
         let processed = content;
 
+        // 首先替换旧版引用格式为ragflow原生格式
+        processed = replaceTextByOldReg(processed);
+
         // 应用各种预处理
         processed = preprocessLaTeX(processed);
         processed = replaceThinkToSection(processed);
-        processed = replaceTextByOldReg(processed);
 
         return processed;
     }, [content]);
-
-    // 处理引用点击
-    const handleReferenceClick = useCallback((index: number, event: React.MouseEvent) => {
-        if (!reference?.chunks || index >= reference.chunks.length) return;
-
-        const target = event.currentTarget as HTMLElement;
-        const rect = target.getBoundingClientRect();
-
-        setReferencePopover({
-            visible: true,
-            index,
-            position: {
-                top: rect.top + window.scrollY,
-                left: rect.left + window.scrollX
-            }
-        });
-    }, [reference]);
-
-    // 关闭引用弹窗
-    const handlePopoverClose = useCallback(() => {
-        setReferencePopover({
-            visible: false,
-            index: null,
-            position: null
-        });
-    }, []);
-
-    // 处理文档点击
-    const handleDocumentClick = useCallback((documentId: string, chunk: ReferenceChunk) => {
-        onDocumentClick?.(documentId, chunk);
-        handlePopoverClose();
-    }, [onDocumentClick, handlePopoverClose]);
 
     // 创建引用包装插件
     const createReferenceWrapperPlugin = useCallback(() => {
@@ -122,27 +85,72 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
         };
     }, []);
 
+    // 获取引用信息
+    const getReferenceInfo = useCallback(
+        (chunkIndex: number) => {
+            const chunks = reference?.chunks ?? [];
+            const chunkItem = chunks[chunkIndex];
+            const document = reference?.doc_aggs?.find(
+                (x) => x?.doc_id === chunkItem?.document_id,
+            );
+            const documentId = document?.doc_id;
+            const documentUrl = document?.url;
+            const fileThumbnail = documentId ? fileThumbnails[documentId] : '';
+            const fileExtension = documentId ? getFileExtension(document?.doc_name) : '';
+            const imageId = chunkItem?.image_id;
+
+            return {
+                documentUrl,
+                fileThumbnail,
+                fileExtension,
+                imageId,
+                chunkItem,
+                documentId,
+                document,
+            };
+        },
+        [fileThumbnails, reference?.chunks, reference?.doc_aggs],
+    );
+
+    // 辅助函数，获取文件扩展名
+    const getFileExtension = (filename?: string) => {
+        if (!filename) return '';
+        const parts = filename.split('.');
+        return parts.length > 1 ? parts.pop()?.toLowerCase() || '' : '';
+    };
+
     // 渲染引用标记
     const renderReferenceMarkers = useCallback((text: string) => {
         // 替换引用标记
-        let replacedText = reactStringReplace(text, referenceRegex, (match, i) => {
-            // 从 ~~数字== 格式中提取数字
-            const index = parseInt(match.slice(2, -2), 10);
+        let replacedText = reactStringReplace(text, reg, (match, i) => {
+            const chunkIndex = getChunkIndex(match);
+
+            // 检查引用索引是否有效
+            if (!reference?.chunks || chunkIndex >= reference.chunks.length) {
+                return <span key={`ref-invalid-${i}`}>📄</span>;
+            }
+
+            // 获取对应的chunk
+            const chunk = reference.chunks[chunkIndex];
+            if (!chunk) {
+                return <span key={`ref-missing-${i}`}>📄</span>;
+            }
+
+            // 使用Popover组件包装引用标记
             return (
-                <span
+                <ReferencePopover
                     key={`ref-${i}`}
-                    className="markdown-reference-marker"
-                    onClick={(e) => handleReferenceClick(index, e)}
-                    role="button"
-                    tabIndex={0}
-                    onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                            handleReferenceClick(index, e as any);
-                        }
-                    }}
+                    chunk={chunk}
+                    onDocumentClick={onDocumentClick || (() => { })}
                 >
-                    📄
-                </span>
+                    <span
+                        className="markdown-reference-marker"
+                        role="button"
+                        tabIndex={0}
+                    >
+                        📄
+                    </span>
+                </ReferencePopover>
             );
         });
 
@@ -152,7 +160,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
         ));
 
         return replacedText;
-    }, [handleReferenceClick]);
+    }, [reference, onDocumentClick]);
 
     // 自定义代码块渲染
     const renderCodeBlock = useCallback((props: any) => {
@@ -187,25 +195,6 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
         code: renderCodeBlock,
     }), [renderReferenceMarkers, renderCodeBlock]);
 
-    // 渲染引用弹窗
-    const renderReferencePopover = () => {
-        if (!referencePopover.visible || referencePopover.index === null || !reference?.chunks) {
-            return null;
-        }
-
-        const chunk = reference.chunks[referencePopover.index];
-        if (!chunk) return null;
-
-        return (
-            <ReferencePopover
-                chunk={chunk}
-                position={referencePopover.position}
-                onClose={handlePopoverClose}
-                onDocumentClick={handleDocumentClick}
-            />
-        );
-    };
-
     // 处理空内容
     if (!content && !isStreaming) {
         return (
@@ -230,7 +219,6 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
             >
                 {processedContent}
             </ReactMarkdown>
-            {renderReferencePopover()}
         </div>
     );
 };

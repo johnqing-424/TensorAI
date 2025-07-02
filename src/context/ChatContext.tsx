@@ -166,10 +166,10 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     // 添加暂停/继续流式响应的方法
     const toggleStreamPause = useCallback(() => {
         if (!currentSession) return;
-        
+
         const sessionId = currentSession.id;
         const currentState = getCurrentSessionState(sessionId);
-        
+
         if (currentState.isPaused) {
             // 如果已暂停，则恢复
             updateSessionState(sessionId, { isPaused: false });
@@ -755,7 +755,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             setApiError('发送消息失败：没有活动会话');
             return;
         }
-        
+
         console.log('sendMessage: 使用会话发送消息:', {
             sessionId: targetSession.id,
             currentMessagesCount: messages.length,
@@ -783,7 +783,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         // 添加消息到UI中 - 确保正确的消息顺序
         // 使用当前会话的消息列表，而不是全局messages状态
         const currentSessionMessages = targetSession.messages || [];
-        
+
         // 转换现有消息为ChatSession.messages格式
         const updatedMessages = currentSessionMessages.map(msg => ({
             role: msg.role,
@@ -791,7 +791,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             metadata: msg.metadata || null,
             reference: msg.reference || null
         }));
-        
+
         // 创建符合ChatSession.messages类型的用户消息和临时助手消息
         const sessionUserMessage = {
             role: userMessage.role as "user" | "assistant" | "system",
@@ -806,26 +806,26 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             metadata: null,
             reference: null
         };
-        
+
         // 将用户消息和临时助手消息添加到消息列表末尾
         const newMessages = [...updatedMessages, sessionUserMessage, sessionTempAssistantMessage];
-        
+
         // 为UI显示创建ChatMessage格式的消息列表
-          const uiMessages = [...currentSessionMessages.map((msg, index) => ({
-              id: `session-msg-${targetSession?.id || 'unknown'}-${index}`,
-              role: msg.role,
-              content: msg.content,
-              isLoading: false,
-              completed: true,
-              timestamp: Date.now(),
-              reference: msg.reference ? {
-                  total: 0,
-                  chunks: [],
-                  doc_aggs: []
-              } : undefined
-          } as ChatMessage)), userMessage, tempAssistantMessage];
-         setMessages(uiMessages);
-        
+        const uiMessages = [...currentSessionMessages.map((msg, index) => ({
+            id: `session-msg-${targetSession?.id || 'unknown'}-${index}`,
+            role: msg.role,
+            content: msg.content,
+            isLoading: false,
+            completed: true,
+            timestamp: Date.now(),
+            reference: msg.reference ? {
+                total: 0,
+                chunks: [],
+                doc_aggs: []
+            } : undefined
+        } as ChatMessage)), userMessage, tempAssistantMessage];
+        setMessages(uiMessages);
+
         // 同时更新会话中的消息列表
         if (targetSession) {
             const updatedSession = {
@@ -833,13 +833,13 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 messages: newMessages
             };
             setCurrentSession(updatedSession);
-            
+
             // 更新会话列表中的对应会话
-            setChatSessions(prev => prev.map(session => 
+            setChatSessions(prev => prev.map(session =>
                 session.id === targetSession!.id ? updatedSession : session
             ));
         }
-        
+
         console.log('发送消息时的消息列表状态:', {
             sessionId: targetSession?.id || 'unknown',
             originalSessionMessagesCount: currentSessionMessages.length,
@@ -855,10 +855,10 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const sessionId = targetSession.id;
 
         // 标记正在输入状态 - 基于会话
-        updateSessionState(sessionId, { 
-            isTyping: true, 
-            isReceivingStream: true, 
-            isPaused: false 
+        updateSessionState(sessionId, {
+            isTyping: true,
+            isReceivingStream: true,
+            isPaused: false
         });
 
         let responseText = '';
@@ -886,9 +886,9 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
                     // 确保最后一条消息是助手消息
                     if (lastMessageIndex >= 0 && newMessages[lastMessageIndex].role === 'assistant') {
-                        // 处理引用格式转换
+                        // 先处理引用格式转换
                         const processedContent = replaceTextByOldReg(content || '');
-                        
+
                         newMessages[lastMessageIndex] = {
                             ...newMessages[lastMessageIndex],
                             content: processedContent,
@@ -1095,7 +1095,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
                             // 处理引用格式转换
                             const processedFinalContent = replaceTextByOldReg(finalContent || '等待回复...');
-                            
+
                             // 完成消息，包含所有累积的参考文档
                             newMessages[lastMessageIndex] = {
                                 ...newMessages[lastMessageIndex],
@@ -1113,9 +1113,9 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     });
 
                     // 重置流式响应状态 - 基于会话
-                    updateSessionState(sessionId, { 
-                        isReceivingStream: false, 
-                        isTyping: false 
+                    updateSessionState(sessionId, {
+                        isReceivingStream: false,
+                        isTyping: false
                     });
 
                     // 保存参考文档信息到上下文
@@ -1168,17 +1168,17 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     });
 
                     // 重置流式响应状态 - 基于会话
-                    updateSessionState(sessionId, { 
-                        isReceivingStream: false, 
-                        isTyping: false 
+                    updateSessionState(sessionId, {
+                        isReceivingStream: false,
+                        isTyping: false
                     });
                 });
 
         } catch (error) {
             // 重置流式响应状态 - 基于会话
-            updateSessionState(sessionId, { 
-                isReceivingStream: false, 
-                isTyping: false 
+            updateSessionState(sessionId, {
+                isReceivingStream: false,
+                isTyping: false
             });
 
             const errorMessage = error instanceof Error ? error.message : String(error);

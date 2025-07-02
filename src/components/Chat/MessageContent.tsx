@@ -3,6 +3,7 @@ import { ChatMessage, Reference, ReferenceChunk } from '../../types';
 import MarkdownRenderer from './MarkdownRenderer';
 import LoadingIndicator from './LoadingIndicator';
 import ErrorMessage from './ErrorMessage';
+import './MessageContent.css'; // 添加CSS文件引用
 
 interface MessageContentProps {
     message: ChatMessage;
@@ -72,7 +73,7 @@ const MessageContent: React.FC<MessageContentProps> = ({
 
     // 渲染参考文档列表
     const renderReferenceDocuments = useCallback(() => {
-        // 只要有引用文档就显示参考文档部分，不需要等待消息完成
+        // 只在有参考文档时显示
         if (!reference || !reference.doc_aggs || reference.doc_aggs.length === 0) {
             return null;
         }
@@ -80,62 +81,45 @@ const MessageContent: React.FC<MessageContentProps> = ({
         return (
             <div className="reference-documents">
                 <div className="reference-title">参考文档：</div>
-                <div className="reference-links">
+                <ul className="reference-list">
                     {reference.doc_aggs.map(doc => {
                         // 从文件名获取扩展名
                         const fileName = doc.doc_name;
-                        const displayName = fileName.split('/').pop() || fileName; // 获取文件名部分
+                        const displayName = fileName.split('/').pop() || fileName;
                         const ext = fileName.split('.').pop()?.toLowerCase() || '';
 
-                        // 根据文件类型构建不同的文档预览链接
-                        let docUrl = '';
+                        // 根据文件类型设置图标
                         let docIcon = '📄';
+                        if (ext === 'pdf') docIcon = '📕';
+                        else if (ext === 'docx' || ext === 'doc') docIcon = '📘';
+                        else if (ext === 'xlsx' || ext === 'xls') docIcon = '📗';
+                        else if (ext === 'pptx' || ext === 'ppt') docIcon = '📙';
 
-                        if (ext === 'pdf') {
-                            docUrl = `http://192.168.1.131:9222/document/${doc.doc_id}?ext=pdf&prefix=document`;
-                            docIcon = '📕';
-                        } else if (ext === 'docx' || ext === 'doc') {
-                            docUrl = `http://192.168.1.131:9222/document/${doc.doc_id}?ext=docx&prefix=document`;
-                            docIcon = '📘';
-                        } else if (ext === 'xlsx' || ext === 'xls') {
-                            docUrl = `http://192.168.1.131:9222/document/${doc.doc_id}?ext=xlsx&prefix=document`;
-                            docIcon = '📗';
-                        } else if (ext === 'pptx' || ext === 'ppt') {
-                            // 如果没有预览链接，使用通用链接格式
-                            docUrl = `http://192.168.1.131:9222/document/${doc.doc_id}`;
-                            docIcon = '📙';
-                        } else {
-                            // 默认链接格式
-                            docUrl = `http://192.168.1.131:9222/document/${doc.doc_id}?ext=${ext}&prefix=document`;
-                        }
-
-                        // 如果API返回了URL，优先使用API提供的URL
-                        if (doc.url) {
-                            docUrl = doc.url;
-                        }
+                        // 构建文档链接
+                        const docUrl = doc.url || `http://192.168.1.131:9222/document/${doc.doc_id}?ext=${ext}&prefix=document`;
 
                         return (
-                            <a
-                                key={doc.doc_id}
-                                href={docUrl}
-                                className="document-link"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    // 直接在新标签打开文档链接
-                                    window.open(docUrl, '_blank');
-                                }}
-                            >
-                                <span className="document-icon">{docIcon}</span>
-                                <span className="document-name">{displayName}</span>
-                            </a>
+                            <li key={doc.doc_id} className="reference-list-item">
+                                <a
+                                    href={docUrl}
+                                    className="document-link"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        window.open(docUrl, '_blank');
+                                    }}
+                                >
+                                    <span className="document-icon">{docIcon}</span>
+                                    <span className="document-name">{displayName}</span>
+                                </a>
+                            </li>
                         );
                     })}
-                </div>
+                </ul>
             </div>
         );
-    }, [reference, onDocumentClick]);
+    }, [reference]);
 
     // 渲染正常内容
     const renderNormalContent = useCallback(() => {

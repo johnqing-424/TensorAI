@@ -1,53 +1,47 @@
+/* 消息内容样式 */
+.message-content {
+    width: 100%;
+}
+
 /* 参考文档样式 */
 .reference-documents {
-    margin-top: 12px;
-    padding-top: 8px;
-    border-top: 1px solid rgba(0, 0, 0, 0.08);
-    animation: fadeIn 0.5s ease-in-out;
+    margin-top: 10px;
+    padding: 10px;
+    background-color: rgba(0, 0, 0, 0.03);
+    border-radius: 8px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 .reference-title {
-    font-size: 14px;
-    font-weight: 500;
-    color: #666;
+    font-weight: bold;
     margin-bottom: 8px;
-    display: flex;
-    align-items: center;
+    color: #555;
+    font-size: 14px;
 }
 
-.reference-title::before {
-    content: "📚";
-    margin-right: 6px;
-    font-size: 15px;
+.reference-list {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
 }
 
-.reference-links {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-top: 6px;
+.reference-list-item {
+    margin-bottom: 5px;
 }
 
 .document-link {
     display: flex;
     align-items: center;
-    padding: 6px 10px;
-    background-color: #f5f7fa;
-    border: 1px solid #e6e9ed;
-    border-radius: 6px;
+    color: #0066cc;
     text-decoration: none;
-    color: #444;
-    font-size: 13px;
-    transition: all 0.3s ease;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    padding: 3px 5px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
 }
 
 .document-link:hover {
-    background-color: #eef2ff;
-    border-color: #c0d0ff;
-    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
-    transform: translateY(-2px);
-    color: #3366ff;
+    background-color: rgba(0, 102, 204, 0.1);
+    text-decoration: underline;
 }
 
 .document-icon {
@@ -56,45 +50,81 @@
 }
 
 .document-name {
-    max-width: 220px;
+    font-size: 14px;
+    max-width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    font-weight: 500;
 }
 
-/* 淡入动画 */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
+/* 空内容样式 */
+.empty-message-content {
+    color: #999;
+    font-style: italic;
+}
 
-    to {
+.empty-text {
+    opacity: 0.7;
+}
+
+/* 流式输入时的光标样式 */
+.message-content--typing .markdown-cursor {
+    display: inline-block;
+    width: 2px;
+    height: 1em;
+    background-color: currentColor;
+    margin-left: 2px;
+    animation: blink 0.8s infinite;
+    vertical-align: middle;
+}
+
+@keyframes blink {
+
+    0%,
+    100% {
         opacity: 1;
-        transform: translateY(0);
+    }
+
+    50% {
+        opacity: 0;
     }
 }
 
-/* 暗色模式支持 */
-@media (prefers-color-scheme: dark) {
+/* 响应式样式 */
+@media (max-width: 768px) {
     .reference-documents {
-        border-top-color: rgba(255, 255, 255, 0.1);
+        padding: 8px;
     }
 
     .reference-title {
-        color: #aaa;
+        font-size: 13px;
+    }
+
+    .document-name {
+        font-size: 13px;
+    }
+}
+
+/* 深色模式适配 */
+@media (prefers-color-scheme: dark) {
+    .reference-documents {
+        background-color: rgba(255, 255, 255, 0.05);
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .reference-title {
+        color: #bbb;
     }
 
     .document-link {
-        background-color: #2d2d2d;
-        border-color: #3a3a3a;
-        color: #ddd;
+        color: #4d9fff;
     }
 
     .document-link:hover {
-        background-color: #333333;
-        border-color: #4a4a8c;
-        color: #a0c0ff;
+        background-color: rgba(77, 159, 255, 0.1);
+    }
+
+    .empty-message-content {
+        color: #777;
     }
 }

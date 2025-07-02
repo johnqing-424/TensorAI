@@ -35,6 +35,9 @@ export const replaceThinkToSection = (text: string): string => {
     );
 };
 
+// 定义旧版引用正则表达式
+const oldReg = /(#{2}\d+\${2}|#{2}\d+\[\])/g;
+
 /**
  * 替换旧版引用格式为ragflow原生格式
  * 兼容多种可能的引用格式，转换为 ~~数字== 格式
@@ -42,21 +45,10 @@ export const replaceThinkToSection = (text: string): string => {
 export const replaceTextByOldReg = (text: string): string => {
     if (!text) return '';
 
-    let processed = text;
-
-    // 替换旧版引用格式 ##数字$$ 为ragflow原生格式 ~~数字==
-    processed = processed.replace(/##(\d+)\$\$/g, '~~$1==');
-
-    // 替换旧版引用格式 [ref:数字] 为ragflow原生格式 ~~数字==
-    processed = processed.replace(/\[ref:(\d+)\]/g, '~~$1==');
-
-    // 替换其他可能的旧格式
-    processed = processed.replace(/\{ref:(\d+)\}/g, '~~$1==');
-
-    // 替换当前项目使用的格式 ((数字)) 为ragflow原生格式 ~~数字==
-    processed = processed.replace(/\((\d+)\)/g, '~~$1==');
-
-    return processed;
+    // 完全按照ragflow原生方式处理
+    return text.replace(oldReg, function (substring) {
+        return `~~${substring.slice(2, -2)}==`;
+    });
 };
 
 /**
@@ -79,7 +71,7 @@ export const getDocumentIdsFromSessionReference = (reference: any): string[] => 
  */
 export const buildMessageItemReference = (chunks: any[]): any => {
     if (!chunks || chunks.length === 0) return null;
-    
+
     return {
         chunks,
         doc_aggs: [],
