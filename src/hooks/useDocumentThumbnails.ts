@@ -4,6 +4,9 @@ interface DocumentThumbnails {
     [documentId: string]: string;
 }
 
+// 使用与文档链接相同的基础URL
+const API_BASE_URL = 'http://123.207.100.71:5007';
+
 /**
  * 获取文档缩略图的Hook
  * 模拟RAGFlow原生版本的useFetchDocumentThumbnailsByIds功能
@@ -26,16 +29,11 @@ export const useDocumentThumbnails = (documentIds: string[]) => {
             try {
                 const thumbnailData: DocumentThumbnails = {};
 
-                // 为每个文档ID生成缩略图URL
-                // 这里可以根据实际的API端点进行调整
+                // 使用与文档链接相同的构建方式，确保一致性
                 for (const docId of documentIds) {
                     if (docId && typeof docId === 'string') {
-                        // 尝试构建缩略图URL，可以根据实际API调整
-                        thumbnailData[docId] = `/api/v1/document/thumbnail/${docId}`;
-
-                        // 如果有实际的API端点，可以在这里调用
-                        // const response = await apiClient.getDocumentThumbnail(docId);
-                        // thumbnailData[docId] = response.data.thumbnail_url;
+                        // 使用与文档链接同样的基础URL构建缩略图URL
+                        thumbnailData[docId] = `${API_BASE_URL}/document/thumbnails/${docId}`;
                     }
                 }
 

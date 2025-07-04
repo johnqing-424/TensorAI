@@ -1,4 +1,4 @@
-import { ApiResponse, ChatCompletion, ChatMessage, ChatSession, Reference, StreamChatResponse } from '../../types';
+import { ApiResponse, ChatCompletion, ChatMessage, ChatSession, Reference, ReferenceChunk, StreamChatResponse } from '../../types';
 
 // 添加从后端响应类型定义
 interface SessionResponseDTO {
@@ -16,6 +16,14 @@ interface MessageResponse {
     role: string;
     content: string;
     reference?: string;
+}
+
+// 定义引用文档聚合类型
+interface DocAgg {
+    doc_id: string;
+    doc_name: string;
+    count: number;
+    url?: string;
 }
 
 class ApiClient {
@@ -377,6 +385,17 @@ class ApiClient {
             console.log(`使用appid: ${headers.appid} 发送流式请求`);
         }
 
+        // 创建累积的引用数据对象
+        let accumulatedReference: Reference = {
+            chunks: [],
+            doc_aggs: [],
+            total: 0
+        };
+
+        // 创建用于跟踪已处理的chunk和doc的映射
+        const processedChunks = new Map<string, boolean>();
+        const processedDocs = new Map<string, boolean>();
+
         try {
             const response = await fetch(url, {
                 method: 'POST',
@@ -429,14 +448,62 @@ class ApiClient {
                 // 格式1: {code: 0, data: {...}}
                 if (jsonData.code !== undefined && jsonData.data) {
                     // 确保引用数据被正确处理
-                    if (jsonData.data.reference && typeof jsonData.data.reference === 'string') {
-                        try {
-                            jsonData.data.reference = JSON.parse(jsonData.data.reference);
-                        } catch (e) {
-                            // 解析失败时保留原始字符串
-                            console.warn('无法解析reference JSON字符串:', e);
+                    if (jsonData.data.reference) {
+                        // 如果是字符串，尝试解析
+                        if (typeof jsonData.data.reference === 'string') {
+                            try {
+                                jsonData.data.reference = JSON.parse(jsonData.data.reference);
+                            } catch (e) {
+                                // 解析失败时保留原始字符串
+                                console.warn('无法解析reference JSON字符串:', e);
+                            }
+                        }
+
+                        // 累积reference数据
+                        const newReference = jsonData.data.reference as Reference;
+
+                        // 累积chunks
+                        if (newReference.chunks && newReference.chunks.length > 0) {
+                            newReference.chunks.forEach((chunk: ReferenceChunk) => {
+                                // 只添加未处理过的chunk
+                                if (!processedChunks.has(chunk.id)) {
+                                    accumulatedReference.chunks.push(chunk);
+                                    processedChunks.set(chunk.id, true);
+                                }
+                            });
+                        }
+
+                        // 累积doc_aggs
+                        if (newReference.doc_aggs && newReference.doc_aggs.length > 0) {
+                            newReference.doc_aggs.forEach((doc: DocAgg) => {
+                                // 只添加未处理过的doc
+                                if (!processedDocs.has(doc.doc_id)) {
+                                    accumulatedReference.doc_aggs.push(doc);
+                                    processedDocs.set(doc.doc_id, true);
+                                }
+                            });
+                        }
+
+                        // 更新total
+                        if (newReference.total) {
+                            accumulatedReference.total = Math.max(
+                                accumulatedReference.total,
+                                newReference.total
+                            );
+                        }
+
+                        // 更新引用数据
+                        jsonData.data.reference = { ...accumulatedReference };
+
+                        if (process.env.NODE_ENV === 'development') {
+                            console.log('累积的reference数据:', {
+                                chunks: accumulatedReference.chunks.length,
+                                doc_aggs: accumulatedReference.doc_aggs.length,
+                                total: accumulatedReference.total
+                            });
                         }
                     }
+
                     debouncedChunkReceiver(jsonData);
                     return;
                 }
@@ -451,10 +518,72 @@ class ApiClient {
                     if (referenceData && typeof referenceData === 'string') {
                         try {
                             referenceData = JSON.parse(referenceData);
+
+                            // 累积reference数据
+                            if (referenceData.chunks) {
+                                referenceData.chunks.forEach((chunk: ReferenceChunk) => {
+                                    // 只添加未处理过的chunk
+                                    if (!processedChunks.has(chunk.id)) {
+                                        accumulatedReference.chunks.push(chunk);
+                                        processedChunks.set(chunk.id, true);
+                                    }
+                                });
+                            }
+
+                            if (referenceData.doc_aggs) {
+                                referenceData.doc_aggs.forEach((doc: DocAgg) => {
+                                    // 只添加未处理过的doc
+                                    if (!processedDocs.has(doc.doc_id)) {
+                                        accumulatedReference.doc_aggs.push(doc);
+                                        processedDocs.set(doc.doc_id, true);
+                                    }
+                                });
+                            }
+
+                            if (referenceData.total) {
+                                accumulatedReference.total = Math.max(
+                                    accumulatedReference.total,
+                                    referenceData.total
+                                );
+                            }
+
+                            // 使用累积的reference
+                            referenceData = { ...accumulatedReference };
                         } catch (e) {
                             console.warn('无法解析reference字段:', e);
-                            referenceData = null;
+                            referenceData = accumulatedReference;
                         }
+                    } else if (referenceData) {
+                        // 如果是对象，累积处理
+                        if (referenceData.chunks) {
+                            referenceData.chunks.forEach((chunk: ReferenceChunk) => {
+                                // 只添加未处理过的chunk
+                                if (!processedChunks.has(chunk.id)) {
+                                    accumulatedReference.chunks.push(chunk);
+                                    processedChunks.set(chunk.id, true);
+                                }
+                            });
+                        }
+
+                        if (referenceData.doc_aggs) {
+                            referenceData.doc_aggs.forEach((doc: DocAgg) => {
+                                // 只添加未处理过的doc
+                                if (!processedDocs.has(doc.doc_id)) {
+                                    accumulatedReference.doc_aggs.push(doc);
+                                    processedDocs.set(doc.doc_id, true);
+                                }
+                            });
+                        }
+
+                        if (referenceData.total) {
+                            accumulatedReference.total = Math.max(
+                                accumulatedReference.total,
+                                referenceData.total
+                            );
+                        }
+
+                        // 使用累积的reference
+                        referenceData = { ...accumulatedReference };
                     }
 
                     const formatted: ApiResponse<StreamChatResponse> = {
@@ -462,7 +591,7 @@ class ApiClient {
                         data: {
                             answer: jsonData.answer,
                             session_id: sessionId,
-                            reference: referenceData
+                            reference: referenceData || accumulatedReference
                         }
                     };
                     debouncedChunkReceiver(formatted);
@@ -474,7 +603,8 @@ class ApiClient {
                     code: 0,
                     data: {
                         answer: JSON.stringify(jsonData),
-                        session_id: sessionId
+                        session_id: sessionId,
+                        reference: accumulatedReference
                     }
                 });
             };
@@ -505,6 +635,18 @@ class ApiClient {
                     if (debounceTimer) {
                         clearTimeout(debounceTimer);
                         debounceTimer = null;
+                    }
+
+                    // 确保最后一次调用包含完整的累积引用数据
+                    if (accumulatedReference.chunks.length > 0 || accumulatedReference.doc_aggs.length > 0) {
+                        onChunkReceived({
+                            code: 0,
+                            data: {
+                                answer: accumulatedResponse,
+                                session_id: sessionId,
+                                reference: accumulatedReference
+                            }
+                        });
                     }
 
                     onComplete();
@@ -598,7 +740,8 @@ class ApiClient {
                                     code: 0,
                                     data: {
                                         answer: accumulatedResponse,
-                                        session_id: sessionId
+                                        session_id: sessionId,
+                                        reference: accumulatedReference
                                     }
                                 };
                                 debouncedChunkReceiver(mockResponse);

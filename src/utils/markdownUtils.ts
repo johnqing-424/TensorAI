@@ -23,15 +23,15 @@ export const preprocessLaTeX = (text: string): string => {
 };
 
 /**
- * 替换think标签为section标签
- * 将 <think>...</think> 转换为可折叠的section
+ * 替换think标签为灰色文本
+ * 将 <think>...</think> 转换为灰色文本，不使用折叠功能
  */
 export const replaceThinkToSection = (text: string): string => {
     if (!text) return '';
 
     return text.replace(
         /<think>([\s\S]*?)<\/think>/gi,
-        '<details><summary>💭 思考过程</summary>\n\n$1\n\n</details>'
+        '<div class="thinking-content">$1</div>'
     );
 };
 

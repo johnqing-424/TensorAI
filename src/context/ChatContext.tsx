@@ -992,11 +992,6 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                                     chunks: cumulativeReference.chunks.length
                                 });
                             }
-
-                            // 实时更新参考文档到上下文，确保流式响应过程中能显示参考文档
-                            if (cumulativeReference.doc_aggs.length > 0) {
-                                handleResponseReference(cumulativeReference);
-                            }
                         }
 
                         // 对于流式响应，检查内容是否有所更新
@@ -1096,17 +1091,25 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                             // 处理引用格式转换
                             const processedFinalContent = replaceTextByOldReg(finalContent || '等待回复...');
 
+                            // 保存当前消息的参考文档 (这是关键修改)
+                            const finalReference = cumulativeReference.doc_aggs.length > 0 ? cumulativeReference : undefined;
+
                             // 完成消息，包含所有累积的参考文档
                             newMessages[lastMessageIndex] = {
                                 ...newMessages[lastMessageIndex],
                                 content: processedFinalContent, // 确保不显示空内容
                                 isLoading: false,
-                                // 添加最终的参考文档信息
-                                reference: cumulativeReference.doc_aggs.length > 0 ? cumulativeReference : undefined,
+                                // 添加最终的参考文档信息 - 直接绑定到消息上
+                                reference: finalReference,
                                 // 添加结束时间戳
                                 timestamp: Date.now(),
                                 completed: true
                             };
+
+                            // 更新 latestReference 用于兼容旧的使用方式，但不再是主要的存储位置
+                            if (finalReference) {
+                                handleResponseReference(finalReference);
+                            }
                         }
 
                         return newMessages;
@@ -1117,13 +1120,6 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                         isReceivingStream: false,
                         isTyping: false
                     });
-
-                    // 保存参考文档信息到上下文
-                    if (cumulativeReference.doc_aggs.length > 0) {
-                        handleResponseReference(cumulativeReference);
-                    } else if (responseReference) {
-                        handleResponseReference(responseReference);
-                    }
 
                     // 如果这是会话的第一条用户消息，自动更新会话名称
                     if (targetSession && targetSession.messages.length <= 1) {

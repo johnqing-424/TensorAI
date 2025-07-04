@@ -1,15 +1,15 @@
 /* Markdown渲染器基础样式 */
 .markdown-renderer {
-    line-height: 1.6;
-    color: #333;
     font-size: 14px;
+    line-height: 1.6;
+    color: rgba(0, 0, 0, 0.85);
     word-wrap: break-word;
-    overflow-wrap: break-word;
+    width: 100%;
 }
 
 .markdown-renderer--empty {
-    padding: 12px 0;
-    text-align: center;
+    font-style: italic;
+    color: rgba(0, 0, 0, 0.45);
 }
 
 .markdown-renderer--streaming {
@@ -24,39 +24,56 @@
 }
 
 .markdown-renderer--has-references {
-    /* 为包含引用的内容添加特殊样式 */
+    position: relative;
 }
 
 /* 空内容样式 */
 .empty-content-text {
-    color: #999;
+    color: rgba(0, 0, 0, 0.45);
     font-style: italic;
-    font-size: 13px;
+    font-size: 14px;
 }
 
 /* 引用标记样式 */
 .markdown-reference-marker {
-    display: inline-block;
-    font-size: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 3px;
+    padding: 2px;
+    color: #1890ff;
     cursor: pointer;
-    margin: 0 2px;
-    padding: 2px 4px;
-    border-radius: 3px;
-    background-color: rgba(0, 123, 255, 0.1);
-    border: 1px solid rgba(0, 123, 255, 0.3);
-    transition: all 0.2s ease;
-    user-select: none;
+    font-size: 14px;
+    line-height: 1;
+    border-radius: 2px;
+    transition: all 0.3s;
+    vertical-align: middle;
 }
 
 .markdown-reference-marker:hover {
-    background-color: rgba(0, 123, 255, 0.2);
-    border-color: rgba(0, 123, 255, 0.5);
-    transform: scale(1.1);
+    color: #40a9ff;
+    background-color: rgba(24, 144, 255, 0.1);
 }
 
 .markdown-reference-marker:focus {
-    outline: 2px solid #007bff;
-    outline-offset: 2px;
+    outline: none;
+    color: #096dd9;
+    background-color: rgba(24, 144, 255, 0.2);
+}
+
+/* 内联引用图片 */
+.reference-inline-image {
+    display: inline-block;
+    max-width: 100%;
+    max-height: 200px;
+    margin: 8px 0;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.reference-inline-image:hover {
+    transform: scale(1.02);
 }
 
 /* 光标标记样式 */
@@ -64,20 +81,21 @@
     display: inline-block;
     width: 2px;
     height: 1em;
-    background-color: #007bff;
-    animation: blink 1s infinite;
-    margin: 0 1px;
+    background-color: #1890ff;
+    margin-left: 1px;
+    vertical-align: middle;
+    animation: blink 1s step-start infinite;
 }
 
 /* 内联代码样式 */
 .markdown-inline-code {
-    background-color: #f8f9fa;
-    border: 1px solid #e9ecef;
-    border-radius: 3px;
     padding: 2px 4px;
-    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-    font-size: 0.9em;
-    color: #e83e8c;
+    margin: 0 1px;
+    background-color: rgba(0, 0, 0, 0.06);
+    border-radius: 3px;
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    font-size: 90%;
+    color: rgba(0, 0, 0, 0.85);
 }
 
 /* Markdown基础元素样式 */
@@ -95,14 +113,14 @@
 
 .markdown-renderer h1 {
     font-size: 2em;
-    border-bottom: 1px solid #eaecef;
     padding-bottom: 0.3em;
+    border-bottom: 1px solid #eaecef;
 }
 
 .markdown-renderer h2 {
     font-size: 1.5em;
-    border-bottom: 1px solid #eaecef;
     padding-bottom: 0.3em;
+    border-bottom: 1px solid #eaecef;
 }
 
 .markdown-renderer h3 {
@@ -119,7 +137,7 @@
 
 .markdown-renderer h6 {
     font-size: 0.85em;
-    color: #6a737d;
+    color: rgba(0, 0, 0, 0.45);
 }
 
 .markdown-renderer p {
@@ -128,10 +146,10 @@
 }
 
 .markdown-renderer blockquote {
-    padding: 0 1em;
-    color: #6a737d;
-    border-left: 0.25em solid #dfe2e5;
-    margin: 0 0 16px 0;
+    margin: 16px 0;
+    padding: 0 16px;
+    color: rgba(0, 0, 0, 0.65);
+    border-left: 4px solid #dfe2e5;
 }
 
 .markdown-renderer blockquote> :first-child {
@@ -144,9 +162,9 @@
 
 .markdown-renderer ul,
 .markdown-renderer ol {
-    padding-left: 2em;
     margin-top: 0;
     margin-bottom: 16px;
+    padding-left: 2em;
 }
 
 .markdown-renderer li {
@@ -154,35 +172,35 @@
 }
 
 .markdown-renderer li>p {
-    margin-bottom: 0.5em;
+    margin-top: 16px;
 }
 
 .markdown-renderer table {
-    border-spacing: 0;
     border-collapse: collapse;
-    margin-top: 0;
-    margin-bottom: 16px;
+    margin: 16px 0;
     width: 100%;
     overflow: auto;
+    border-spacing: 0;
+    border: 1px solid #e8e8e8;
 }
 
 .markdown-renderer table th,
 .markdown-renderer table td {
-    padding: 6px 13px;
-    border: 1px solid #dfe2e5;
+    padding: 8px 16px;
+    border: 1px solid #e8e8e8;
 }
 
 .markdown-renderer table th {
+    background-color: #fafafa;
     font-weight: 600;
-    background-color: #f6f8fa;
 }
 
 .markdown-renderer table tr:nth-child(2n) {
-    background-color: #f6f8fa;
+    background-color: #fafafa;
 }
 
 .markdown-renderer hr {
-    height: 0.25em;
+    height: 2px;
     padding: 0;
     margin: 24px 0;
     background-color: #e1e4e8;
@@ -191,143 +209,171 @@
 
 /* 代码块样式 */
 .markdown-renderer pre {
+    margin: 16px 0;
     padding: 16px;
     overflow: auto;
     font-size: 85%;
     line-height: 1.45;
     background-color: #f6f8fa;
     border-radius: 6px;
-    margin-bottom: 16px;
 }
 
 .markdown-renderer pre code {
     display: inline;
-    max-width: auto;
+    max-width: 100%;
     padding: 0;
     margin: 0;
     overflow: visible;
     line-height: inherit;
     word-wrap: normal;
-    background-color: transparent;
+    background-color: initial;
     border: 0;
+    color: inherit;
 }
 
 /* 链接样式 */
 .markdown-renderer a {
-    color: #0366d6;
+    color: #1890ff;
     text-decoration: none;
 }
 
 .markdown-renderer a:hover {
+    color: #40a9ff;
     text-decoration: underline;
 }
 
 /* 图片样式 */
 .markdown-renderer img {
     max-width: 100%;
-    height: auto;
+    margin: 8px 0;
     border-radius: 4px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 /* 数学公式样式 */
 .markdown-renderer .katex {
-    font-size: 1em;
+    font-size: 1.1em;
 }
 
 .markdown-renderer .katex-display {
-    margin: 1em 0;
-    text-align: center;
+    margin: 16px 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+/* 思考部分样式 */
+.markdown-renderer section.think {
+    padding-left: 10px;
+    color: #8b8b8b;
+    border-left: 2px solid #d5d3d3;
+    margin-bottom: 10px;
+    font-size: 12px;
+}
+
+/* 思考内容样式 */
+.thinking-content {
+    color: rgba(0, 0, 0, 0.45);
+    margin: 8px 0;
+    padding: 8px 0;
+    line-height: 1.6;
+    font-size: 14px;
 }
 
 /* 动画定义 */
 @keyframes blink {
-
-    0%,
-    50% {
+    0% {
         opacity: 1;
     }
 
-    51%,
-    100% {
+    50% {
         opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
     }
 }
 
 /* 深色主题适配 */
 @media (prefers-color-scheme: dark) {
     .markdown-renderer {
-        color: #e1e4e8;
+        color: rgba(255, 255, 255, 0.85);
     }
 
     .markdown-renderer h1,
-    .markdown-renderer h2 {
-        border-bottom-color: #30363d;
-    }
-
+    .markdown-renderer h2,
+    .markdown-renderer h3,
+    .markdown-renderer h4,
+    .markdown-renderer h5,
     .markdown-renderer h6 {
-        color: #8b949e;
+        color: rgba(255, 255, 255, 0.85);
     }
 
     .markdown-renderer blockquote {
-        color: #8b949e;
-        border-left-color: #30363d;
+        color: rgba(255, 255, 255, 0.65);
+        border-color: #434343;
     }
 
     .markdown-renderer table th,
     .markdown-renderer table td {
-        border-color: #30363d;
+        border-color: #434343;
     }
 
     .markdown-renderer table th {
-        background-color: #21262d;
+        background-color: #1d1d1d;
     }
 
     .markdown-renderer table tr:nth-child(2n) {
-        background-color: #161b22;
+        background-color: #1d1d1d;
     }
 
     .markdown-renderer hr {
-        background-color: #30363d;
+        background-color: #434343;
     }
 
     .markdown-renderer pre {
-        background-color: #161b22;
+        background-color: #141414;
     }
 
     .markdown-renderer a {
-        color: #58a6ff;
+        color: #177ddc;
+    }
+
+    .markdown-renderer a:hover {
+        color: #499cec;
     }
 
     .markdown-inline-code {
-        background-color: #161b22;
-        border-color: #30363d;
-        color: #f85149;
+        background-color: rgba(255, 255, 255, 0.08);
+        color: rgba(255, 255, 255, 0.85);
     }
 
     .markdown-reference-marker {
-        background-color: rgba(88, 166, 255, 0.1);
-        border-color: rgba(88, 166, 255, 0.3);
+        color: #177ddc;
     }
 
     .markdown-reference-marker:hover {
-        background-color: rgba(88, 166, 255, 0.2);
-        border-color: rgba(88, 166, 255, 0.5);
+        color: #499cec;
+        background-color: rgba(23, 125, 220, 0.1);
     }
 
     .markdown-cursor-marker {
-        background-color: #58a6ff;
+        background-color: #177ddc;
     }
 
     .empty-content-text {
-        color: #8b949e;
+        color: rgba(255, 255, 255, 0.45);
+    }
+
+    .markdown-renderer section.think {
+        color: rgb(166, 166, 166);
+        border-left-color: rgb(78, 78, 86);
     }
 }
 
 /* 响应式设计 */
 @media (max-width: 768px) {
     .markdown-renderer {
-        font-size: 13px;
+        font-size: 14px;
     }
 
     .markdown-renderer h1 {
@@ -348,16 +394,16 @@
     }
 
     .markdown-renderer table {
-        font-size: 12px;
+        display: block;
+        overflow-x: auto;
     }
 
     .markdown-renderer table th,
     .markdown-renderer table td {
-        padding: 4px 8px;
+        padding: 6px 12px;
     }
 
     .markdown-renderer pre {
         padding: 12px;
-        font-size: 12px;
     }
 }

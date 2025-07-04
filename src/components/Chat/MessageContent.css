@@ -1,15 +1,23 @@
 /* 消息内容样式 */
 .message-content {
     width: 100%;
+    position: relative;
+    overflow-wrap: break-word;
+    word-break: break-word;
 }
 
-/* 参考文档样式 */
+/* 参考文档样式 - 独立于回答气泡 */
 .reference-documents {
-    margin-top: 10px;
-    padding: 10px;
-    background-color: rgba(0, 0, 0, 0.03);
+    margin-top: 12px;
+    background-color: rgba(0, 0, 0, 0.02);
     border-radius: 8px;
-    border: 1px solid rgba(0, 0, 0, 0.1);
+    padding: 12px;
+    width: 100%;
+    max-width: 90%;
+    margin-left: 16px;
+    /* 与回答气泡保持一定的缩进 */
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
 }
 
 .reference-title {
@@ -17,6 +25,13 @@
     margin-bottom: 8px;
     color: #555;
     font-size: 14px;
+    display: flex;
+    align-items: center;
+}
+
+.reference-title-icon {
+    margin-right: 6px;
+    color: #1890ff;
 }
 
 .reference-list {
@@ -26,7 +41,13 @@
 }
 
 .reference-list-item {
-    margin-bottom: 5px;
+    transition: background-color 0.3s;
+    border-radius: 4px;
+    padding: 6px 0;
+}
+
+.reference-list-item:hover {
+    background-color: rgba(0, 0, 0, 0.04);
 }
 
 .document-link {
@@ -59,23 +80,25 @@
 
 /* 空内容样式 */
 .empty-message-content {
-    color: #999;
-    font-style: italic;
+    padding: 8px;
+    text-align: center;
 }
 
 .empty-text {
-    opacity: 0.7;
+    color: rgba(0, 0, 0, 0.45);
+    font-style: italic;
+    font-size: 14px;
 }
 
 /* 流式输入时的光标样式 */
 .message-content--typing .markdown-cursor {
     display: inline-block;
     width: 2px;
-    height: 1em;
-    background-color: currentColor;
-    margin-left: 2px;
-    animation: blink 0.8s infinite;
+    height: 16px;
+    background-color: #1890ff;
     vertical-align: middle;
+    margin-left: 2px;
+    animation: blink 1s infinite;
 }
 
 @keyframes blink {
@@ -93,7 +116,9 @@
 /* 响应式样式 */
 @media (max-width: 768px) {
     .reference-documents {
+        margin: 8px 0 0 12px;
         padding: 8px;
+        max-width: 95%;
     }
 
     .reference-title {
@@ -108,7 +133,7 @@
 /* 深色模式适配 */
 @media (prefers-color-scheme: dark) {
     .reference-documents {
-        background-color: rgba(255, 255, 255, 0.05);
+        background-color: rgba(255, 255, 255, 0.04);
         border-color: rgba(255, 255, 255, 0.1);
     }
 
@@ -124,7 +149,15 @@
         background-color: rgba(77, 159, 255, 0.1);
     }
 
-    .empty-message-content {
-        color: #777;
+    .reference-list-item:hover {
+        background-color: rgba(255, 255, 255, 0.08);
+    }
+
+    .empty-text {
+        color: rgba(255, 255, 255, 0.45);
+    }
+
+    .message-content--typing .markdown-cursor {
+        background-color: #177ddc;
     }
 }

@@ -1,8 +1,14 @@
 import React from 'react';
-import { Popover } from 'antd';
+import { Popover, Typography, Button, Divider, Space, Image as AntImage } from 'antd';
+import { FileTextOutlined } from '@ant-design/icons';
 import { ReferenceChunk } from '../../types';
 import { showImage } from '../../utils/fileUtils';
 import './ReferencePopover.css';
+
+const { Text, Paragraph } = Typography;
+
+// 统一的API基础URL
+const API_BASE_URL = 'http://123.207.100.71:5007';
 
 interface ReferencePopoverProps {
     chunk: ReferenceChunk;
@@ -26,20 +32,23 @@ const ReferencePopover: React.FC<ReferencePopoverProps & { children: React.React
     const renderImageContent = () => {
         if (!chunk.image_id) return null;
 
-        const imageUrl = `/api/v1/document/image/${chunk.image_id}`;
+        // 使用统一的API基础URL构建图片URL
+        const imageUrl = `${API_BASE_URL}/document/image/${chunk.image_id}`;
 
         return (
-            <div className="reference-popover-image">
-                <img
+            <div className="reference-image-container">
+                <AntImage
                     src={imageUrl}
-                    alt="Reference Image"
+                    alt="引用图像"
                     className="reference-image"
                     onError={(e) => {
                         const target = e.target as HTMLImageElement;
                         target.style.display = 'none';
-                        console.warn(`Failed to load image with id: ${chunk.image_id}`);
                     }}
                     loading="lazy"
+                    preview={{
+                        mask: <div>查看大图</div>
+                    }}
                 />
             </div>
         );
@@ -47,21 +56,24 @@ const ReferencePopover: React.FC<ReferencePopoverProps & { children: React.React
 
     // 渲染文本内容
     const renderTextContent = () => (
-        <div className="reference-popover-text">
-            <p className="reference-content">
-                {chunk.content || '内容为空'}
-            </p>
-        </div>
+        <div
+            className="reference-content"
+            dangerouslySetInnerHTML={{
+                __html: chunk.content || '内容为空'
+            }}
+        />
     );
 
     // 渲染弹窗内容
     const renderPopoverContent = () => (
-        <div className="reference-popover-content">
+        <div className="reference-popover-inner">
             <div className="reference-popover-header">
-                <h4 className="reference-title">
+                <Text strong className="reference-title" ellipsis>
                     {chunk.document_name || '未知文档'}
-                </h4>
+                </Text>
             </div>
+
+            <Divider style={{ margin: '8px 0' }} />
 
             <div className="reference-popover-body">
                 {chunk.doc_type && showImage(chunk.doc_type) ?
@@ -71,13 +83,15 @@ const ReferencePopover: React.FC<ReferencePopoverProps & { children: React.React
             </div>
 
             <div className="reference-popover-footer">
-                <button
-                    className="reference-document-link"
+                <Button
+                    type="primary"
+                    size="small"
                     onClick={handleDocumentClick}
-                    type="button"
+                    icon={<FileTextOutlined />}
+                    className="view-document-btn"
                 >
                     查看原文
-                </button>
+                </Button>
             </div>
         </div>
     );
@@ -85,10 +99,14 @@ const ReferencePopover: React.FC<ReferencePopoverProps & { children: React.React
     return (
         <Popover
             content={renderPopoverContent()}
-            trigger="click"
-            overlayClassName="reference-popover-overlay"
+            trigger="hover"
+            overlayClassName="ant-popover-reference"
+            placement="top"
+            destroyTooltipOnHide
         >
-            {children}
+            <span className="reference-marker">
+                {children}
+            </span>
         </Popover>
     );
 };

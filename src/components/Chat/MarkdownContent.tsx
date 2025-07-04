@@ -45,6 +45,9 @@ const getExtension = (filename: string = '') => {
 
 // replaceTextByOldReg 函数已移至 utils/markdownUtils.ts 中统一管理
 
+// 添加统一的API基础URL常量
+const API_BASE_URL = 'http://123.207.100.71:5007';
+
 // 文件图标组件
 const FileIcon: React.FC<{ extension: string }> = ({ extension }) => {
     const getIconPath = (ext: string) => {
@@ -73,8 +76,8 @@ const Image: React.FC<{ id?: string; className?: string; onClick?: () => void }>
 }) => {
     if (!id) return null;
 
-    // 根据实际的API端点调整图片URL
-    const imageUrl = `/api/v1/document/image/${id}`;
+    // 使用与文档链接相同的基础URL构建图片URL
+    const imageUrl = `${API_BASE_URL}/document/image/${id}`;
 
     return (
         <img
@@ -123,13 +126,13 @@ const MarkdownContent: React.FC<MarkdownContentProps> = ({
     clickDocumentButton
 }) => {
     const { reference } = useChatContext();
-    
+
     // 获取文档缩略图
     const documentIds = useMemo(() => {
         if (!reference?.chunks) return [];
         return reference.chunks.map(chunk => chunk.document_id).filter(Boolean);
     }, [reference]);
-    
+
     const { thumbnails } = useDocumentThumbnails(documentIds);
 
     // 处理内容的函数
@@ -200,7 +203,7 @@ const MarkdownContent: React.FC<MarkdownContentProps> = ({
                             {chunk.document_name}
                         </Button>
                         {chunk.content && (
-                            <div 
+                            <div
                                 className="chunkContentText"
                                 dangerouslySetInnerHTML={{
                                     __html: DOMPurify.sanitize(chunk.content)
@@ -285,7 +288,7 @@ const MarkdownContent: React.FC<MarkdownContentProps> = ({
             return text.replace(reg, (match) => {
                 const chunkIndex = getChunkIndex(match);
                 const chunk = getReferenceInfo(chunkIndex);
-                
+
                 if (!chunk) {
                     return match; // 如果找不到对应的chunk，返回原文
                 }
@@ -317,7 +320,7 @@ const MarkdownContent: React.FC<MarkdownContentProps> = ({
             return reactStringReplace(text, reg, (match, i) => {
                 const chunkIndex = getChunkIndex(match);
                 const chunk = getReferenceInfo(chunkIndex);
-                
+
                 if (!chunk) {
                     return match; // 如果找不到对应的chunk，返回原文
                 }

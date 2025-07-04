@@ -17,6 +17,7 @@ import {
     replaceThinkToSection,
     replaceTextByOldReg
 } from '../../utils/markdownUtils';
+import { InfoCircleOutlined } from '@ant-design/icons';
 import './MarkdownRenderer.css';
 
 interface MarkdownRendererProps {
@@ -31,6 +32,36 @@ const reg = /(~{2}\d+={2})/g;
 
 // 从引用标记中提取索引数字
 const getChunkIndex = (match: string): number => Number(match.slice(2, -2));
+
+// 添加基础URL常量
+const API_BASE_URL = 'http://123.207.100.71:5007';
+
+// 修改图片组件，使用正确的基础URL
+const Image: React.FC<{ id?: string; className?: string; onClick?: () => void }> = ({
+    id,
+    className,
+    onClick
+}) => {
+    if (!id) return null;
+
+    // 使用与文档链接相同的基础URL构建图片URL
+    const imageUrl = `${API_BASE_URL}/document/image/${id}`;
+
+    return (
+        <img
+            src={imageUrl}
+            alt="Reference Image"
+            className={className}
+            onClick={onClick}
+            onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.style.display = 'none';
+                console.warn(`Failed to load image with id: ${id}`);
+            }}
+            loading="lazy"
+        />
+    );
+};
 
 /**
  * Markdown渲染器组件 - 负责渲染Markdown内容和处理引用
@@ -119,6 +150,12 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
         return parts.length > 1 ? parts.pop()?.toLowerCase() || '' : '';
     };
 
+    // 判断是否为图片类型
+    const isImageType = (docType?: string): boolean => {
+        if (!docType) return false;
+        return ['image', 'jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'].includes(docType.toLowerCase());
+    };
+
     // 渲染引用标记
     const renderReferenceMarkers = useCallback((text: string) => {
         // 替换引用标记
@@ -127,13 +164,34 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
 
             // 检查引用索引是否有效
             if (!reference?.chunks || chunkIndex >= reference.chunks.length) {
-                return <span key={`ref-invalid-${i}`}>📄</span>;
+                return <span key={`ref-invalid-${i}`}></span>;
             }
 
             // 获取对应的chunk
             const chunk = reference.chunks[chunkIndex];
             if (!chunk) {
-                return <span key={`ref-missing-${i}`}>📄</span>;
+                return <span key={`ref-missing-${i}`}></span>;
+            }
+
+            const { documentId, imageId, chunkItem, documentUrl } = getReferenceInfo(chunkIndex);
+            const docType = chunk.doc_type;
+
+            // 如果是图片类型，直接显示图片
+            if (docType && isImageType(docType) && imageId) {
+                return (
+                    <Image
+                        key={`img-${i}`}
+                        id={imageId}
+                        className="reference-inline-image"
+                        onClick={() => {
+                            if (documentId && onDocumentClick) {
+                                onDocumentClick(documentId, chunk);
+                            } else if (documentUrl) {
+                                window.open(documentUrl, '_blank');
+                            }
+                        }}
+                    />
+                );
             }
 
             // 使用Popover组件包装引用标记
@@ -147,8 +205,9 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
                         className="markdown-reference-marker"
                         role="button"
                         tabIndex={0}
+                        aria-label="查看引用"
                     >
-                        📄
+                        <InfoCircleOutlined />
                     </span>
                 </ReferencePopover>
             );
@@ -160,7 +219,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
         ));
 
         return replacedText;
-    }, [reference, onDocumentClick]);
+    }, [reference, onDocumentClick, getReferenceInfo]);
 
     // 自定义代码块渲染
     const renderCodeBlock = useCallback((props: any) => {
