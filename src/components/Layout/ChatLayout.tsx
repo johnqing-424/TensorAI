@@ -390,7 +390,7 @@ const ChatLayout: React.FC = () => {
                 sendMessage(pendingMessage);
                 setPendingMessage(null); // 清除待发送的消息
             }, 100); // 延迟100ms确保状态更新完成
-            
+
             return () => clearTimeout(timer);
         }
     }, [currentSession, pendingMessage, sendMessage]);
@@ -513,6 +513,7 @@ const ChatLayout: React.FC = () => {
                         </div>
                     </div>
 
+                    {/* 注释掉简历筛选助手卡片
                     <div className="feature-card" onClick={(e) => {
                         e.preventDefault();
                         handleSelectFunction('more');
@@ -525,6 +526,7 @@ const ChatLayout: React.FC = () => {
                             <div className="feature-card-desc">智能简历分析与人才匹配</div>
                         </div>
                     </div>
+                    */}
                 </div>
             </div>
         );
@@ -534,6 +536,7 @@ const ChatLayout: React.FC = () => {
     const renderFunctionPage = (functionId: FunctionIdType) => {
         // 简历筛选助手使用全屏iframe
         if (functionId === 'more' as FunctionIdType) {
+            /* 注释掉简历筛选助手iframe
             return (
                 <div className="page fullscreen-iframe-page">
                     <iframe
@@ -542,6 +545,14 @@ const ChatLayout: React.FC = () => {
                         className="fullscreen-iframe"
                         title="简历筛选助手"
                     ></iframe>
+                </div>
+            );
+            */
+            // 返回未实现页面
+            return (
+                <div className="page welcome-page">
+                    <h1 className="welcome-greeting">功能暂未实现</h1>
+                    <p className="welcome-description">该功能正在开发中，敬请期待</p>
                 </div>
             );
         }

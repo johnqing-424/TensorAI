@@ -182,7 +182,7 @@ const AssistantList: React.FC = () => {
             case 'process': return '流程制度检索';
             case 'product': return '产品技术检索';
             case 'model': return '大模型知识检索';
-            case 'more': return '简历筛选助手';
+            case 'more': return '更多功能'; // 注释掉简历筛选助手
             case 'chat': return 'TensorChat';
             default: return '聊天';
         }
@@ -263,27 +263,28 @@ const AssistantList: React.FC = () => {
 
             <div className="sidebar-menu">
                 {fixedAssistants.map(assistant => (
-                    <div
-                        key={assistant.id}
-                        className="menu-item"
-                        onClick={() => handleSelectAssistant(assistant)}
-                    >
+                    assistant.id !== 'more' ? (
                         <div
-                            className={`menu-icon ${selectedChatAssistant?.id === assistant.id ? 'active' : ''}`}
-                            style={{
-                                backgroundColor: selectedChatAssistant?.id === assistant.id ?
-                                    functionIcons[assistant.id as keyof typeof functionIcons]?.color :
-                                    functionIcons[assistant.id as keyof typeof functionIcons]?.bgColor,
-                                color: selectedChatAssistant?.id === assistant.id ?
-                                    '#fff' :
-                                    functionIcons[assistant.id as keyof typeof functionIcons]?.color
-                            }}
+                            key={assistant.id}
+                            className="menu-item"
+                            onClick={() => handleSelectAssistant(assistant)}
                         >
-                            <span>{functionIcons[assistant.id as keyof typeof functionIcons]?.icon}</span>
+                            <div
+                                className={`menu-icon ${selectedChatAssistant?.id === assistant.id ? 'active' : ''}`}
+                                style={{
+                                    backgroundColor: selectedChatAssistant?.id === assistant.id ?
+                                        functionIcons[assistant.id as keyof typeof functionIcons]?.color :
+                                        functionIcons[assistant.id as keyof typeof functionIcons]?.bgColor,
+                                    color: selectedChatAssistant?.id === assistant.id ?
+                                        '#fff' :
+                                        functionIcons[assistant.id as keyof typeof functionIcons]?.color
+                                }}
+                            >
+                                <span>{functionIcons[assistant.id as keyof typeof functionIcons]?.icon}</span>
+                            </div>
+                            <div className="menu-text">{getDisplayName(assistant.id)}</div>
                         </div>
-                        <div className="menu-text">{getDisplayName(assistant.id)}</div>
-                        {assistant.id === 'more' && <div className="menu-badge">新</div>}
-                    </div>
+                    ) : null
                 ))}
             </div>
 
