@@ -48,6 +48,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({
     return (
         <div className={getMessageClass()}>
             <div className="chat-message-body">
+                {/* withref分支：启用引用和参考文档显示 */}
                 <MessageContent
                     message={message}
                     isTyping={isTyping}

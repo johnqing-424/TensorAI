@@ -5,6 +5,7 @@ const ReferencePanel: React.FC = () => {
     const { latestReference } = useChatContext();
     const [isExpanded, setIsExpanded] = useState(false);
 
+    // withref分支：显示参考资料面板
     if (!latestReference || !latestReference.chunks || latestReference.chunks.length === 0) {
         return null;
     }

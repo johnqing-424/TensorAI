@@ -176,6 +176,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
             const { documentId, imageId, chunkItem, documentUrl } = getReferenceInfo(chunkIndex);
             const docType = chunk.doc_type;
 
+            // withref分支：显示引用标记
             // 如果是图片类型，直接显示图片
             if (docType && isImageType(docType) && imageId) {
                 return (

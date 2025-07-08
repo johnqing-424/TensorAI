@@ -91,6 +91,7 @@ const MessageContent: React.FC<MessageContentProps> = ({
             return null;
         }
 
+        // withref分支：显示参考文档
         return (
             <div className="reference-documents">
                 <div className="reference-title">
