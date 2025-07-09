@@ -949,7 +949,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                             responseReference = newReference;
 
                             // 更新累积的参考文档信息
-                            if (newReference.doc_aggs) {
+                            if (newReference.doc_aggs && Array.isArray(newReference.doc_aggs)) {
                                 // 创建文档ID映射以避免重复
                                 const existingDocs = new Map(
                                     cumulativeReference.doc_aggs.map(doc => [doc.doc_id, doc])
@@ -957,14 +957,14 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
                                 // 添加新的文档
                                 newReference.doc_aggs.forEach(doc => {
-                                    if (!existingDocs.has(doc.doc_id)) {
+                                    if (doc && doc.doc_id && !existingDocs.has(doc.doc_id)) {
                                         cumulativeReference.doc_aggs.push(doc);
                                     }
                                 });
                             }
 
                             // 累积chunks
-                            if (newReference.chunks && newReference.chunks.length > 0) {
+                            if (newReference.chunks && Array.isArray(newReference.chunks)) {
                                 // 创建chunk ID映射以避免重复
                                 const existingChunks = new Map(
                                     cumulativeReference.chunks.map(chunk => [chunk.id, chunk])
@@ -972,7 +972,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
                                 // 添加新的chunks
                                 newReference.chunks.forEach(chunk => {
-                                    if (!existingChunks.has(chunk.id)) {
+                                    if (chunk && chunk.id && !existingChunks.has(chunk.id)) {
                                         cumulativeReference.chunks.push(chunk);
                                     }
                                 });
@@ -1032,10 +1032,15 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                                     console.log('更新responseText为:', responseText);
                                 }
 
+                                // 只有在有参考文档时才传递引用数据
+                                const referenceToUse = cumulativeReference.doc_aggs.length > 0 || cumulativeReference.chunks.length > 0
+                                    ? cumulativeReference
+                                    : undefined;
+
                                 // 使用防抖更新UI
                                 debouncedUpdateUI(
                                     (validAnswer || responseText || ''),
-                                    cumulativeReference.doc_aggs.length > 0 ? cumulativeReference : undefined
+                                    referenceToUse
                                 );
                             }
                         } else {
@@ -1058,6 +1063,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                         updateDebounceTimer = null;
                     }
 
+                    // 完成消息发送后的处理逻辑
                     // 消息发送成功，更新最终消息
                     setMessages(currentMessages => {
                         const newMessages = [...currentMessages];
@@ -1091,8 +1097,22 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                             // 处理引用格式转换
                             const processedFinalContent = replaceTextByOldReg(finalContent || '等待回复...');
 
-                            // 保存当前消息的参考文档 (这是关键修改)
-                            const finalReference = cumulativeReference.doc_aggs.length > 0 ? cumulativeReference : undefined;
+                            // 确保引用数据的有效性
+                            let finalReference = undefined;
+
+                            if (cumulativeReference.chunks && cumulativeReference.chunks.length > 0 ||
+                                cumulativeReference.doc_aggs && cumulativeReference.doc_aggs.length > 0) {
+                                finalReference = { ...cumulativeReference };
+
+                                // 在开发环境输出引用数据
+                                if (process.env.NODE_ENV === 'development') {
+                                    console.log('完成消息时的引用数据:', {
+                                        chunks: finalReference.chunks?.length || 0,
+                                        doc_aggs: finalReference.doc_aggs?.length || 0,
+                                        total: finalReference.total || 0
+                                    });
+                                }
+                            }
 
                             // 完成消息，包含所有累积的参考文档
                             newMessages[lastMessageIndex] = {

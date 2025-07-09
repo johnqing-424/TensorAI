@@ -365,14 +365,9 @@ class ApiClient {
             return;
         }
 
-        // 获取当前的appid
         const currentAppId = this.getAppId();
-
-        // 构建请求URL和请求体
         const url = `${this.baseUrl}/messages/stream`;
         const requestBody = { sessionId, message };
-
-        // 构建请求头
         const headers = {
             'Content-Type': 'application/json',
             'token': this.token,
@@ -380,383 +375,123 @@ class ApiClient {
             'Accept': 'text/event-stream'
         };
 
-        // 只在开发环境输出日志
         if (process.env.NODE_ENV === 'development') {
-            console.log(`使用appid: ${headers.appid} 发送流式请求`);
+            console.log(`使用appid: ${currentAppId || 'process'} 发送流式请求`);
         }
 
-        // 创建累积的引用数据对象
-        let accumulatedReference: Reference = {
-            chunks: [],
-            doc_aggs: [],
-            total: 0
-        };
-
-        // 创建用于跟踪已处理的chunk和doc的映射
-        const processedChunks = new Map<string, boolean>();
-        const processedDocs = new Map<string, boolean>();
+        let accumulatedReference: Reference | null = null;
 
         try {
             const response = await fetch(url, {
                 method: 'POST',
-                headers,
-                body: JSON.stringify(requestBody)
+                headers: headers,
+                body: JSON.stringify(requestBody),
             });
 
             if (!response.ok) {
-                throw new Error(`HTTP错误 ${response.status}`);
+                throw new Error(`服务器响应错误: ${response.status} ${response.statusText}`);
             }
 
-            // 开发环境输出日志
-            if (process.env.NODE_ENV === 'development') {
-                console.log('服务器响应状态:', response.status);
-            }
-
-            // 获取响应流的reader
             const reader = response.body?.getReader();
             if (!reader) {
-                throw new Error("无法获取响应流");
+                throw new Error("无法获取响应读取器");
             }
 
-            // 用于存储部分接收的数据以及累积的消息
-            const decoder = new TextDecoder();
+            const decoder = new TextDecoder("utf-8");
             let buffer = '';
-            let accumulatedResponse = '';
 
-            // 使用防抖机制处理流式更新，减少UI更新频率
-            let debounceTimer: ReturnType<typeof setTimeout> | null = null;
-            const debounceDelay = 50; // 50毫秒的防抖延迟
-
-            // 防抖包装函数
-            const debouncedChunkReceiver = (data: ApiResponse<StreamChatResponse>) => {
-                if (debounceTimer) {
-                    clearTimeout(debounceTimer);
+            const processChunk = (text: string): ApiResponse<StreamChatResponse> | null => {
+                try {
+                    const json = JSON.parse(text);
+                    return json as ApiResponse<StreamChatResponse>;
+                } catch (e) {
+                    if (process.env.NODE_ENV === 'development') {
+                        console.error("解析SSE数据块失败:", text, e);
+                    }
+                    return null;
                 }
-
-                debounceTimer = setTimeout(() => {
-                    onChunkReceived(data);
-                }, debounceDelay);
             };
 
-            // 辅助函数处理响应数据
-            const handleResponseData = (jsonData: any) => {
-                // 仅在开发环境输出详细日志
-                if (process.env.NODE_ENV === 'development') {
-                    console.log('处理响应数据:', jsonData);
-                }
-
-                // 格式1: {code: 0, data: {...}}
-                if (jsonData.code !== undefined && jsonData.data) {
-                    // 确保引用数据被正确处理
-                    if (jsonData.data.reference) {
-                        // 如果是字符串，尝试解析
-                        if (typeof jsonData.data.reference === 'string') {
-                            try {
-                                jsonData.data.reference = JSON.parse(jsonData.data.reference);
-                            } catch (e) {
-                                // 解析失败时保留原始字符串
-                                console.warn('无法解析reference JSON字符串:', e);
-                            }
-                        }
-
-                        // 累积reference数据
-                        const newReference = jsonData.data.reference as Reference;
-
-                        // 累积chunks
-                        if (newReference.chunks && newReference.chunks.length > 0) {
-                            newReference.chunks.forEach((chunk: ReferenceChunk) => {
-                                // 只添加未处理过的chunk
-                                if (!processedChunks.has(chunk.id)) {
-                                    accumulatedReference.chunks.push(chunk);
-                                    processedChunks.set(chunk.id, true);
-                                }
-                            });
-                        }
-
-                        // 累积doc_aggs
-                        if (newReference.doc_aggs && newReference.doc_aggs.length > 0) {
-                            newReference.doc_aggs.forEach((doc: DocAgg) => {
-                                // 只添加未处理过的doc
-                                if (!processedDocs.has(doc.doc_id)) {
-                                    accumulatedReference.doc_aggs.push(doc);
-                                    processedDocs.set(doc.doc_id, true);
-                                }
-                            });
-                        }
-
-                        // 更新total
-                        if (newReference.total) {
-                            accumulatedReference.total = Math.max(
-                                accumulatedReference.total,
-                                newReference.total
-                            );
-                        }
-
-                        // 更新引用数据
-                        jsonData.data.reference = { ...accumulatedReference };
-
-                        if (process.env.NODE_ENV === 'development') {
-                            console.log('累积的reference数据:', {
-                                chunks: accumulatedReference.chunks.length,
-                                doc_aggs: accumulatedReference.doc_aggs.length,
-                                total: accumulatedReference.total
-                            });
-                        }
-                    }
-
-                    debouncedChunkReceiver(jsonData);
-                    return;
-                }
-
-                // 格式2: {answer: "..."}
-                if (jsonData.answer !== undefined) {
-                    // 更新累积的响应
-                    accumulatedResponse = jsonData.answer;
-
-                    // 处理引用数据
-                    let referenceData = jsonData.reference;
-                    if (referenceData && typeof referenceData === 'string') {
-                        try {
-                            referenceData = JSON.parse(referenceData);
-
-                            // 累积reference数据
-                            if (referenceData.chunks) {
-                                referenceData.chunks.forEach((chunk: ReferenceChunk) => {
-                                    // 只添加未处理过的chunk
-                                    if (!processedChunks.has(chunk.id)) {
-                                        accumulatedReference.chunks.push(chunk);
-                                        processedChunks.set(chunk.id, true);
-                                    }
-                                });
-                            }
-
-                            if (referenceData.doc_aggs) {
-                                referenceData.doc_aggs.forEach((doc: DocAgg) => {
-                                    // 只添加未处理过的doc
-                                    if (!processedDocs.has(doc.doc_id)) {
-                                        accumulatedReference.doc_aggs.push(doc);
-                                        processedDocs.set(doc.doc_id, true);
-                                    }
-                                });
-                            }
-
-                            if (referenceData.total) {
-                                accumulatedReference.total = Math.max(
-                                    accumulatedReference.total,
-                                    referenceData.total
-                                );
-                            }
-
-                            // 使用累积的reference
-                            referenceData = { ...accumulatedReference };
-                        } catch (e) {
-                            console.warn('无法解析reference字段:', e);
-                            referenceData = accumulatedReference;
-                        }
-                    } else if (referenceData) {
-                        // 如果是对象，累积处理
-                        if (referenceData.chunks) {
-                            referenceData.chunks.forEach((chunk: ReferenceChunk) => {
-                                // 只添加未处理过的chunk
-                                if (!processedChunks.has(chunk.id)) {
-                                    accumulatedReference.chunks.push(chunk);
-                                    processedChunks.set(chunk.id, true);
-                                }
-                            });
-                        }
-
-                        if (referenceData.doc_aggs) {
-                            referenceData.doc_aggs.forEach((doc: DocAgg) => {
-                                // 只添加未处理过的doc
-                                if (!processedDocs.has(doc.doc_id)) {
-                                    accumulatedReference.doc_aggs.push(doc);
-                                    processedDocs.set(doc.doc_id, true);
-                                }
-                            });
-                        }
-
-                        if (referenceData.total) {
-                            accumulatedReference.total = Math.max(
-                                accumulatedReference.total,
-                                referenceData.total
-                            );
-                        }
-
-                        // 使用累积的reference
-                        referenceData = { ...accumulatedReference };
-                    }
-
-                    const formatted: ApiResponse<StreamChatResponse> = {
-                        code: 0,
-                        data: {
-                            answer: jsonData.answer,
-                            session_id: sessionId,
-                            reference: referenceData || accumulatedReference
-                        }
-                    };
-                    debouncedChunkReceiver(formatted);
-                    return;
-                }
-
-                // 格式3: 其他JSON格式
-                debouncedChunkReceiver({
-                    code: 0,
-                    data: {
-                        answer: JSON.stringify(jsonData),
-                        session_id: sessionId,
-                        reference: accumulatedReference
-                    }
-                });
-            };
-
-            // 读取流数据
             while (true) {
                 const { done, value } = await reader.read();
                 if (done) {
-                    // 仅在开发环境输出详细日志
-                    if (process.env.NODE_ENV === 'development') {
-                        console.log('流读取完成');
-                    }
-
-                    // 处理任何剩余数据
                     if (buffer.trim()) {
-                        try {
-                            const jsonData = JSON.parse(buffer);
-                            handleResponseData(jsonData);
-                        } catch (e) {
-                            // 仅在开发环境输出警告
-                            if (process.env.NODE_ENV === 'development') {
-                                console.warn('无法解析最后的数据:', buffer);
-                            }
+                        const line = buffer.replace(/^data: ?/, '').trim();
+                        if (line) {
+                            const chunk = processChunk(line);
+                            if (chunk) onChunkReceived(chunk);
                         }
                     }
-
-                    // 清除任何未执行的防抖
-                    if (debounceTimer) {
-                        clearTimeout(debounceTimer);
-                        debounceTimer = null;
-                    }
-
-                    // 确保最后一次调用包含完整的累积引用数据
-                    if (accumulatedReference.chunks.length > 0 || accumulatedReference.doc_aggs.length > 0) {
-                        onChunkReceived({
-                            code: 0,
-                            data: {
-                                answer: accumulatedResponse,
-                                session_id: sessionId,
-                                reference: accumulatedReference
-                            }
-                        });
-                    }
-
-                    onComplete();
                     break;
                 }
 
-                // 解码接收到的数据块
-                const chunk = decoder.decode(value, { stream: true });
-                buffer += chunk;
-
-                // 仅在开发环境输出详细日志
-                if (process.env.NODE_ENV === 'development') {
-                    console.log('收到原始数据:', chunk);
-                }
-
-                // 处理可能的多行JSON或SSE数据
+                buffer += decoder.decode(value, { stream: true });
                 const lines = buffer.split('\n');
-                // 保留最后一行，可能是不完整的
                 buffer = lines.pop() || '';
 
                 for (const line of lines) {
-                    const trimmedLine = line.trim();
+                    const trimmedLine = line.replace(/^data: ?/, '').trim();
                     if (!trimmedLine) continue;
 
-                    // 处理SSE格式
-                    if (trimmedLine.startsWith('data:')) {
-                        const data = trimmedLine.substring(5).trim();
+                    const chunk = processChunk(trimmedLine);
+                    if (chunk && chunk.data) {
+                        if (chunk.data.reference) {
+                            const newRef = chunk.data.reference;
 
-                        // 仅在开发环境输出详细日志
-                        if (process.env.NODE_ENV === 'development') {
-                            console.log('解析SSE数据行:', data);
-                        }
-
-                        // 如果是特殊控制消息
-                        if (data === 'true' || data === 'false') {
-                            if (data === 'true') {
-                                if (debounceTimer) {
-                                    clearTimeout(debounceTimer);
-                                    debounceTimer = null;
-                                }
-                                onComplete();
-                                return;
+                            if (!accumulatedReference) {
+                                accumulatedReference = { chunks: [], doc_aggs: [], total: 0 };
                             }
-                            continue;
-                        }
 
-                        // 尝试解析JSON
-                        try {
-                            const jsonData = JSON.parse(data);
-                            handleResponseData(jsonData);
-                        } catch (e) {
-                            // 仅在开发环境输出警告
-                            if (process.env.NODE_ENV === 'development') {
-                                console.warn('无法解析SSE数据:', data);
-                            }
-                        }
-                    }
-                    // 处理事件类型
-                    else if (trimmedLine.startsWith('event:')) {
-                        const eventType = trimmedLine.substring(6).trim();
+                            const currentReference = accumulatedReference;
 
-                        if (eventType === 'complete') {
-                            if (debounceTimer) {
-                                clearTimeout(debounceTimer);
-                                debounceTimer = null;
-                            }
-                            onComplete();
-                            return;
-                        }
-                    }
-                    // 忽略SSE元数据，不记录日志
-                    else if (trimmedLine.startsWith('id:') || trimmedLine.startsWith('retry:')) {
-                        continue;
-                    }
-                    // 尝试作为直接JSON解析
-                    else {
-                        try {
-                            const jsonData = JSON.parse(trimmedLine);
-                            handleResponseData(jsonData);
-                        } catch (e) {
-                            // 检查是否是纯文本回复，排除id和retry等元数据格式
-                            if (trimmedLine &&
-                                !trimmedLine.includes('{') &&
-                                !trimmedLine.includes('}') &&
-                                !trimmedLine.startsWith('id:') &&
-                                !trimmedLine.startsWith('retry:')) {
-                                accumulatedResponse += trimmedLine;
-
-                                // 构造一个模拟响应对象
-                                const mockResponse: ApiResponse<StreamChatResponse> = {
-                                    code: 0,
-                                    data: {
-                                        answer: accumulatedResponse,
-                                        session_id: sessionId,
-                                        reference: accumulatedReference
+                            if (newRef.chunks && Array.isArray(newRef.chunks)) {
+                                const chunkIds = new Set(currentReference.chunks.map(c => c.id));
+                                newRef.chunks.forEach(newChunk => {
+                                    if (newChunk && newChunk.id && !chunkIds.has(newChunk.id)) {
+                                        currentReference.chunks.push(newChunk);
+                                        chunkIds.add(newChunk.id);
                                     }
-                                };
-                                debouncedChunkReceiver(mockResponse);
+                                });
+                            }
+
+                            if (newRef.doc_aggs && Array.isArray(newRef.doc_aggs)) {
+                                const docIds = new Set(currentReference.doc_aggs.map(d => d.doc_id));
+                                newRef.doc_aggs.forEach(newDoc => {
+                                    if (newDoc && newDoc.doc_id && !docIds.has(newDoc.doc_id)) {
+                                        currentReference.doc_aggs.push(newDoc);
+                                        docIds.add(newDoc.doc_id);
+                                    }
+                                });
+                            }
+
+                            if (typeof newRef.total === 'number' && newRef.total > currentReference.total) {
+                                currentReference.total = newRef.total;
                             }
                         }
+
+                        const chunkToSend = {
+                            ...chunk,
+                            data: {
+                                ...chunk.data,
+                                answer: chunk.data.answer || '',
+                                reference: accumulatedReference || undefined,
+                            },
+                        };
+
+                        if (process.env.NODE_ENV === 'development') {
+                            console.log('累积的reference数据:', accumulatedReference ? JSON.stringify(accumulatedReference) : null);
+                        }
+
+                        onChunkReceived(chunkToSend);
                     }
                 }
             }
 
-        } catch (error) {
-            // 仅在开发环境输出详细错误
-            if (process.env.NODE_ENV === 'development') {
-                console.error("流式请求失败:", error);
-            }
-            onError(error instanceof Error ? error : new Error(String(error)));
+            onComplete();
+
+        } catch (error: any) {
+            console.error("流式聊天请求失败:", error);
+            onError(error);
         }
     }
 

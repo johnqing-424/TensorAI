@@ -87,7 +87,20 @@ const MessageContent: React.FC<MessageContentProps> = ({
     // 渲染参考文档列表 - 独立于消息气泡
     const renderReferenceDocuments = useCallback(() => {
         // 只在有参考文档时显示，且只有助手消息才会显示参考文档
-        if (!reference || !reference.doc_aggs || reference.doc_aggs.length === 0 || role !== 'assistant') {
+        if (role !== 'assistant') {
+            return null;
+        }
+
+        // 检查引用数据是否有效
+        const hasReferenceData = reference &&
+            reference.doc_aggs &&
+            Array.isArray(reference.doc_aggs) &&
+            reference.doc_aggs.length > 0;
+
+        if (!hasReferenceData) {
+            if (process.env.NODE_ENV === 'development') {
+                console.log('无参考文档数据或数据格式不正确:', reference);
+            }
             return null;
         }
 
@@ -103,6 +116,14 @@ const MessageContent: React.FC<MessageContentProps> = ({
                     size="small"
                     dataSource={reference.doc_aggs}
                     renderItem={doc => {
+                        // 确保doc是有效对象
+                        if (!doc || !doc.doc_name) {
+                            if (process.env.NODE_ENV === 'development') {
+                                console.warn('遇到无效的文档引用项:', doc);
+                            }
+                            return null;
+                        }
+
                         // 从文件名获取扩展名
                         const fileName = doc.doc_name;
                         const displayName = fileName.split('/').pop() || fileName;

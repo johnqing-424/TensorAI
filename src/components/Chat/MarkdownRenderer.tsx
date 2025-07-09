@@ -158,18 +158,34 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
 
     // 渲染引用标记
     const renderReferenceMarkers = useCallback((text: string) => {
+        if (!text) return text;
+
         // 替换引用标记
         let replacedText = reactStringReplace(text, reg, (match, i) => {
             const chunkIndex = getChunkIndex(match);
 
+            // 没有引用数据，不渲染引用标记
+            if (!reference) {
+                if (process.env.NODE_ENV === 'development') {
+                    console.log('没有引用数据，跳过引用标记渲染');
+                }
+                return <span key={`ref-empty-${i}`}></span>;
+            }
+
             // 检查引用索引是否有效
-            if (!reference?.chunks || chunkIndex >= reference.chunks.length) {
+            if (!reference.chunks || !Array.isArray(reference.chunks) || chunkIndex >= reference.chunks.length) {
+                if (process.env.NODE_ENV === 'development') {
+                    console.log('无效的引用索引:', chunkIndex, '总chunks数:', reference.chunks?.length || 0);
+                }
                 return <span key={`ref-invalid-${i}`}></span>;
             }
 
             // 获取对应的chunk
             const chunk = reference.chunks[chunkIndex];
             if (!chunk) {
+                if (process.env.NODE_ENV === 'development') {
+                    console.log('未找到chunk，索引:', chunkIndex);
+                }
                 return <span key={`ref-missing-${i}`}></span>;
             }
 
@@ -220,7 +236,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
         ));
 
         return replacedText;
-    }, [reference, onDocumentClick, getReferenceInfo]);
+    }, [reference, onDocumentClick, getReferenceInfo, isImageType]);
 
     // 自定义代码块渲染
     const renderCodeBlock = useCallback((props: any) => {
