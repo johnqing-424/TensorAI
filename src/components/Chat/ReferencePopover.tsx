@@ -8,7 +8,7 @@ import './ReferencePopover.css';
 const { Text, Paragraph } = Typography;
 
 // 统一的API基础URL
-const API_BASE_URL = 'http://123.207.100.71:5007';
+const API_BASE_URL = window.location.origin;
 
 interface ReferencePopoverProps {
     chunk: ReferenceChunk;
@@ -33,7 +33,7 @@ const ReferencePopover: React.FC<ReferencePopoverProps & { children: React.React
         if (!chunk.image_id) return null;
 
         // 使用统一的API基础URL构建图片URL
-        const imageUrl = `${API_BASE_URL}/document/image/${chunk.image_id}`;
+        const imageUrl = `${API_BASE_URL}/api/document/image/${chunk.image_id}`;
 
         return (
             <div className="reference-image-container">
@@ -102,7 +102,7 @@ const ReferencePopover: React.FC<ReferencePopoverProps & { children: React.React
             trigger="hover"
             overlayClassName="ant-popover-reference"
             placement="top"
-            destroyTooltipOnHide
+            destroyOnHidden
         >
             <span className="reference-marker">
                 {children}

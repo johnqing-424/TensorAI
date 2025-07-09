@@ -58,10 +58,43 @@
   border-radius: inherit;
 }
 
-/* 错误状态 */
+/* 错误状态 - 增强显示 */
 .chat-message--error .chat-message-body {
-  background-color: #fff2f0;
-  border: 1px solid #ffccc7;
+  background-color: #fff1f0;
+  border: 1px solid #ffa39e;
+  color: #cf1322;
+  padding-top: 16px;
+  padding-bottom: 16px;
+  position: relative;
+}
+
+/* 添加错误图标指示 */
+.chat-message--error .chat-message-body::before {
+  content: "⚠️";
+  display: inline-block;
+  margin-right: 8px;
+  font-size: 16px;
+  vertical-align: middle;
+}
+
+/* 错误消息中的文本格式 */
+.chat-message--error .message-content pre {
+  background-color: rgba(255, 255, 255, 0.7);
+  border-left: 3px solid #ff4d4f;
+  margin: 10px 0;
+  padding: 10px;
+  border-radius: 3px;
+  white-space: pre-wrap;
+}
+
+/* 错误消息中的建议列表格式 */
+.chat-message--error .message-content ul {
+  margin-top: 12px;
+  padding-left: 20px;
+}
+
+.chat-message--error .message-content li {
+  margin-bottom: 5px;
 }
 
 /* 打字状态 */
@@ -107,6 +140,12 @@
   .chat-message--error .chat-message-body {
     background-color: #2a1215;
     border-color: #5c2223;
+    color: #ff7875;
+  }
+
+  .chat-message--error .message-content pre {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-left: 3px solid #ff7875;
   }
 
   .chat-message--typing .chat-message-body {

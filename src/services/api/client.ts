@@ -380,119 +380,186 @@ class ApiClient {
         }
 
         let accumulatedReference: Reference | null = null;
+        let retryCount = 0;
+        const maxRetries = 2; // 最多重试2次
 
-        try {
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: headers,
-                body: JSON.stringify(requestBody),
-            });
+        // 创建请求超时控制器
+        const timeoutController = new AbortController();
+        const signal = timeoutController.signal;
 
-            if (!response.ok) {
-                throw new Error(`服务器响应错误: ${response.status} ${response.statusText}`);
-            }
+        // 设置60秒超时，显著提高超时时间，解决多轮对话问题
+        const timeoutId = setTimeout(() => {
+            console.warn('请求超时，自动中止');
+            timeoutController.abort();
+        }, 60000); // 60秒超时
 
-            const reader = response.body?.getReader();
-            if (!reader) {
-                throw new Error("无法获取响应读取器");
-            }
-
-            const decoder = new TextDecoder("utf-8");
-            let buffer = '';
-
-            const processChunk = (text: string): ApiResponse<StreamChatResponse> | null => {
-                try {
-                    const json = JSON.parse(text);
-                    return json as ApiResponse<StreamChatResponse>;
-                } catch (e) {
-                    if (process.env.NODE_ENV === 'development') {
-                        console.error("解析SSE数据块失败:", text, e);
-                    }
-                    return null;
-                }
-            };
-
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) {
-                    if (buffer.trim()) {
-                        const line = buffer.replace(/^data: ?/, '').trim();
-                        if (line) {
-                            const chunk = processChunk(line);
-                            if (chunk) onChunkReceived(chunk);
-                        }
-                    }
-                    break;
+        const executeStreamRequest = async (): Promise<void> => {
+            try {
+                if (retryCount > 0) {
+                    console.log(`尝试第${retryCount}次重试...`);
                 }
 
-                buffer += decoder.decode(value, { stream: true });
-                const lines = buffer.split('\n');
-                buffer = lines.pop() || '';
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: headers,
+                    body: JSON.stringify(requestBody),
+                    signal: signal
+                });
 
-                for (const line of lines) {
-                    const trimmedLine = line.replace(/^data: ?/, '').trim();
-                    if (!trimmedLine) continue;
+                clearTimeout(timeoutId); // 请求有响应后，清除超时计时器
 
-                    const chunk = processChunk(trimmedLine);
-                    if (chunk && chunk.data) {
-                        if (chunk.data.reference) {
-                            const newRef = chunk.data.reference;
+                if (!response.ok) {
+                    // 如果状态码表示服务器错误且还有重试次数，则重试
+                    if ((response.status >= 500 || response.status === 429) && retryCount < maxRetries) {
+                        retryCount++;
+                        const delay = retryCount * 2000; // 重试延迟递增
+                        console.log(`服务器错误(${response.status})，${delay}ms后重试...`);
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                        return executeStreamRequest(); // 递归重试
+                    }
+                    throw new Error(`服务器响应错误: ${response.status} ${response.statusText}`);
+                }
 
-                            if (!accumulatedReference) {
-                                accumulatedReference = { chunks: [], doc_aggs: [], total: 0 };
+                const reader = response.body?.getReader();
+                if (!reader) {
+                    throw new Error("无法获取响应读取器");
+                }
+
+                const decoder = new TextDecoder("utf-8");
+                let buffer = '';
+
+                const processChunk = (text: string): ApiResponse<StreamChatResponse> | null => {
+                    try {
+                        // 处理SSE特殊事件
+                        if (text.startsWith('id:') || text.startsWith('retry:') || text.startsWith('event:')) {
+                            if (process.env.NODE_ENV === 'development') {
+                                console.log("接收到SSE控制消息:", text);
                             }
-
-                            const currentReference = accumulatedReference;
-
-                            if (newRef.chunks && Array.isArray(newRef.chunks)) {
-                                const chunkIds = new Set(currentReference.chunks.map(c => c.id));
-                                newRef.chunks.forEach(newChunk => {
-                                    if (newChunk && newChunk.id && !chunkIds.has(newChunk.id)) {
-                                        currentReference.chunks.push(newChunk);
-                                        chunkIds.add(newChunk.id);
-                                    }
-                                });
-                            }
-
-                            if (newRef.doc_aggs && Array.isArray(newRef.doc_aggs)) {
-                                const docIds = new Set(currentReference.doc_aggs.map(d => d.doc_id));
-                                newRef.doc_aggs.forEach(newDoc => {
-                                    if (newDoc && newDoc.doc_id && !docIds.has(newDoc.doc_id)) {
-                                        currentReference.doc_aggs.push(newDoc);
-                                        docIds.add(newDoc.doc_id);
-                                    }
-                                });
-                            }
-
-                            if (typeof newRef.total === 'number' && newRef.total > currentReference.total) {
-                                currentReference.total = newRef.total;
-                            }
+                            return null; // 这些是SSE控制消息，不是JSON数据
                         }
 
-                        const chunkToSend = {
-                            ...chunk,
-                            data: {
-                                ...chunk.data,
-                                answer: chunk.data.answer || '',
-                                reference: accumulatedReference || undefined,
-                            },
-                        };
-
+                        // 处理JSON数据
+                        const json = JSON.parse(text);
+                        return json as ApiResponse<StreamChatResponse>;
+                    } catch (e) {
                         if (process.env.NODE_ENV === 'development') {
-                            console.log('累积的reference数据:', accumulatedReference ? JSON.stringify(accumulatedReference) : null);
+                            console.error("解析SSE数据块失败:", text, e);
                         }
+                        return null;
+                    }
+                };
 
-                        onChunkReceived(chunkToSend);
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) {
+                        if (buffer.trim()) {
+                            const line = buffer.replace(/^data: ?/, '').trim();
+                            if (line) {
+                                const chunk = processChunk(line);
+                                if (chunk) onChunkReceived(chunk);
+                            }
+                        }
+                        break;
+                    }
+
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split('\n');
+                    buffer = lines.pop() || '';
+
+                    for (const line of lines) {
+                        const trimmedLine = line.replace(/^data: ?/, '').trim();
+                        if (!trimmedLine) continue;
+
+                        const chunk = processChunk(trimmedLine);
+                        if (chunk && chunk.data) {
+                            if (chunk.data.reference) {
+                                const newRef = chunk.data.reference;
+
+                                if (!accumulatedReference) {
+                                    accumulatedReference = { chunks: [], doc_aggs: [], total: 0 };
+                                }
+
+                                const currentReference = accumulatedReference;
+
+                                if (newRef.chunks && Array.isArray(newRef.chunks)) {
+                                    const chunkIds = new Set(currentReference.chunks.map(c => c.id));
+                                    newRef.chunks.forEach(newChunk => {
+                                        if (newChunk && newChunk.id && !chunkIds.has(newChunk.id)) {
+                                            currentReference.chunks.push(newChunk);
+                                            chunkIds.add(newChunk.id);
+                                        }
+                                    });
+                                }
+
+                                if (newRef.doc_aggs && Array.isArray(newRef.doc_aggs)) {
+                                    const docIds = new Set(currentReference.doc_aggs.map(d => d.doc_id));
+                                    newRef.doc_aggs.forEach(newDoc => {
+                                        if (newDoc && newDoc.doc_id && !docIds.has(newDoc.doc_id)) {
+                                            currentReference.doc_aggs.push(newDoc);
+                                            docIds.add(newDoc.doc_id);
+                                        }
+                                    });
+                                }
+
+                                if (typeof newRef.total === 'number' && newRef.total > currentReference.total) {
+                                    currentReference.total = newRef.total;
+                                }
+                            }
+
+                            const chunkToSend = {
+                                ...chunk,
+                                data: {
+                                    ...chunk.data,
+                                    answer: chunk.data.answer || '',
+                                    reference: accumulatedReference || undefined,
+                                },
+                            };
+
+                            // 减少日志输出频率，只在有引用数据时才输出
+                            if (process.env.NODE_ENV === 'development' &&
+                                accumulatedReference &&
+                                (accumulatedReference.chunks.length > 0 || accumulatedReference.doc_aggs.length > 0)) {
+                                console.log('累积的reference数据:', JSON.stringify({
+                                    total: accumulatedReference.total,
+                                    chunks_count: accumulatedReference.chunks.length,
+                                    doc_aggs_count: accumulatedReference.doc_aggs.length
+                                }));
+                            }
+
+                            onChunkReceived(chunkToSend);
+                        }
                     }
                 }
+
+                onComplete();
+            } catch (error: any) {
+                clearTimeout(timeoutId); // 确保出错时也清除计时器
+
+                // 对于网络错误或超时，尝试重试
+                if ((error.name === 'AbortError' || error.name === 'TypeError' ||
+                    (error.message && error.message.includes('network'))) &&
+                    retryCount < maxRetries) {
+                    retryCount++;
+                    const delay = retryCount * 2000; // 重试延迟递增
+                    console.log(`网络错误或超时，${delay}ms后重试...`, error);
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    return executeStreamRequest(); // 递归重试
+                } else {
+                    console.error("流式聊天请求失败:", error);
+                    // 生成更友好的错误信息
+                    let errorMessage = "请求失败";
+                    if (error.name === 'AbortError') {
+                        errorMessage = "请求超时，请稍后再试";
+                    } else if (error.message) {
+                        errorMessage = error.message;
+                    }
+                    onError(new Error(errorMessage));
+                }
             }
+        };
 
-            onComplete();
-
-        } catch (error: any) {
-            console.error("流式聊天请求失败:", error);
-            onError(error);
-        }
+        // 执行请求
+        await executeStreamRequest();
     }
 
     // 健康检查和测试连接方法

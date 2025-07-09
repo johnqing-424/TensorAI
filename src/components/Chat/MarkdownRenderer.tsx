@@ -34,7 +34,7 @@ const reg = /(~{2}\d+={2})/g;
 const getChunkIndex = (match: string): number => Number(match.slice(2, -2));
 
 // 添加基础URL常量
-const API_BASE_URL = 'http://123.207.100.71:5007';
+const API_BASE_URL = window.location.origin;
 
 // 修改图片组件，使用正确的基础URL
 const Image: React.FC<{ id?: string; className?: string; onClick?: () => void }> = ({
@@ -45,7 +45,7 @@ const Image: React.FC<{ id?: string; className?: string; onClick?: () => void }>
     if (!id) return null;
 
     // 使用与文档链接相同的基础URL构建图片URL
-    const imageUrl = `${API_BASE_URL}/document/image/${id}`;
+    const imageUrl = `${API_BASE_URL}/api/document/image/${id}`;
 
     return (
         <img
@@ -56,7 +56,19 @@ const Image: React.FC<{ id?: string; className?: string; onClick?: () => void }>
             onError={(e) => {
                 const target = e.target as HTMLImageElement;
                 target.style.display = 'none';
-                console.warn(`Failed to load image with id: ${id}`);
+                // 减少日志输出，只在开发环境输出
+                if (process.env.NODE_ENV === 'development') {
+                    console.warn(`Failed to load image with id: ${id}`);
+                }
+                // 可以在这里添加一个小图标或文本提示图片加载失败
+                const parent = target.parentElement;
+                if (parent) {
+                    const errorSpan = document.createElement('span');
+                    errorSpan.className = 'image-load-error';
+                    errorSpan.title = '图片加载失败';
+                    errorSpan.textContent = '📷';
+                    parent.appendChild(errorSpan);
+                }
             }}
             loading="lazy"
         />
@@ -166,15 +178,17 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
 
             // 没有引用数据，不渲染引用标记
             if (!reference) {
-                if (process.env.NODE_ENV === 'development') {
-                    console.log('没有引用数据，跳过引用标记渲染');
-                }
+                // 移除开发环境下的频繁日志输出
+                // if (process.env.NODE_ENV === 'development') {
+                //     console.log('没有引用数据，跳过引用标记渲染');
+                // }
                 return <span key={`ref-empty-${i}`}></span>;
             }
 
             // 检查引用索引是否有效
             if (!reference.chunks || !Array.isArray(reference.chunks) || chunkIndex >= reference.chunks.length) {
-                if (process.env.NODE_ENV === 'development') {
+                if (process.env.NODE_ENV === 'development' && chunkIndex !== -1) {
+                    // 只在索引无效且不是-1时输出日志
                     console.log('无效的引用索引:', chunkIndex, '总chunks数:', reference.chunks?.length || 0);
                 }
                 return <span key={`ref-invalid-${i}`}></span>;

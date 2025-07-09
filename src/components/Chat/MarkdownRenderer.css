@@ -407,3 +407,15 @@
         padding: 12px;
     }
 }
+
+/* 添加图片加载错误样式 */
+.image-load-error {
+    display: inline-block;
+    padding: 2px 5px;
+    background-color: #f5f5f5;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    color: #666;
+    font-size: 14px;
+    cursor: default;
+}

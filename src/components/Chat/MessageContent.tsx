@@ -98,9 +98,10 @@ const MessageContent: React.FC<MessageContentProps> = ({
             reference.doc_aggs.length > 0;
 
         if (!hasReferenceData) {
-            if (process.env.NODE_ENV === 'development') {
-                console.log('无参考文档数据或数据格式不正确:', reference);
-            }
+            // 减少日志输出，只在特定条件下输出
+            // if (process.env.NODE_ENV === 'development') {
+            //     console.log('无参考文档数据或数据格式不正确:', reference);
+            // }
             return null;
         }
 

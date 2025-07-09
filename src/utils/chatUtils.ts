@@ -7,30 +7,30 @@ export const formatMessageTime = (timestamp: number): string => {
     const date = new Date(timestamp);
     const now = new Date();
     const diff = now.getTime() - date.getTime();
-    
+
     // 小于1分钟
     if (diff < 60000) {
         return '刚刚';
     }
-    
+
     // 小于1小时
     if (diff < 3600000) {
         const minutes = Math.floor(diff / 60000);
         return `${minutes}分钟前`;
     }
-    
+
     // 小于24小时
     if (diff < 86400000) {
         const hours = Math.floor(diff / 3600000);
         return `${hours}小时前`;
     }
-    
+
     // 超过24小时，显示具体日期
     const month = date.getMonth() + 1;
     const day = date.getDate();
     const hour = date.getHours();
     const minute = date.getMinutes();
-    
+
     return `${month}月${day}日 ${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
 };
 
