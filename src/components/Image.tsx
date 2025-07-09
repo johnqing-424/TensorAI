@@ -1,5 +1,5 @@
-import React from 'react';
-import { Popover } from 'antd';
+import React, { useState } from 'react';
+import { Popover, message } from 'antd';
 
 interface ImageProps {
   id: string;
@@ -8,15 +8,27 @@ interface ImageProps {
 }
 
 const Image: React.FC<ImageProps> = ({ id, className, style }) => {
-  const imageUrl = `/api/document/image/${id}`;
+  // 使用window.location.origin替代硬编码URL，确保保留/api前缀
+  const imageUrl = `${window.location.origin}/api/document/image/${id}`;
+  const [loadError, setLoadError] = useState(false);
+
+  const handleImageError = () => {
+    setLoadError(true);
+    message.error('图片加载失败');
+  };
 
   const imagePreview = (
     <div className="reference-image-preview">
-      <img
-        src={imageUrl}
-        alt="Reference"
-        style={{ maxWidth: '400px', maxHeight: '300px', objectFit: 'contain' }}
-      />
+      {!loadError ? (
+        <img
+          src={imageUrl}
+          alt="Reference"
+          style={{ maxWidth: '400px', maxHeight: '300px', objectFit: 'contain' }}
+          onError={handleImageError}
+        />
+      ) : (
+        <div style={{ padding: '10px', color: '#ff4d4f' }}>图片加载失败</div>
+      )}
     </div>
   );
 
@@ -26,6 +38,7 @@ const Image: React.FC<ImageProps> = ({ id, className, style }) => {
       title="图片预览"
       trigger="hover"
       placement="top"
+      destroyTooltipOnHide={{ keepParent: true }}
     >
       <img
         src={imageUrl}
@@ -39,6 +52,7 @@ const Image: React.FC<ImageProps> = ({ id, className, style }) => {
           borderRadius: '2px',
           ...style
         }}
+        onError={handleImageError}
       />
     </Popover>
   );

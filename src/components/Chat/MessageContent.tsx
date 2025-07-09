@@ -107,9 +107,9 @@ const MessageContent: React.FC<MessageContentProps> = ({
                         const displayName = fileName.split('/').pop() || fileName;
                         const ext = fileName.split('.').pop()?.toLowerCase() || '';
 
-                        // 构建文档链接 - 使用固定基础URL
-                        const baseUrl = 'http://123.207.100.71:5007';
-                        const docUrl = doc.url || `${baseUrl}/document/${doc.doc_id}?ext=${ext}&prefix=document`;
+                        // 构建文档链接 - 使用当前域名替代硬编码URL
+                        const baseUrl = window.location.origin;
+                        const docUrl = doc.url || `${baseUrl}/api/document/${doc.doc_id}?ext=${ext}&prefix=document`;
 
                         return (
                             <List.Item className="reference-list-item">

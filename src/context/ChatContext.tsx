@@ -872,12 +872,20 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         // 添加流式响应防抖
         let updateDebounceTimer: ReturnType<typeof setTimeout> | null = null;
         const debounceDelay = 100; // 100毫秒防抖延迟
+        let lastContent = '';  // 跟踪上次更新的内容
 
         // 防抖UI更新函数
         const debouncedUpdateUI = (content: string, ref?: Reference) => {
             if (updateDebounceTimer) {
                 clearTimeout(updateDebounceTimer);
             }
+
+            // 检查内容是否变化，避免不必要的UI更新
+            if (content === lastContent && !ref) {
+                return;
+            }
+
+            lastContent = content;
 
             updateDebounceTimer = setTimeout(() => {
                 setMessages(currentMessages => {
@@ -893,7 +901,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                             ...newMessages[lastMessageIndex],
                             content: processedContent,
                             isLoading: true,
-                            reference: ref,
+                            reference: ref || newMessages[lastMessageIndex].reference,
                             timestamp: Date.now()
                         };
                     }
@@ -992,6 +1000,12 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                                     chunks: cumulativeReference.chunks.length
                                 });
                             }
+
+                            // 在每次更新累积的引用数据后，更新消息中的引用
+                            debouncedUpdateUI(
+                                (validAnswer || responseText || ''),
+                                cumulativeReference.doc_aggs.length > 0 ? cumulativeReference : undefined
+                            );
                         }
 
                         // 对于流式响应，检查内容是否有所更新

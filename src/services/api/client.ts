@@ -32,7 +32,7 @@ class ApiClient {
     private appid: string | null = 'process'; // 默认应用ID
     private maxRetries: number = 2;
     private retryDelay: number = 2000;
-    private connectionTimeout: number = 30000; // 从20秒增加到30秒
+    private connectionTimeout: number = 60000; // 从30秒增加到60秒
     private requestQueue: Map<string, number> = new Map();
     private isNetworkOnline: boolean = navigator.onLine;
     private errorCount: Map<string, number> = new Map();
@@ -698,8 +698,23 @@ class ApiClient {
                             const jsonData = JSON.parse(data);
                             handleResponseData(jsonData);
                         } catch (e) {
-                            // 仅在开发环境输出警告
-                            if (process.env.NODE_ENV === 'development') {
+                            // 如果不是有效JSON，但可能是普通文本，直接更新累积响应
+                            if (data && typeof data === 'string' &&
+                                !data.startsWith('id:') &&
+                                !data.startsWith('retry:') &&
+                                !data.startsWith('event:')) {
+                                accumulatedResponse += data;
+
+                                const mockResponse: ApiResponse<StreamChatResponse> = {
+                                    code: 0,
+                                    data: {
+                                        answer: accumulatedResponse,
+                                        session_id: sessionId,
+                                        reference: accumulatedReference
+                                    }
+                                };
+                                debouncedChunkReceiver(mockResponse);
+                            } else if (process.env.NODE_ENV === 'development') {
                                 console.warn('无法解析SSE数据:', data);
                             }
                         }
