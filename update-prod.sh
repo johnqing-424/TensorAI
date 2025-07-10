@@ -18,7 +18,7 @@ echo "构建已存档至: ${ARCHIVE_PATH}"
 
 # 复制到生产目录
 echo "正在更新生产环境..."
-sudo cp -r build/* /var/www/tensorai/
+sudo cp -r build/* /var/www/TensorAI/
 
 echo "==================== 部署完成 ===================="
 echo "生产环境已更新"
