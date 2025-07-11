@@ -440,25 +440,7 @@ class ApiClient {
 
                         // 处理JSON数据
                         const json = JSON.parse(text);
-
-                        // 核心修复：过滤掉不包含有效回答的信令消息
-                        // 例如 {"code": 0, "data": true} 或其他没有answer字段的消息
-                        if (json && typeof json.data === 'boolean') {
-                            if (process.env.NODE_ENV === 'development') {
-                                console.log("接收到结束信号:", text);
-                            }
-                            return null;
-                        }
-
-                        // 确保只返回包含answer字段的有效数据
-                        if (json && json.data && typeof json.data === 'object' && 'answer' in json.data) {
-                            return json as ApiResponse<StreamChatResponse>;
-                        }
-
-                        if (process.env.NODE_ENV === 'development') {
-                            console.log("接收到不包含answer字段的数据:", text);
-                        }
-                        return null;
+                        return json as ApiResponse<StreamChatResponse>;
                     } catch (e) {
                         if (process.env.NODE_ENV === 'development') {
                             console.error("解析SSE数据块失败:", text, e);

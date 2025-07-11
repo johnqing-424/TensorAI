@@ -34,7 +34,7 @@ const reg = /(~{2}\d+={2})/g;
 const getChunkIndex = (match: string): number => Number(match.slice(2, -2));
 
 // 添加基础URL常量
-const API_BASE_URL = window.location.origin;
+const API_BASE_URL = 'http://123.207.100.71:5007';
 
 // 修改图片组件，使用正确的基础URL
 const Image: React.FC<{ id?: string; className?: string; onClick?: () => void }> = ({
@@ -45,7 +45,7 @@ const Image: React.FC<{ id?: string; className?: string; onClick?: () => void }>
     if (!id) return null;
 
     // 使用与文档链接相同的基础URL构建图片URL
-    const imageUrl = `${API_BASE_URL}/api/document/image/${id}`;
+    const imageUrl = `${API_BASE_URL}/v1/document/image/${id}`;
 
     return (
         <img

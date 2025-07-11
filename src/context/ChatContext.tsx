@@ -142,6 +142,9 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     // 添加流式响应控制状态 - 现在基于会话管理
     const streamControllers = useRef<Record<string, AbortController>>({});
 
+    // 新增一个ref来跟踪是否应该更新会话标题
+    const shouldUpdateTitle = useRef<boolean>(false);
+
     // 获取当前会话的状态
     const getCurrentSessionState = useCallback((sessionId?: string) => {
         if (!sessionId) return { isTyping: false, isReceivingStream: false, isPaused: false };
@@ -769,22 +772,28 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             sessionMessagesCount: targetSession.messages?.length || 0
         });
 
-        // 创建用户消息，根据ChatMessage类型定义
-        const baseTimestamp = Date.now();
+        // 在发送消息前，检查当前会话的消息数量
+        // 如果是新会话（只有一条初始消息），则标记需要更新标题
+        if (targetSession.messages.length <= 1) {
+            shouldUpdateTitle.current = true;
+        } else {
+            shouldUpdateTitle.current = false;
+        }
+
+        // 准备用户消息和临时助手消息
         const userMessage: ChatMessage = {
-            id: `user-${baseTimestamp}-${Math.random().toString(36).substr(2, 9)}`,
+            id: `user_${Date.now()}`,
             role: 'user',
             content: message,
-            timestamp: baseTimestamp
+            timestamp: Date.now()
         };
 
-        // 创建临时助手消息，根据ChatMessage类型定义
         const tempAssistantMessage: ChatMessage = {
-            id: `assistant-${baseTimestamp + 1}-${Math.random().toString(36).substr(2, 9)}`,
+            id: `assistant_${Date.now()}`,
             role: 'assistant',
-            content: '',
+            content: '', // 初始为空，由流式响应填充
             isLoading: true,
-            timestamp: baseTimestamp + 1 // 确保助手消息的时间戳晚于用户消息
+            timestamp: Date.now()
         };
 
         // 添加消息到UI中 - 确保正确的消息顺序
@@ -953,23 +962,16 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                         console.log('收到流式响应:', partialResponse);
                     }
 
-                    if (partialResponse && partialResponse.data) {
-                        // 核心修复：确保我们只处理包含 'answer' 字段的有效数据块
-                        if (typeof partialResponse.data !== 'object' || !('answer' in partialResponse.data) || partialResponse.data.answer === null) {
-                            // 如果数据是布尔值true、不含answer字段的对象或answer为null，则忽略
-                            return;
-                        }
-
+                    // 关键修复：确保我们只处理包含聊天数据的对象，忽略最后的 'data: true'
+                    if (partialResponse && typeof partialResponse.data === 'object' && partialResponse.data !== null) {
                         const newContent = partialResponse.data.answer || '';
 
-                        // 如果 answer 字段存在但为空字符串，也忽略
-                        if (!newContent.trim()) {
-                            return;
-                        }
-
-                        // 减少日志输出，只在开发环境且内容长度是50的倍数时输出
-                        if (process.env.NODE_ENV === 'development' && newContent.length % 50 === 0) {
-                            console.log('新内容长度:', newContent.length);
+                        if (process.env.NODE_ENV === 'development') {
+                            console.log('--- 调试日志 ---');
+                            console.log('收到数据块:', JSON.stringify(partialResponse.data));
+                            console.log('提取的新内容 (newContent):', `"${newContent}"`);
+                            console.log('更新前 responseText:', `"${responseText}"`);
+                            console.log('更新前 validAnswer:', `"${validAnswer}"`);
                         }
 
                         // 处理参考文档 - 收集和累积
@@ -991,15 +993,10 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                                     }
                                 });
                             }
-
-                            // 累积chunks
                             if (newReference.chunks && Array.isArray(newReference.chunks)) {
-                                // 创建chunk ID映射以避免重复
                                 const existingChunks = new Map(
                                     cumulativeReference.chunks.map(chunk => [chunk.id, chunk])
                                 );
-
-                                // 添加新的chunks
                                 newReference.chunks.forEach(chunk => {
                                     if (chunk && chunk.id && !existingChunks.has(chunk.id)) {
                                         cumulativeReference.chunks.push(chunk);
@@ -1007,26 +1004,26 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                                 });
                             }
 
-                            // 更新total字段
-                            cumulativeReference.total = Math.max(
-                                cumulativeReference.total,
-                                newReference.total || 0
-                            );
+                            if (typeof newReference.total === 'number' && newReference.total > cumulativeReference.total) {
+                                cumulativeReference.total = newReference.total;
+                            }
 
-                            // 仅在开发环境且引用数据变化明显时输出日志
+                            // 开发环境日志
                             if (process.env.NODE_ENV === 'development' &&
-                                (cumulativeReference.chunks.length % 5 === 0 ||
-                                    cumulativeReference.doc_aggs.length % 2 === 0)) {
+                                (newReference.doc_aggs?.length || newReference.chunks?.length)) {
                                 console.log('累积参考文档信息:', {
                                     total: cumulativeReference.total,
                                     doc_aggs: cumulativeReference.doc_aggs.length,
-                                    chunks: cumulativeReference.chunks.length
+                                    chunks: cumulativeReference.chunks.length,
                                 });
                             }
                         }
 
                         // 对于流式响应，检查内容是否有所更新
                         if (newContent && newContent.trim() !== '') {
+                            if (process.env.NODE_ENV === 'development') {
+                                console.log('分支: newContent 有内容');
+                            }
                             // 检查内容是否是元数据（包含id:或retry:）
                             if (newContent.includes('id:') || newContent.includes('retry:')) {
                                 // 跳过元数据内容，不输出日志
@@ -1040,8 +1037,8 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                             }
                             // 正常更新内容
                             else {
-                                // 不再过滤<think>...</think>标签内容，保留思考过程
-                                responseText = newContent; // 保存原始内容
+                                // 移除对<think>标签的过滤，让其在UI层通过CSS控制显隐
+                                responseText = newContent;
 
                                 // 如果不包含元数据，则更新有效答案
                                 if (!responseText.includes('id:') && !responseText.includes('retry:')) {
@@ -1059,6 +1056,30 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                                     referenceToUse
                                 );
                             }
+                        } else if (partialResponse.data.reference) {
+                            if (process.env.NODE_ENV === 'development') {
+                                console.log('分支: newContent 为空，但有 reference');
+                            }
+                            // 即使内容为空，但如果引用更新了，也需要更新UI
+                            const referenceToUse = cumulativeReference.doc_aggs.length > 0 || cumulativeReference.chunks.length > 0
+                                ? cumulativeReference
+                                : undefined;
+
+                            if (referenceToUse) {
+                                debouncedUpdateUI(
+                                    (validAnswer || responseText || ''),
+                                    referenceToUse
+                                );
+                            }
+                        } else {
+                            if (process.env.NODE_ENV === 'development') {
+                                console.log('分支: newContent 为空，且无 reference (忽略)');
+                            }
+                        }
+                        if (process.env.NODE_ENV === 'development') {
+                            console.log('更新后 responseText:', `"${responseText}"`);
+                            console.log('更新后 validAnswer:', `"${validAnswer}"`);
+                            console.log('--- 调试结束 ---');
                         }
                     } else {
                         // 仅在开发环境输出详细日志
@@ -1068,51 +1089,21 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     }
                 },
                 () => {
-                    // 清除任何未执行的防抖更新
+                    // 流式响应完成
                     if (updateDebounceTimer) {
                         clearTimeout(updateDebounceTimer);
-                        updateDebounceTimer = null;
                     }
 
-                    // 完成消息发送后的处理逻辑
-                    // 消息发送成功，更新最终消息
                     setMessages(currentMessages => {
                         const newMessages = [...currentMessages];
                         const lastMessageIndex = newMessages.length - 1;
 
                         if (lastMessageIndex >= 0 && newMessages[lastMessageIndex].role === 'assistant') {
-                            // 核心修复：使用已累积的有效内容，而不是尝试处理最后一个数据块
-                            // 优先使用validAnswer，它已经过滤掉了无效的数据块
-                            let finalContent = validAnswer || '';
-
-                            // 如果validAnswer为空，但当前消息有内容，则使用当前消息内容
-                            if (!finalContent && newMessages[lastMessageIndex].content) {
-                                finalContent = newMessages[lastMessageIndex].content;
-                            }
-
-                            // 如果最终内容仍然为空，则使用responseText（最后一次接收的原始内容）
-                            if (!finalContent && responseText) {
-                                finalContent = responseText;
-                            }
-
-                            // 确保最终内容不为空
-                            if (!finalContent.trim()) {
-                                console.warn('流式响应结束，但最终内容为空，使用最后一次有效内容');
-                                // 查找最后一次有效内容
-                                for (let i = lastMessageIndex - 1; i >= 0; i--) {
-                                    if (newMessages[i].role === 'assistant' && newMessages[i].content) {
-                                        finalContent = newMessages[i].content;
-                                        break;
-                                    }
-                                }
-                                // 如果仍然没有找到有效内容，使用占位符
-                                if (!finalContent.trim()) {
-                                    finalContent = '对不起，处理您的请求时出现了问题。请重试。';
-                                }
-                            }
+                            // 最终修复：不再移除 <think> 标签，使其作为最终内容的一部分保留
+                            const finalContent = responseText.trim() || '【无内容】'; // 如果为空，则显示提示
 
                             // 处理引用格式转换
-                            const processedFinalContent = replaceTextByOldReg(finalContent || '');
+                            const processedFinalContent = replaceTextByOldReg(finalContent);
 
                             // 确保引用数据的有效性
                             let finalReference = undefined;
@@ -1125,7 +1116,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                             // 完成消息，包含所有累积的参考文档
                             newMessages[lastMessageIndex] = {
                                 ...newMessages[lastMessageIndex],
-                                content: processedFinalContent, // 使用处理后的最终内容
+                                content: processedFinalContent, // 确保不显示空内容
                                 isLoading: false,
                                 // 添加最终的参考文档信息 - 直接绑定到消息上
                                 reference: finalReference,
@@ -1149,15 +1140,20 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                         isTyping: false
                     });
 
-                    // 如果这是会话的第一条用户消息，自动更新会话名称
-                    if (targetSession && targetSession.messages.length <= 1) {
-                        // 截取消息前20个字符作为会话名称
-                        const sessionName = message.length > 20 ? message.substring(0, 20) + '...' : message;
-                        console.log('自动更新会话名称为:', sessionName);
-                        renameSession(sessionId, sessionName);
+                    // 自动更新会话标题
+                    if (shouldUpdateTitle.current) {
+                        const firstUserMessage = messages.find(m => m.role === 'user');
+                        if (firstUserMessage && firstUserMessage.content) {
+                            const newTitle = firstUserMessage.content.length > 30
+                                ? firstUserMessage.content.substring(0, 30) + '...'
+                                : firstUserMessage.content;
+                            console.log(`自动更新会话名称为: ${newTitle}`);
+                            renameSession(sessionId, newTitle);
+                            shouldUpdateTitle.current = false;
+                        }
                     }
                 },
-                (error) => {
+                (error: Error) => {
                     console.error('流式消息请求失败:', error);
 
                     // 清除任何未执行的防抖更新
