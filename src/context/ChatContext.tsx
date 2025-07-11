@@ -954,7 +954,18 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     }
 
                     if (partialResponse && partialResponse.data) {
+                        // 核心修复：确保我们只处理包含 'answer' 字段的有效数据块
+                        if (typeof partialResponse.data !== 'object' || !('answer' in partialResponse.data) || partialResponse.data.answer === null) {
+                            // 如果数据是布尔值true、不含answer字段的对象或answer为null，则忽略
+                            return;
+                        }
+
                         const newContent = partialResponse.data.answer || '';
+
+                        // 如果 answer 字段存在但为空字符串，也忽略
+                        if (!newContent.trim()) {
+                            return;
+                        }
 
                         // 减少日志输出，只在开发环境且内容长度是50的倍数时输出
                         if (process.env.NODE_ENV === 'development' && newContent.length % 50 === 0) {
@@ -1029,13 +1040,8 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                             }
                             // 正常更新内容
                             else {
-                                // 过滤掉<think>...</think>标签内容
-                                let filteredContent = newContent;
-                                const thinkRegex = /<think>[\s\S]*?<\/think>/g;
-                                filteredContent = filteredContent.replace(thinkRegex, '');
-
-                                // 对内容进行更新
-                                responseText = filteredContent;
+                                // 不再过滤<think>...</think>标签内容，保留思考过程
+                                responseText = newContent; // 保存原始内容
 
                                 // 如果不包含元数据，则更新有效答案
                                 if (!responseText.includes('id:') && !responseText.includes('retry:')) {
@@ -1075,28 +1081,38 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                         const lastMessageIndex = newMessages.length - 1;
 
                         if (lastMessageIndex >= 0 && newMessages[lastMessageIndex].role === 'assistant') {
-                            // 清理可能包含的元数据
-                            let finalContent = validAnswer || responseText; // 优先使用validAnswer
+                            // 核心修复：使用已累积的有效内容，而不是尝试处理最后一个数据块
+                            // 优先使用validAnswer，它已经过滤掉了无效的数据块
+                            let finalContent = validAnswer || '';
 
-                            // 如果响应内容包含元数据(id:或retry:)，尝试恢复到最后一次有效内容
-                            if (finalContent && (finalContent.includes('id:') || finalContent.includes('retry:'))) {
-                                // 尝试从历史消息中找出最后一次非元数据内容
-                                const lastMessage = currentMessages[lastMessageIndex];
-                                if (lastMessage && lastMessage.content &&
-                                    !lastMessage.content.includes('id:') &&
-                                    !lastMessage.content.includes('retry:')) {
-                                    finalContent = lastMessage.content;
-                                } else {
-                                    finalContent = '等待回复...'; // 无法恢复时的默认内容
+                            // 如果validAnswer为空，但当前消息有内容，则使用当前消息内容
+                            if (!finalContent && newMessages[lastMessageIndex].content) {
+                                finalContent = newMessages[lastMessageIndex].content;
+                            }
+
+                            // 如果最终内容仍然为空，则使用responseText（最后一次接收的原始内容）
+                            if (!finalContent && responseText) {
+                                finalContent = responseText;
+                            }
+
+                            // 确保最终内容不为空
+                            if (!finalContent.trim()) {
+                                console.warn('流式响应结束，但最终内容为空，使用最后一次有效内容');
+                                // 查找最后一次有效内容
+                                for (let i = lastMessageIndex - 1; i >= 0; i--) {
+                                    if (newMessages[i].role === 'assistant' && newMessages[i].content) {
+                                        finalContent = newMessages[i].content;
+                                        break;
+                                    }
+                                }
+                                // 如果仍然没有找到有效内容，使用占位符
+                                if (!finalContent.trim()) {
+                                    finalContent = '对不起，处理您的请求时出现了问题。请重试。';
                                 }
                             }
 
-                            // 过滤掉<think>...</think>标签内容
-                            const thinkRegex = /<think>[\s\S]*?<\/think>/g;
-                            finalContent = finalContent.replace(thinkRegex, '');
-
                             // 处理引用格式转换
-                            const processedFinalContent = replaceTextByOldReg(finalContent || '等待回复...');
+                            const processedFinalContent = replaceTextByOldReg(finalContent || '');
 
                             // 确保引用数据的有效性
                             let finalReference = undefined;
@@ -1109,7 +1125,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                             // 完成消息，包含所有累积的参考文档
                             newMessages[lastMessageIndex] = {
                                 ...newMessages[lastMessageIndex],
-                                content: processedFinalContent, // 确保不显示空内容
+                                content: processedFinalContent, // 使用处理后的最终内容
                                 isLoading: false,
                                 // 添加最终的参考文档信息 - 直接绑定到消息上
                                 reference: finalReference,
