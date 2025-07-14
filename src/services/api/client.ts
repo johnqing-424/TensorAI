@@ -394,6 +394,16 @@ class ApiClient {
         }, 60000); // 60秒超时
 
         const executeStreamRequest = async (): Promise<void> => {
+            let isCompleted = false; // 添加标志位，防止重复调用onComplete
+
+            // 封装一个只调用一次的 onComplete
+            const completeOnce = () => {
+                if (!isCompleted) {
+                    onComplete();
+                    isCompleted = true;
+                }
+            };
+
             try {
                 if (retryCount > 0) {
                     console.log(`尝试第${retryCount}次重试...`);
@@ -425,113 +435,130 @@ class ApiClient {
                     throw new Error("无法获取响应读取器");
                 }
 
-                const decoder = new TextDecoder("utf-8");
-                let buffer = '';
+                try {
+                    const decoder = new TextDecoder("utf-8");
+                    let buffer = '';
 
-                const processChunk = (text: string): ApiResponse<StreamChatResponse> | null => {
-                    try {
-                        // 处理SSE特殊事件
-                        if (text.startsWith('id:') || text.startsWith('retry:') || text.startsWith('event:')) {
+                    const processChunk = (text: string): ApiResponse<StreamChatResponse> | null => {
+                        try {
+                            // 处理SSE特殊事件
+                            if (text.startsWith('id:') || text.startsWith('retry:') || text.startsWith('event:')) {
+                                if (process.env.NODE_ENV === 'development') {
+                                    console.log("接收到SSE控制消息:", text);
+                                }
+                                return null; // 这些是SSE控制消息，不是JSON数据
+                            }
+
+                            // 处理JSON数据
+                            const json = JSON.parse(text);
+                            return json as ApiResponse<StreamChatResponse>;
+                        } catch (e) {
                             if (process.env.NODE_ENV === 'development') {
-                                console.log("接收到SSE控制消息:", text);
+                                console.error("解析SSE数据块失败:", text, e);
                             }
-                            return null; // 这些是SSE控制消息，不是JSON数据
+                            return null;
+                        }
+                    };
+
+                    while (true) {
+                        const { done, value } = await reader.read();
+                        if (done) {
+                            if (buffer.trim()) {
+                                const line = buffer.replace(/^data: ?/, '').trim();
+                                if (line) {
+                                    const chunk = processChunk(line);
+                                    if (chunk) onChunkReceived(chunk);
+                                }
+                            }
+                            break;
                         }
 
-                        // 处理JSON数据
-                        const json = JSON.parse(text);
-                        return json as ApiResponse<StreamChatResponse>;
-                    } catch (e) {
-                        if (process.env.NODE_ENV === 'development') {
-                            console.error("解析SSE数据块失败:", text, e);
+                        buffer += decoder.decode(value, { stream: true });
+                        const lines = buffer.split('\n');
+                        buffer = lines.pop() || '';
+
+                        for (const line of lines) {
+                            const trimmedLine = line.replace(/^data: ?/, '').trim();
+                            if (!trimmedLine) continue;
+
+                            if (trimmedLine.includes('[DONE]')) {
+                                console.log("接收到[DONE]信号, 准备完成");
+                                completeOnce();
+                                break;
+                            }
+
+                            // 增加对 event:complete 的处理
+                            if (trimmedLine.includes("event:complete")) {
+                                console.log("接收到 event:complete 信号, 准备完成");
+                                completeOnce();
+                                continue;
+                            }
+
+                            const chunk = processChunk(trimmedLine);
+                            if (chunk && chunk.data) {
+                                if (chunk.data.reference) {
+                                    const newRef = chunk.data.reference;
+
+                                    if (!accumulatedReference) {
+                                        accumulatedReference = { chunks: [], doc_aggs: [], total: 0 };
+                                    }
+
+                                    const currentReference = accumulatedReference;
+
+                                    if (newRef.chunks && Array.isArray(newRef.chunks)) {
+                                        const chunkIds = new Set(currentReference.chunks.map(c => c.id));
+                                        newRef.chunks.forEach(newChunk => {
+                                            if (newChunk && newChunk.id && !chunkIds.has(newChunk.id)) {
+                                                currentReference.chunks.push(newChunk);
+                                                chunkIds.add(newChunk.id);
+                                            }
+                                        });
+                                    }
+
+                                    if (newRef.doc_aggs && Array.isArray(newRef.doc_aggs)) {
+                                        const docIds = new Set(currentReference.doc_aggs.map(d => d.doc_id));
+                                        newRef.doc_aggs.forEach(newDoc => {
+                                            if (newDoc && newDoc.doc_id && !docIds.has(newDoc.doc_id)) {
+                                                currentReference.doc_aggs.push(newDoc);
+                                                docIds.add(newDoc.doc_id);
+                                            }
+                                        });
+                                    }
+
+                                    if (typeof newRef.total === 'number' && newRef.total > currentReference.total) {
+                                        currentReference.total = newRef.total;
+                                    }
+                                }
+
+                                const chunkToSend = {
+                                    ...chunk,
+                                    data: {
+                                        ...chunk.data,
+                                        answer: chunk.data.answer || '',
+                                        reference: accumulatedReference || undefined,
+                                    },
+                                };
+
+                                // 减少日志输出频率，只在有引用数据时才输出
+                                if (process.env.NODE_ENV === 'development' &&
+                                    accumulatedReference &&
+                                    (accumulatedReference.chunks.length > 0 || accumulatedReference.doc_aggs.length > 0)) {
+                                    console.log('累积的reference数据:', JSON.stringify({
+                                        total: accumulatedReference.total,
+                                        chunks_count: accumulatedReference.chunks.length,
+                                        doc_aggs_count: accumulatedReference.doc_aggs.length
+                                    }));
+                                }
+
+                                onChunkReceived(chunkToSend);
+                            }
                         }
-                        return null;
                     }
-                };
-
-                while (true) {
-                    const { done, value } = await reader.read();
-                    if (done) {
-                        if (buffer.trim()) {
-                            const line = buffer.replace(/^data: ?/, '').trim();
-                            if (line) {
-                                const chunk = processChunk(line);
-                                if (chunk) onChunkReceived(chunk);
-                            }
-                        }
-                        break;
-                    }
-
-                    buffer += decoder.decode(value, { stream: true });
-                    const lines = buffer.split('\n');
-                    buffer = lines.pop() || '';
-
-                    for (const line of lines) {
-                        const trimmedLine = line.replace(/^data: ?/, '').trim();
-                        if (!trimmedLine) continue;
-
-                        const chunk = processChunk(trimmedLine);
-                        if (chunk && chunk.data) {
-                            if (chunk.data.reference) {
-                                const newRef = chunk.data.reference;
-
-                                if (!accumulatedReference) {
-                                    accumulatedReference = { chunks: [], doc_aggs: [], total: 0 };
-                                }
-
-                                const currentReference = accumulatedReference;
-
-                                if (newRef.chunks && Array.isArray(newRef.chunks)) {
-                                    const chunkIds = new Set(currentReference.chunks.map(c => c.id));
-                                    newRef.chunks.forEach(newChunk => {
-                                        if (newChunk && newChunk.id && !chunkIds.has(newChunk.id)) {
-                                            currentReference.chunks.push(newChunk);
-                                            chunkIds.add(newChunk.id);
-                                        }
-                                    });
-                                }
-
-                                if (newRef.doc_aggs && Array.isArray(newRef.doc_aggs)) {
-                                    const docIds = new Set(currentReference.doc_aggs.map(d => d.doc_id));
-                                    newRef.doc_aggs.forEach(newDoc => {
-                                        if (newDoc && newDoc.doc_id && !docIds.has(newDoc.doc_id)) {
-                                            currentReference.doc_aggs.push(newDoc);
-                                            docIds.add(newDoc.doc_id);
-                                        }
-                                    });
-                                }
-
-                                if (typeof newRef.total === 'number' && newRef.total > currentReference.total) {
-                                    currentReference.total = newRef.total;
-                                }
-                            }
-
-                            const chunkToSend = {
-                                ...chunk,
-                                data: {
-                                    ...chunk.data,
-                                    answer: chunk.data.answer || '',
-                                    reference: accumulatedReference || undefined,
-                                },
-                            };
-
-                            // 减少日志输出频率，只在有引用数据时才输出
-                            if (process.env.NODE_ENV === 'development' &&
-                                accumulatedReference &&
-                                (accumulatedReference.chunks.length > 0 || accumulatedReference.doc_aggs.length > 0)) {
-                                console.log('累积的reference数据:', JSON.stringify({
-                                    total: accumulatedReference.total,
-                                    chunks_count: accumulatedReference.chunks.length,
-                                    doc_aggs_count: accumulatedReference.doc_aggs.length
-                                }));
-                            }
-
-                            onChunkReceived(chunkToSend);
-                        }
-                    }
+                } finally {
+                    reader.releaseLock();
                 }
 
-                onComplete();
+                completeOnce(); // 确保在循环正常结束后也被调用
             } catch (error: any) {
                 clearTimeout(timeoutId); // 确保出错时也清除计时器
 
@@ -555,6 +582,8 @@ class ApiClient {
                     }
                     onError(new Error(errorMessage));
                 }
+            } finally {
+                completeOnce(); // 确保无论如何（即使有未捕获的异常）都能调用
             }
         };
 
