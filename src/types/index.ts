@@ -18,6 +18,7 @@ export interface ChatMessage {
     timestamp?: number;   // 时间戳，用于强制React识别组件更新
     completed?: boolean;  // 标记消息是否已完成生成
     reference?: Reference; // 添加引用信息字段，用于存储消息的参考文档
+    doc_ids?: string[]; // 为兼容ragflow后端，添加文档ID列表
 }
 
 // 聊天引用源类型
@@ -102,16 +103,16 @@ export interface ChatContextType {
     reference?: IReference; // 当前会话的引用数据
 }
 
-// 聊天会话类型
+// 对话会话类型
 export interface ChatSession {
     id: string;
     name: string;
-    messages: {
-        role: "user" | "assistant" | "system";
+    messages: Array<{
+        role: 'user' | 'assistant' | 'system';
         content: string;
-        metadata?: any | null;
-        reference?: string | null;
-    }[];
+        metadata?: any;
+        reference?: Reference | null; // 修正类型，使其与ChatMessage一致
+    }>;
     create_time?: number;
     update_time?: number;
     chat_id?: string;

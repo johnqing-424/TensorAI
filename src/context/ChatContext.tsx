@@ -107,18 +107,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
 
     // 引用状态
-    const [latestReference, setLatestReference] = useState<Reference | null>(
-        // 尝试从localStorage恢复参考文档数据
-        (() => {
-            try {
-                const savedRef = localStorage.getItem('ragflow_latest_reference');
-                return savedRef ? JSON.parse(savedRef) : null;
-            } catch (e) {
-                console.error('恢复参考文档失败:', e);
-                return null;
-            }
-        })()
-    );
+    const [latestReference, setLatestReference] = useState<Reference | null>(null);
     const [reference, setReference] = useState<IReference | undefined>(undefined);
 
     // 界面状态
@@ -425,7 +414,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         } else {
             setMessages([]);
         }
-    }, [currentSession]);
+    }, [currentSession?.id]); // 关键修复：仅在会话ID变化时才重置消息列表
 
     // 设置API密钥
     const setApiKey = (key: string) => {
@@ -470,15 +459,6 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     // 保存参考文档信息
     const handleResponseReference = (ref: Reference | null) => {
         setLatestReference(ref);
-
-        // 将参考文档保存到localStorage
-        if (ref) {
-            try {
-                localStorage.setItem('ragflow_latest_reference', JSON.stringify(ref));
-            } catch (e) {
-                console.error('保存参考文档失败:', e);
-            }
-        }
     };
 
     // 获取会话列表，带错误处理
@@ -585,6 +565,18 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 const baseTimestamp = Date.now();
                 const formattedInitialMessages = initialMessages.map((msg: any, index: number) => {
                     const messageContent = msg.content || '';
+                    let referenceObject: Reference | undefined = undefined;
+                    if (msg.reference && typeof msg.reference === 'string') {
+                        try {
+                            referenceObject = JSON.parse(msg.reference);
+                        } catch (e) {
+                            console.warn('无法解析初始消息的引用:', e);
+                            referenceObject = undefined;
+                        }
+                    } else if (msg.reference) {
+                        referenceObject = msg.reference;
+                    }
+
                     console.log(`初始消息 #${index}:`, {
                         role: msg.role,
                         content: messageContent,
@@ -595,7 +587,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                         id: `initial-${baseTimestamp}-${index}-${Math.random().toString(36).substr(2, 9)}`,
                         role: msg.role || 'assistant',
                         content: messageContent,
-                        reference: msg.reference || null,
+                        reference: referenceObject,
                         timestamp: baseTimestamp + index, // 确保每个消息有唯一的时间戳
                         completed: true,
                         isLoading: false // 明确设置初始消息不在加载状态
@@ -693,17 +685,23 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     // 确保格式转换正确
                     const formattedMessages = response.data.map((msg: any) => {
                         // 检查并恢复引用数据
-                        const msgReference = msg.reference || null;
-                        if (msgReference && msgReference.doc_aggs && msgReference.doc_aggs.length > 0) {
-                            // 保存最新的引用信息
-                            handleResponseReference(msgReference);
+                        let referenceObject: Reference | undefined = undefined;
+                        if (msg.reference && typeof msg.reference === 'string') {
+                            try {
+                                referenceObject = JSON.parse(msg.reference);
+                            } catch (e) {
+                                console.warn('无法解析历史消息的引用:', e);
+                                referenceObject = undefined;
+                            }
+                        } else if (msg.reference) {
+                            referenceObject = msg.reference;
                         }
 
                         return {
                             role: msg.role || "user", // 确保角色有效
                             content: msg.content || "",
                             timestamp: Date.now(),
-                            reference: msg.reference || null,
+                            reference: referenceObject,
                             completed: true, // 历史消息标记为已完成
                             isLoading: false // 明确设置历史消息不在加载状态
                         };
@@ -796,74 +794,8 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             timestamp: Date.now()
         };
 
-        // 添加消息到UI中 - 确保正确的消息顺序
-        // 使用当前会话的消息列表，而不是全局messages状态
-        const currentSessionMessages = targetSession.messages || [];
-
-        // 转换现有消息为ChatSession.messages格式
-        const updatedMessages = currentSessionMessages.map(msg => ({
-            role: msg.role,
-            content: msg.content,
-            metadata: msg.metadata || null,
-            reference: msg.reference || null
-        }));
-
-        // 创建符合ChatSession.messages类型的用户消息和临时助手消息
-        const sessionUserMessage = {
-            role: userMessage.role as "user" | "assistant" | "system",
-            content: userMessage.content,
-            metadata: null,
-            reference: null
-        };
-
-        const sessionTempAssistantMessage = {
-            role: tempAssistantMessage.role as "user" | "assistant" | "system",
-            content: tempAssistantMessage.content,
-            metadata: null,
-            reference: null
-        };
-
-        // 将用户消息和临时助手消息添加到消息列表末尾
-        const newMessages = [...updatedMessages, sessionUserMessage, sessionTempAssistantMessage];
-
-        // 为UI显示创建ChatMessage格式的消息列表
-        const uiMessages = [...currentSessionMessages.map((msg, index) => ({
-            id: `session-msg-${targetSession?.id || 'unknown'}-${index}`,
-            role: msg.role,
-            content: msg.content,
-            isLoading: false,
-            completed: true,
-            timestamp: Date.now(),
-            reference: msg.reference ? {
-                total: 0,
-                chunks: [],
-                doc_aggs: []
-            } : undefined
-        } as ChatMessage)), userMessage, tempAssistantMessage];
-        setMessages(uiMessages);
-
-        // 同时更新会话中的消息列表
-        if (targetSession) {
-            const updatedSession = {
-                ...targetSession,
-                messages: newMessages
-            };
-            setCurrentSession(updatedSession);
-
-            // 更新会话列表中的对应会话
-            setChatSessions(prev => prev.map(session =>
-                session.id === targetSession!.id ? updatedSession : session
-            ));
-        }
-
-        console.log('发送消息时的消息列表状态:', {
-            sessionId: targetSession?.id || 'unknown',
-            originalSessionMessagesCount: currentSessionMessages.length,
-            updatedMessagesCount: newMessages.length,
-            userMessage: userMessage,
-            tempAssistantMessage: tempAssistantMessage,
-            hasInitialMessages: currentSessionMessages.some(msg => msg.role === 'assistant' && msg.content)
-        });
+        // 更新UI显示的消息列表
+        setMessages(prev => [...prev, userMessage, tempAssistantMessage]);
 
         // 清空当前消息输入
         setCurrentMessage('');
@@ -1125,9 +1057,18 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                                 completed: true
                             };
 
-                            // 更新 latestReference 用于兼容旧的使用方式，但不再是主要的存储位置
-                            if (finalReference) {
-                                handleResponseReference(finalReference);
+                            // 如果需要，在这里基于最新的 newMessages 更新会话标题
+                            if (shouldUpdateTitle.current) {
+                                const firstUserMessage = newMessages.find(m => m.role === 'user');
+                                if (firstUserMessage && firstUserMessage.content) {
+                                    const newTitle = firstUserMessage.content.length > 30
+                                        ? firstUserMessage.content.substring(0, 30) + '...'
+                                        : firstUserMessage.content;
+                                    console.log(`自动更新会话名称为: ${newTitle}`);
+                                    // 直接调用，但因为它在 setMessages 的回调内部，所以是安全的
+                                    renameSession(sessionId, newTitle);
+                                    shouldUpdateTitle.current = false;
+                                }
                             }
                         }
 
@@ -1139,19 +1080,6 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                         isReceivingStream: false,
                         isTyping: false
                     });
-
-                    // 自动更新会话标题
-                    if (shouldUpdateTitle.current) {
-                        const firstUserMessage = messages.find(m => m.role === 'user');
-                        if (firstUserMessage && firstUserMessage.content) {
-                            const newTitle = firstUserMessage.content.length > 30
-                                ? firstUserMessage.content.substring(0, 30) + '...'
-                                : firstUserMessage.content;
-                            console.log(`自动更新会话名称为: ${newTitle}`);
-                            renameSession(sessionId, newTitle);
-                            shouldUpdateTitle.current = false;
-                        }
-                    }
                 },
                 (error: Error) => {
                     console.error('流式消息请求失败:', error);

@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>流式响应测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .container {
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input,
+        textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .response {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            min-height: 100px;
+        }
+
+        .status {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+
+        .status.success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .status.error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .status.info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>流式响应测试</h1>
+
+        <div class="input-group">
+            <label for="token">Token:</label>
+            <input type="text" id="token" value="token-zjts" placeholder="输入API Token">
+        </div>
+
+        <div class="input-group">
+            <label for="appid">App ID:</label>
+            <input type="text" id="appid" value="cdaacb8c41f111f09f3913c504f0ae96" placeholder="输入App ID">
+        </div>
+
+        <div class="input-group">
+            <label for="sessionId">Session ID:</label>
+            <input type="text" id="sessionId" value="cfdafb3442b411f0844d81792c3ddaf5" placeholder="输入Session ID">
+        </div>
+
+        <div class="input-group">
+            <label for="message">消息:</label>
+            <textarea id="message" rows="3" placeholder="输入要发送的消息">测试流式响应功能</textarea>
+        </div>
+
+        <button id="sendBtn" onclick="sendStreamMessage()">发送流式消息</button>
+        <button id="stopBtn" onclick="stopStream()" disabled>停止</button>
+
+        <div class="response" id="response">等待响应...</div>
+        <div class="status" id="status"></div>
+    </div>
+
+    <script>
+        let currentController = null;
+        let isStreaming = false;
+
+        function updateStatus(message, type = 'info') {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = message;
+            statusEl.className = `status ${type}`;
+        }
+
+        function updateResponse(text) {
+            document.getElementById('response').textContent = text;
+        }
+
+        function appendResponse(text) {
+            const responseEl = document.getElementById('response');
+            responseEl.textContent += text;
+        }
+
+        async function sendStreamMessage() {
+            if (isStreaming) {
+                updateStatus('已有流式请求在进行中', 'error');
+                return;
+            }
+
+            const token = document.getElementById('token').value;
+            const appid = document.getElementById('appid').value;
+            const sessionId = document.getElementById('sessionId').value;
+            const message = document.getElementById('message').value;
+
+            if (!token || !appid || !sessionId || !message) {
+                updateStatus('请填写所有必填字段', 'error');
+                return;
+            }
+
+            isStreaming = true;
+            document.getElementById('sendBtn').disabled = true;
+            document.getElementById('stopBtn').disabled = false;
+            updateResponse('');
+            updateStatus('正在发送请求...', 'info');
+
+            currentController = new AbortController();
+
+            try {
+                const response = await fetch('http://localhost:3001/proxy/messages/stream', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'token': token,
+                        'appid': appid,
+                        'Accept': 'text/event-stream',
+                        'Cache-Control': 'no-cache'
+                    },
+                    body: JSON.stringify({
+                        sessionId: sessionId,
+                        message: message
+                    }),
+                    signal: currentController.signal
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                updateStatus('连接成功，正在接收数据...', 'success');
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+                let responseText = '';
+
+                while (true) {
+                    const { done, value } = await reader.read();
+
+                    if (done) {
+                        updateStatus('流式响应完成', 'success');
+                        break;
+                    }
+
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split('\n');
+                    buffer = lines.pop() || '';
+
+                    for (const line of lines) {
+                        if (line.trim() === '') continue;
+
+                        console.log('收到数据行:', line);
+
+                        if (line.startsWith('data:')) {
+                            try {
+                                const jsonStr = line.slice(5).trim();
+                                if (jsonStr === 'true' || jsonStr === 'false' || jsonStr === '') {
+                                    continue;
+                                }
+
+                                const chunk = JSON.parse(jsonStr);
+                                console.log('解析的数据块:', chunk);
+
+                                if (chunk && chunk.answer !== undefined) {
+                                    responseText = chunk.answer;
+                                    updateResponse(responseText);
+                                } else if (chunk && chunk.data && chunk.data.answer !== undefined) {
+                                    responseText = chunk.data.answer;
+                                    updateResponse(responseText);
+                                }
+                            } catch (e) {
+                                console.warn('解析JSON失败:', e, '原始数据:', line);
+                                appendResponse('\n[原始数据]: ' + line);
+                            }
+                        } else if (line.startsWith('event:complete')) {
+                            updateStatus('收到完成事件', 'success');
+                            break;
+                        } else {
+                            console.log('其他数据:', line);
+                            appendResponse('\n[其他]: ' + line);
+                        }
+                    }
+                }
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    updateStatus('请求被用户取消', 'info');
+                } else {
+                    updateStatus(`错误: ${error.message}`, 'error');
+                    console.error('流式请求错误:', error);
+                }
+            } finally {
+                isStreaming = false;
+                document.getElementById('sendBtn').disabled = false;
+                document.getElementById('stopBtn').disabled = true;
+                currentController = null;
+            }
+        }
+
+        function stopStream() {
+            if (currentController) {
+                currentController.abort();
+                updateStatus('正在停止流式请求...', 'info');
+            }
+        }
+
+        // 页面加载完成后的初始化
+        document.addEventListener('DOMContentLoaded', function () {
+            updateStatus('准备就绪，可以发送流式请求', 'success');
+        });
+    </script>
+</body>
+
+</html>

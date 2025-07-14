@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CORS问题解决指南</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1,
+        h2 {
+            color: #333;
+        }
+
+        h1 {
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .extension {
+            margin-bottom: 30px;
+        }
+
+        .extension h2 {
+            margin-bottom: 10px;
+        }
+
+        code {
+            background: #f5f5f5;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+
+        .note {
+            background: #fff8dc;
+            padding: 15px;
+            border-left: 5px solid #ffeb3b;
+            margin: 20px 0;
+        }
+
+        .steps {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+        }
+
+        .steps li {
+            margin-bottom: 10px;
+        }
+
+        img {
+            max-width: 100%;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 10px 15px;
+            background: #4285f4;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>解决CORS跨域问题</h1>
+
+        <p>在使用RAGFlow聊天时，您可能会遇到CORS（跨源资源共享）错误，这是因为前端应用与API服务器位于不同域名/端口下。以下是几种解决方法：</p>
+
+        <div class="note">
+            <strong>注意：</strong> 这些解决方案仅供开发环境使用。在生产环境中，应由服务器端正确配置CORS策略。
+        </div>
+
+        <div class="extension">
+            <h2>方法1：安装CORS浏览器扩展</h2>
+
+            <p>最简单的方法是安装一个能够禁用CORS检查的浏览器扩展。以下是几个流行的选项：</p>
+
+            <div class="steps">
+                <h3>Chrome浏览器</h3>
+                <ol>
+                    <li>安装 <a
+                            href="https://chrome.google.com/webstore/detail/allow-cors-access-control/lhobafahddgcelffkeicbaginigeejlf"
+                            target="_blank">Allow CORS: Access-Control-Allow-Origin</a> 或 <a
+                            href="https://chrome.google.com/webstore/detail/cors-unblock/lfhmikememgdcahcdlaciloancbhjino"
+                            target="_blank">CORS Unblock</a></li>
+                    <li>安装后，点击扩展图标启用它</li>
+                    <li>刷新RAGFlow聊天页面</li>
+                </ol>
+
+                <h3>Firefox浏览器</h3>
+                <ol>
+                    <li>安装 <a href="https://addons.mozilla.org/en-US/firefox/addon/cors-everywhere/"
+                            target="_blank">CORS Everywhere</a></li>
+                    <li>安装后，点击扩展图标启用它</li>
+                    <li>刷新RAGFlow聊天页面</li>
+                </ol>
+            </div>
+        </div>
+
+        <div class="extension">
+            <h2>方法2：使用API测试工具</h2>
+            <p>我们提供了一个可以直接测试API的工具，它不受CORS限制的影响。您可以通过这个工具获取登录令牌，然后将令牌手动复制到应用中：</p>
+
+            <ol>
+                <li>访问 <a href="/api-tester.html">API测试工具</a></li>
+                <li>使用该工具成功登录后，令牌会自动保存到localStorage</li>
+                <li>刷新RAGFlow聊天页面，应用会自动使用存储的令牌</li>
+            </ol>
+
+            <a href="/api-tester.html" class="btn">打开API测试工具</a>
+        </div>
+
+        <div class="extension">
+            <h2>方法3：配置本地代理</h2>
+            <p>如果您是开发人员，可以设置本地代理服务器来转发API请求：</p>
+
+            <div class="steps">
+                <h3>使用Node.js的http-proxy-middleware</h3>
+                <p>如果您已经启动了本地React开发服务器，您需要重新启动开发服务器使代理配置生效：</p>
+                <code>npm start</code>
+            </div>
+        </div>
+
+        <div class="note">
+            <p><strong>最终解决方案：</strong> 要彻底解决此问题，API服务器应该正确配置CORS头来允许前端域名的请求。请联系系统管理员进行适当配置。</p>
+        </div>
+    </div>
+</body>
+
+</html>

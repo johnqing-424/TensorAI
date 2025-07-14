@@ -4,7 +4,7 @@ import ChatMessage from './ChatMessage';
 import './ChatHistory.css'; // 添加引用CSS文件
 
 const ChatHistory: React.FC = () => {
-    const { messages, isTyping, apiError, latestReference, isSidebarVisible } = useChatContext();
+    const { messages, isTyping, apiError, isSidebarVisible } = useChatContext();
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const messagesContainerRef = useRef<HTMLDivElement>(null);
     const [isAtBottom, setIsAtBottom] = useState(true);
@@ -119,24 +119,8 @@ const ChatHistory: React.FC = () => {
         const fileExtension = chunk.document_name ?
             chunk.document_name.split('.').pop()?.toLowerCase() : '';
 
-        // 构建文档URL，优先使用chunk中的URL
-        let docUrl;
-
-        if (latestReference && latestReference.doc_aggs) {
-            // 在doc_aggs中查找匹配的文档
-            const docInfo = latestReference.doc_aggs.find(doc => doc.doc_id === documentId);
-
-            if (docInfo && docInfo.url) {
-                // 如果文档有预定义的URL，直接使用
-                docUrl = docInfo.url;
-            } else {
-                // 否则构建标准URL
-                docUrl = `/document/${documentId}?ext=${fileExtension || ''}&prefix=document`;
-            }
-        } else {
-            // 默认URL格式
-            docUrl = `/document/${documentId}?ext=${fileExtension || ''}&prefix=document`;
-        }
+        // 构建文档URL，不再依赖全局reference，直接使用chunk信息
+        const docUrl = chunk.url || `/document/${documentId}?ext=${fileExtension || ''}&prefix=document`;
 
         // 打开文档预览
         window.open(docUrl, '_blank');
@@ -171,7 +155,6 @@ const ChatHistory: React.FC = () => {
                                     <ChatMessage
                                         message={message}
                                         isTyping={isTyping && index === messages.length - 1 && message.role === 'assistant'}
-                                        reference={message.role === 'assistant' ? (message.reference || (index === messages.length - 1 ? latestReference || undefined : undefined)) : undefined}
                                         onDocumentClick={handleDocumentClick}
                                     />
                                 </div>

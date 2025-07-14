@@ -1,5 +1,5 @@
-import React, { useMemo, useCallback, useRef, useEffect } from 'react';
-import { ChatMessage, Reference, ReferenceChunk } from '../../types';
+import React, { useMemo, useCallback, useRef } from 'react';
+import { ChatMessage, ReferenceChunk } from '../../types';
 import MarkdownRenderer from './MarkdownRenderer';
 import LoadingIndicator from './LoadingIndicator';
 import ErrorMessage from './ErrorMessage';
@@ -12,7 +12,6 @@ const { Text, Link } = Typography;
 interface MessageContentProps {
     message: ChatMessage;
     isTyping?: boolean;
-    reference?: Reference;
     onDocumentClick?: (documentId: string, chunk: ReferenceChunk) => void;
 }
 
@@ -23,10 +22,9 @@ interface MessageContentProps {
 const MessageContent: React.FC<MessageContentProps> = ({
     message,
     isTyping = false,
-    reference,
     onDocumentClick
 }) => {
-    const { content, isLoading, isError, role, completed } = message;
+    const { content, isLoading, isError, role, completed, reference } = message;
     const contentRef = useRef<HTMLDivElement>(null);
 
     // 确定当前消息的状态
@@ -86,22 +84,8 @@ const MessageContent: React.FC<MessageContentProps> = ({
 
     // 渲染参考文档列表 - 独立于消息气泡
     const renderReferenceDocuments = useCallback(() => {
-        // 只在有参考文档时显示，且只有助手消息才会显示参考文档
-        if (role !== 'assistant') {
-            return null;
-        }
-
-        // 检查引用数据是否有效
-        const hasReferenceData = reference &&
-            reference.doc_aggs &&
-            Array.isArray(reference.doc_aggs) &&
-            reference.doc_aggs.length > 0;
-
-        if (!hasReferenceData) {
-            // 减少日志输出，只在特定条件下输出
-            // if (process.env.NODE_ENV === 'development') {
-            //     console.log('无参考文档数据或数据格式不正确:', reference);
-            // }
+        // 只有助手消息、流式传输完成且有引用数据时才显示
+        if (role !== 'assistant' || !completed || !reference?.doc_aggs?.length) {
             return null;
         }
 
@@ -157,7 +141,7 @@ const MessageContent: React.FC<MessageContentProps> = ({
                 />
             </div>
         );
-    }, [reference, role, getFileIcon]);
+    }, [reference, role, getFileIcon, completed]);
 
     // 渲染正常内容
     const renderNormalContent = useCallback(() => {
@@ -205,7 +189,7 @@ const MessageContent: React.FC<MessageContentProps> = ({
             <div className={`message-content message-content--${messageState}`} ref={contentRef}>
                 {renderContent()}
             </div>
-            {/* 参考文档列表独立于消息气泡 */}
+            {/* 参考文档列表独立于消息气泡，并根据消息完成状态渲染 */}
             {renderReferenceDocuments()}
         </>
     );
