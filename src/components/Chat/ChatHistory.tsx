@@ -114,34 +114,6 @@ const ChatHistory: React.FC = () => {
         };
     }, [handleScroll]);
 
-    const handleDocumentClick = (documentId: string, chunk: any) => {
-        // 构建文档预览URL
-        const fileExtension = chunk.document_name ?
-            chunk.document_name.split('.').pop()?.toLowerCase() : '';
-
-        // 构建文档URL，优先使用chunk中的URL
-        let docUrl;
-
-        if (latestReference && latestReference.doc_aggs) {
-            // 在doc_aggs中查找匹配的文档
-            const docInfo = latestReference.doc_aggs.find(doc => doc.doc_id === documentId);
-
-            if (docInfo && docInfo.url) {
-                // 如果文档有预定义的URL，直接使用
-                docUrl = docInfo.url;
-            } else {
-                // 否则构建标准URL
-                docUrl = `/document/${documentId}?ext=${fileExtension || ''}&prefix=document`;
-            }
-        } else {
-            // 默认URL格式
-            docUrl = `/document/${documentId}?ext=${fileExtension || ''}&prefix=document`;
-        }
-
-        // 打开文档预览
-        window.open(docUrl, '_blank');
-    };
-
     return (
         <div className="chat-history" ref={messagesContainerRef}>
             <div className="messages-container">
@@ -171,8 +143,6 @@ const ChatHistory: React.FC = () => {
                                     <ChatMessage
                                         message={message}
                                         isTyping={isTyping && index === messages.length - 1 && message.role === 'assistant'}
-                                        reference={message.role === 'assistant' ? (message.reference || (index === messages.length - 1 ? latestReference || undefined : undefined)) : undefined}
-                                        onDocumentClick={handleDocumentClick}
                                     />
                                 </div>
                             );

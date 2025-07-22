@@ -1,13 +1,11 @@
 import React from 'react';
-import { ChatMessage as MessageType, Reference, ReferenceChunk } from '../../types';
+import { ChatMessage as MessageType } from '../../types';
 import MessageContent from './MessageContent';
 import './ChatMessage.css';
 
 interface ChatMessageProps {
     message: MessageType;
     isTyping?: boolean;
-    reference?: Reference;
-    onDocumentClick?: (documentId: string, chunk: ReferenceChunk) => void;
 }
 
 /**
@@ -16,8 +14,6 @@ interface ChatMessageProps {
 const ChatMessage: React.FC<ChatMessageProps> = ({
     message,
     isTyping = false,
-    reference,
-    onDocumentClick
 }) => {
     const { role, isLoading, isError } = message;
 
@@ -51,8 +47,6 @@ const ChatMessage: React.FC<ChatMessageProps> = ({
                 <MessageContent
                     message={message}
                     isTyping={isTyping}
-                    reference={reference}
-                    onDocumentClick={onDocumentClick}
                 />
             </div>
         </div>
