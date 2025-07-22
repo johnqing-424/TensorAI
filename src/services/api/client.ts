@@ -341,6 +341,27 @@ class ApiClient {
         return this.request<MessageResponse[]>(`/messages?sessionId=${sessionId}`, 'GET');
     }
 
+    /**
+     * 更新或保存单条消息 (withref)
+     * @param message 要保存的消息对象
+     * @returns 保存结果
+     */
+    async updateMessage(message: ChatMessage): Promise<ApiResponse<any>> {
+        if (!message || !message.id) {
+            console.error('更新消息失败: 提供了无效的消息对象');
+            return {
+                code: -1,
+                message: '无效的消息对象，缺少ID'
+            };
+        }
+        // 后端 PUT /api/messages 接口需要一个包含 message_id 和其他字段的对象
+        const payload = {
+            message_id: message.id,
+            ...message
+        };
+        return this.request<any>('/messages', 'PUT', payload);
+    }
+
     // 发送聊天消息（非流式）
     async sendChatMessage(
         sessionId: string,

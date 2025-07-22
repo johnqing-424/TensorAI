@@ -24,7 +24,7 @@ interface ChatContextType {
     loadingSessions: boolean;
     fetchChatSessions: () => Promise<void>;
     createChatSession: (name?: string, appId?: string) => Promise<ChatSession | null>;
-    selectSession: (session: ChatSession) => void;
+    selectSession: (session: ChatSession) => Promise<void>;
     deleteSession: (sessionId: string) => Promise<boolean>;
     renameSession: (sessionId: string, name: string) => Promise<void>;
 
@@ -47,6 +47,7 @@ interface ChatContextType {
     // 界面状态
     isSidebarVisible: boolean;
     toggleSidebar: () => void;
+    isMessageLoading: boolean;
 
     // 系统状态
     apiError: string | null;
@@ -78,6 +79,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const [chatSessions, setChatSessions] = useState<ChatSession[]>([]);
     const [currentSession, setCurrentSession] = useState<ChatSession | null>(null);
     const [loadingSessions, setLoadingSessions] = useState<boolean>(false);
+    const [isMessageLoading, setIsMessageLoading] = useState<boolean>(false);
 
     // 从URL获取的路径参数
     const [urlAppId, setUrlAppId] = useState<string | null>(null);
@@ -506,8 +508,10 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     const targetSession = validSessions.find(s => s.id === sessionId);
                     if (targetSession) {
                         console.log(`找到会话: ${targetSession.name}`);
-                        setCurrentSession(targetSession);
-                        getSessionMessages(targetSession.id);
+                        // 不要在这里用不完整的数据设置会话，
+                        // 直接调用 getSessionMessages 并把会话信息传过去，
+                        // 让它完成原子性更新。
+                        await getSessionMessages(targetSession.id, targetSession);
                     } else {
                         console.log(`未找到会话ID: ${sessionId}`);
                     }
@@ -674,78 +678,88 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
     };
 
+    // 选择会话
+    const selectSession = async (session: ChatSession) => {
+        if (!session) {
+            return;
+        }
+
+        // 避免重复加载同一个会话, 但允许在数据不完整时强制刷新
+        if (currentSession?.id === session.id && currentSession.messages?.length > 0) {
+            return;
+        }
+
+        // 只保存ID，然后触发完整的消息获取流程
+        localStorage.setItem('ragflow_selected_session', session.id);
+        await getSessionMessages(session.id);
+    };
+
+ // ... existing code ...
+
     // 获取会话消息
-    const getSessionMessages = async (sessionId: string) => {
+    const getSessionMessages = async (sessionId: string, sessionInfoFromCaller?: ChatSession) => {
         try {
-            const response = await apiClient.getMessages(sessionId);
+            // 优先使用调用者提供的会话信息，否则从状态中查找
+            const sessionInfo = sessionInfoFromCaller || chatSessions.find(s => s.id === sessionId);
+            // 如果连基础信息都找不到，直接退出
+            if (!sessionInfo) {
+                console.warn(`getSessionMessages: 找不到会话信息，ID: ${sessionId}`);
+                return;
+            }
+            setIsMessageLoading(true);
 
-            if (response.code === 0 && response.data) {
-                // 检查消息数据格式
-                if (Array.isArray(response.data)) {
-                    // 确保格式转换正确
-                    const formattedMessages = response.data.map((msg: any) => {
-                        // 检查并恢复引用数据
-                        let referenceObject: Reference | undefined = undefined;
-                        if (msg.reference && typeof msg.reference === 'string') {
+            const response: ApiResponse<any[]> = await apiClient.getMessages(sessionId);
+            
+            if (response.code === 0 && Array.isArray(response.data)) {
+                const fetchedMessages: ChatMessage[] = response.data.map((msg: any, index: number) => {
+                    let finalReference: Reference | undefined = undefined;
+
+                    if (msg.reference) {
+                        if (typeof msg.reference === 'string' && msg.reference.trim()) {
                             try {
-                                referenceObject = JSON.parse(msg.reference);
+                                const parsedRef = JSON.parse(msg.reference);
+                                // 确保解析后是有效的Reference对象
+                                if (parsedRef && typeof parsedRef === 'object') {
+                                    finalReference = parsedRef as Reference;
+                                    console.log(`[ChatContext] getSessionMessages: 成功解析消息 #${index} 的 reference 字符串:`, finalReference);
+                        } else {
+                                     finalReference = { total: 0, chunks: [], doc_aggs: [] };
+                                }
                             } catch (e) {
-                                console.warn('无法解析历史消息的引用:', e);
-                                referenceObject = undefined;
+                                console.warn(`[ChatContext] getSessionMessages: 解析消息 #${index} 的 reference 字符串失败:`, { error: e, refString: msg.reference });
+                                finalReference = { total: 0, chunks: [], doc_aggs: [] };
                             }
-                        } else if (msg.reference) {
-                            referenceObject = msg.reference;
+                        } else if (typeof msg.reference === 'object' && msg.reference !== null) {
+                            finalReference = msg.reference;
+                            console.log(`[ChatContext] getSessionMessages: 直接使用消息 #${index} 的 reference 对象:`, finalReference);
                         }
-
-                        return {
-                            role: msg.role || "user", // 确保角色有效
-                            content: msg.content || "",
-                            timestamp: Date.now(),
-                            reference: referenceObject,
-                            completed: true, // 历史消息标记为已完成
-                            isLoading: false // 明确设置历史消息不在加载状态
-                        };
-                    });
-
-                    // 更新当前消息列表
-                    setMessages(formattedMessages);
-
-                    // 更新当前会话中的消息
-                    if (currentSession && currentSession.id === sessionId) {
-                        setCurrentSession(prev => {
-                            if (!prev) return null;
-                            return {
-                                ...prev,
-                                messages: formattedMessages
-                            };
-                        });
                     }
 
-                    // 更新会话列表中的对应会话
-                    setChatSessions(prev => {
-                        return prev.map(s => {
-                            if (s.id === sessionId) {
-                                return {
-                                    ...s,
-                                    messages: formattedMessages
-                                };
-                            }
-                            return s;
-                        });
-                    });
-                } else {
-                    console.warn("返回的消息不是数组格式:", typeof response.data);
-                }
-            } else {
-                console.error(`获取会话[${sessionId}]消息失败:`, response.message || '未知错误');
-                setApiError(`获取会话消息失败: ${response.message || '未知错误'}`);
+                    return {
+                        role: msg.role || 'assistant',
+                        content: msg.content,
+                        reference: finalReference,
+                        id: msg.id || Math.random().toString(),
+                        completed: true,
+                    };
+                });
+
+                const sessionToSet = {
+                    ...sessionInfo,
+                    messages: fetchedMessages
+                };
+                
+                setCurrentSession(sessionToSet);
+                setMessages(fetchedMessages);
             }
         } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : String(error);
-            console.error(`获取会话[${sessionId}]消息异常:`, errorMessage, error);
-            setApiError(`获取会话消息异常: ${errorMessage}`);
+            console.error('获取消息时发生异常:', error);
+        } finally {
+            setIsMessageLoading(false);
         }
     };
+
+// ... existing code ...
 
     // 发送消息
     const sendMessage = async (message: string) => {
@@ -1026,54 +1040,64 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                         clearTimeout(updateDebounceTimer);
                     }
 
+                    let finalAssistantMessage: ChatMessage | null = null;
+
+                    console.groupCollapsed('[ChatContext] sendMessage: 流式响应完成');
+
                     setMessages(currentMessages => {
                         const newMessages = [...currentMessages];
                         const lastMessageIndex = newMessages.length - 1;
 
                         if (lastMessageIndex >= 0 && newMessages[lastMessageIndex].role === 'assistant') {
-                            // 最终修复：不再移除 <think> 标签，使其作为最终内容的一部分保留
-                            const finalContent = responseText.trim() || '【无内容】'; // 如果为空，则显示提示
-
-                            // 处理引用格式转换
+                            const finalContent = responseText.trim() || '【无内容】';
                             const processedFinalContent = replaceTextByOldReg(finalContent);
-
-                            // 确保引用数据的有效性
                             let finalReference = undefined;
-
                             if (cumulativeReference.chunks && cumulativeReference.chunks.length > 0 ||
                                 cumulativeReference.doc_aggs && cumulativeReference.doc_aggs.length > 0) {
                                 finalReference = { ...cumulativeReference };
                             }
-
-                            // 完成消息，包含所有累积的参考文档
+                            
                             newMessages[lastMessageIndex] = {
                                 ...newMessages[lastMessageIndex],
-                                content: processedFinalContent, // 确保不显示空内容
+                                content: processedFinalContent,
                                 isLoading: false,
-                                // 添加最终的参考文档信息 - 直接绑定到消息上
                                 reference: finalReference,
-                                // 添加结束时间戳
                                 timestamp: Date.now(),
                                 completed: true
                             };
-
-                            // 如果需要，在这里基于最新的 newMessages 更新会话标题
+                            
+                            finalAssistantMessage = newMessages[lastMessageIndex];
+                            
+                            console.log('最终助手机器人消息:', finalAssistantMessage);
+                            
                             if (shouldUpdateTitle.current) {
                                 const firstUserMessage = newMessages.find(m => m.role === 'user');
                                 if (firstUserMessage && firstUserMessage.content) {
                                     const newTitle = firstUserMessage.content.length > 30
                                         ? firstUserMessage.content.substring(0, 30) + '...'
                                         : firstUserMessage.content;
-                                    console.log(`自动更新会话名称为: ${newTitle}`);
-                                    // 直接调用，但因为它在 setMessages 的回调内部，所以是安全的
+                                    console.log(`准备重命名会话 ${sessionId} 为: "${newTitle}"`);
                                     renameSession(sessionId, newTitle);
                                     shouldUpdateTitle.current = false;
                                 }
                             }
                         }
-
                         return newMessages;
                     });
+
+                    // 关键修复：移除无效的消息更新调用
+                    if (finalAssistantMessage) {
+                        console.warn('[ChatContext] sendMessage: 注意 - 前端消息回写逻辑已禁用。引用和参考文档的持久化需要后端在流式响应结束时自行处理。');
+                        // apiClient.updateMessage(finalAssistantMessage).then(response => {
+                        //     if (response.code === 0) {
+                        //         console.log('[withref] 消息回写成功');
+                        //     } else {
+                        //         console.error('[withref] 消息回写失败:', response.message);
+                        //     }
+                        // });
+                    }
+
+                    console.groupEnd();
 
                     // 重置流式响应状态 - 基于会话
                     updateSessionState(sessionId, {
@@ -1250,20 +1274,6 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
     };
 
-    // 选择会话
-    const selectSession = (session: ChatSession) => {
-        console.log('选择会话:', session);
-
-        if (currentSession && currentSession.id === session.id) {
-            console.log('会话已选中，跳过重复选择');
-            return;
-        }
-
-        setCurrentSession(session);
-        localStorage.setItem('ragflow_selected_session', session.id);
-        getSessionMessages(session.id);
-    };
-
     // 重命名会话
     const renameSession = async (sessionId: string, name: string) => {
         try {
@@ -1322,6 +1332,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             reference,
             isSidebarVisible,
             toggleSidebar,
+            isMessageLoading,
             apiError,
             clearApiError,
             reconnecting,

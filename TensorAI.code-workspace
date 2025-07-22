@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../ragflow"
+		},
+		{
+			"path": "../TensorAI-backend"
+		}
+	],
+	"settings": {}
+}

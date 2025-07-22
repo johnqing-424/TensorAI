@@ -120,7 +120,8 @@ const ChatHistory: React.FC = () => {
             chunk.document_name.split('.').pop()?.toLowerCase() : '';
 
         // 构建文档URL，不再依赖全局reference，直接使用chunk信息
-        const docUrl = chunk.url || `/document/${documentId}?ext=${fileExtension || ''}&prefix=document`;
+        const RAGFLOW_API_BASE_URL = process.env.REACT_APP_RAGFLOW_API_BASE_URL || '';
+        const docUrl = chunk.url || `${RAGFLOW_API_BASE_URL}/document/${documentId}?ext=${fileExtension || ''}&prefix=document`;
 
         // 打开文档预览
         window.open(docUrl, '_blank');

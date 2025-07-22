@@ -1,5 +1,5 @@
 import React, { useMemo, useCallback, useRef } from 'react';
-import { ChatMessage, ReferenceChunk } from '../../types';
+import { ChatMessage, Reference, ReferenceChunk } from '../../types';
 import MarkdownRenderer from './MarkdownRenderer';
 import LoadingIndicator from './LoadingIndicator';
 import ErrorMessage from './ErrorMessage';
@@ -84,8 +84,10 @@ const MessageContent: React.FC<MessageContentProps> = ({
 
     // 渲染参考文档列表 - 独立于消息气泡
     const renderReferenceDocuments = useCallback(() => {
-        // 只有助手消息、流式传输完成且有引用数据时才显示
-        if (role !== 'assistant' || !completed || !reference?.doc_aggs?.length) {
+        // 只有助手消息且有引用数据时才显示
+        const chunks = reference?.chunks || [];
+
+        if (role !== 'assistant' || !chunks.length) {
             return null;
         }
 
@@ -99,33 +101,30 @@ const MessageContent: React.FC<MessageContentProps> = ({
 
                 <List
                     size="small"
-                    dataSource={reference.doc_aggs}
-                    renderItem={doc => {
-                        // 确保doc是有效对象
-                        if (!doc || !doc.doc_name) {
+                    dataSource={chunks}
+                    renderItem={(chunk: ReferenceChunk) => {
+                        // 确保chunk是有效对象
+                        if (!chunk || !chunk.document_name) {
                             if (process.env.NODE_ENV === 'development') {
-                                console.warn('遇到无效的文档引用项:', doc);
+                                console.warn('遇到无效的文档引用项:', chunk);
                             }
                             return null;
                         }
 
                         // 从文件名获取扩展名
-                        const fileName = doc.doc_name;
+                        const fileName = chunk.document_name;
                         const displayName = fileName.split('/').pop() || fileName;
                         const ext = fileName.split('.').pop()?.toLowerCase() || '';
-
-                        // 构建文档链接 - 使用固定基础URL
-                        const baseUrl = 'http://123.207.100.71:5007';
-                        const docUrl = doc.url || `${baseUrl}/document/${doc.doc_id}?ext=${ext}&prefix=document`;
 
                         return (
                             <List.Item className="reference-list-item">
                                 <Link
-                                    href={docUrl}
-                                    target="_blank"
+                                    href="#"
                                     onClick={(e) => {
                                         e.preventDefault();
-                                        window.open(docUrl, '_blank');
+                                        if (onDocumentClick) {
+                                            onDocumentClick(chunk.document_id, chunk);
+                                        }
                                     }}
                                 >
                                     <Space>
@@ -141,7 +140,7 @@ const MessageContent: React.FC<MessageContentProps> = ({
                 />
             </div>
         );
-    }, [reference, role, getFileIcon, completed]);
+    }, [reference, role, getFileIcon, onDocumentClick]);
 
     // 渲染正常内容
     const renderNormalContent = useCallback(() => {
