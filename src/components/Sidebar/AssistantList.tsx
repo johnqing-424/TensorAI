@@ -244,7 +244,7 @@ const AssistantList: React.FC = () => {
             <div className="sidebar-header">
                 <div className="user-info" onClick={handleLogoClick} style={{ cursor: 'pointer' }}>
                     <div className="avatar">T</div>
-                    <div className="username">TensorAI-noref</div>
+                    <div className="username">TensorAI</div>
                 </div>
                 <button className="collapse-btn" onClick={toggleSidebar} title="收起侧边栏">
                     <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
