@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 // 根据原有功能定义功能类型
-export type FunctionIdType = 'process' | 'product' | 'model' | 'more' | 'chat';
+export type FunctionIdType = 'process' | 'product' | 'model' | 'more' | 'chat' | 'image-search';
 
 // 功能图标定义
 export const functionIcons = {
@@ -10,7 +10,8 @@ export const functionIcons = {
     product: { icon: '🔍', bgColor: '#e5f7ed', color: '#10b981' },
     model: { icon: '🤖', bgColor: '#f5f3ff', color: '#8b5cf6' },
     more: { icon: '📄', bgColor: '#f2f4f8', color: '#6366f1' },
-    chat: { icon: '💬', bgColor: '#fef3c7', color: '#f59e0b' }
+    chat: { icon: '💬', bgColor: '#fef3c7', color: '#f59e0b' },
+    'image-search': { icon: '🖼️', bgColor: '#ffebee', color: '#ef4444' }
 };
 
 // 功能路由映射
@@ -19,7 +20,8 @@ export const functionRoutes: Record<FunctionIdType, string> = {
     product: '/chat/product',
     model: '/chat/model',
     more: '/chat/more',
-    chat: '/chat'
+    chat: '/chat',
+    'image-search': '/chat/image-search'
 };
 
 // 功能标题映射
@@ -28,7 +30,8 @@ export const functionTitles: Record<FunctionIdType, string> = {
     product: '产品技术检索',
     model: '大模型知识检索',
     more: '简历筛选助手',
-    chat: 'TensorChat'
+    chat: 'TensorChat',
+    'image-search': '图片搜索'
 };
 
 const NavigationBar: React.FC = () => {

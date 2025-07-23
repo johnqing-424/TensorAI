@@ -8,6 +8,8 @@ import NavigationBar, { functionIcons, functionTitles, FunctionIdType, functionR
 import ChatInputBox from '../Common/ChatInputBox';
 import apiClient from '../../services/api/client';
 import { ApiResponse, StreamChatResponse } from '../../types';
+import ImageSearchPage from '../Chat/ImageSearchPage';
+import '../Chat/ImageSearchPage.css';
 
 import './ChatLayout.css';
 
@@ -513,6 +515,19 @@ const ChatLayout: React.FC = () => {
                         </div>
                     </div>
 
+                    <div className="feature-card" onClick={(e) => {
+                        e.preventDefault();
+                        handleSelectFunction('image-search');
+                    }}>
+                        <div className="feature-card-icon" style={{ backgroundColor: functionIcons['image-search'].bgColor }}>
+                            <span style={{ color: functionIcons['image-search'].color }}>{functionIcons['image-search'].icon}</span>
+                        </div>
+                        <div className="feature-card-content">
+                            <div className="feature-card-title">智能图像分析检索</div>
+                            <div className="feature-card-desc">智能图片和视频搜索</div>
+                        </div>
+                    </div>
+
                     {/* 注释掉简历筛选助手卡片
                     <div className="feature-card" onClick={(e) => {
                         e.preventDefault();
@@ -829,6 +844,7 @@ const ChatLayout: React.FC = () => {
                     <Route path="/chat/model" element={renderFunctionPage('model')} />
                     <Route path="/chat/more" element={renderFunctionPage('more')} />
                     <Route path="/chat/:appId/:sessionId" element={renderChatPage()} />
+                    <Route path="/chat/image-search" element={<ImageSearchPage />} />
                     <Route path="*" element={
                         // 只有在会话数据加载完成且确实找不到匹配的会话时才重定向
                         !loadingSessions && chatSessions.length > 0 ?

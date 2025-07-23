@@ -50,7 +50,7 @@ const Image: React.FC<{ id?: string; className?: string; onClick?: () => void }>
     return (
         <img
             src={imageUrl}
-            alt="Reference Image"
+            alt=""
             className={className}
             onClick={onClick}
             onError={(e) => {
@@ -203,7 +203,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
                 return <span key={`ref-missing-${i}`}></span>;
             }
 
-            const { documentId, imageId, chunkItem, documentUrl } = getReferenceInfo(chunkIndex);
+            const { documentId, imageId, documentUrl } = getReferenceInfo(chunkIndex);
             const docType = chunk.doc_type;
 
             // withref分支：显示引用标记
@@ -250,7 +250,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
         ));
 
         return replacedText;
-    }, [reference, onDocumentClick, getReferenceInfo, isImageType]);
+    }, [reference, onDocumentClick, getReferenceInfo, isImageType, cursorRegex]);
 
     // 自定义代码块渲染
     const renderCodeBlock = useCallback((props: any) => {

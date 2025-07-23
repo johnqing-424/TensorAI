@@ -128,6 +128,33 @@ const AssistantList: React.FC = () => {
             status: 'active'
         },
         {
+            id: 'image-search',
+            name: '图片搜索',
+            description: '智能图片和视频搜索',
+            create_date: new Date().toISOString(),
+            update_date: new Date().toISOString(),
+            avatar: '',
+            datasets: [],
+            llm: {
+                model_name: '',
+                temperature: 0.7,
+                top_p: 0.9,
+                presence_penalty: 0,
+                frequency_penalty: 0
+            },
+            prompt: {
+                similarity_threshold: 0.7,
+                keywords_similarity_weight: 0.5,
+                top_n: 3,
+                variables: [],
+                rerank_model: '',
+                empty_response: '',
+                opener: '',
+                prompt: ''
+            },
+            status: 'active'
+        },
+        {
             id: 'more',
             name: '更多',
             description: '更多AI功能',
@@ -184,6 +211,7 @@ const AssistantList: React.FC = () => {
             case 'model': return '大模型知识检索';
             case 'more': return '更多功能'; // 注释掉简历筛选助手
             case 'chat': return 'TensorChat';
+            case 'image-search': return '智能图像分析检索';
             default: return '聊天';
         }
     };

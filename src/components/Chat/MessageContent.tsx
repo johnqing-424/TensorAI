@@ -1,9 +1,9 @@
 import React, { useMemo, useCallback, useRef } from 'react';
-import { ChatMessage, Reference, ReferenceChunk } from '../../types';
+import { ChatMessage, ReferenceChunk } from '../../types';
 import MarkdownRenderer from './MarkdownRenderer';
 import LoadingIndicator from './LoadingIndicator';
 import ErrorMessage from './ErrorMessage';
-import { List, Typography, Space, Divider, Flex } from 'antd';
+import { List, Typography, Space, Flex } from 'antd';
 import { FileOutlined, FilePdfOutlined, FileWordOutlined, FileExcelOutlined, FilePptOutlined, FileImageOutlined, FileTextOutlined } from '@ant-design/icons';
 import './MessageContent.css'; // 添加引用CSS文件
 
