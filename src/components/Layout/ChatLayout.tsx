@@ -6,6 +6,7 @@ import SessionList from '../Sidebar/SessionList';
 import ChatHistory from '../Chat/ChatHistory';
 import NavigationBar, { functionIcons, functionTitles, FunctionIdType, functionRoutes } from './NavigationBar';
 import ChatInputBox from '../Common/ChatInputBox';
+import ImageSearch from '../ImageSearch/ImageSearch';
 import apiClient from '../../services/api/client';
 import { ApiResponse, StreamChatResponse } from '../../types';
 
@@ -513,6 +514,19 @@ const ChatLayout: React.FC = () => {
                         </div>
                     </div>
 
+                    <div className="feature-card" onClick={(e) => {
+                        e.preventDefault();
+                        handleSelectFunction('image-search');
+                    }}>
+                        <div className="feature-card-icon" style={{ backgroundColor: functionIcons['image-search'].bgColor }}>
+                            <span style={{ color: functionIcons['image-search'].color }}>{functionIcons['image-search'].icon}</span>
+                        </div>
+                        <div className="feature-card-content">
+                            <div className="feature-card-title">智能图像分析检索</div>
+                            <div className="feature-card-desc">智能图片内容搜索</div>
+                        </div>
+                    </div>
+
                     {/* 注释掉简历筛选助手卡片
                     <div className="feature-card" onClick={(e) => {
                         e.preventDefault();
@@ -534,6 +548,11 @@ const ChatLayout: React.FC = () => {
 
     // 渲染功能特定页面
     const renderFunctionPage = (functionId: FunctionIdType) => {
+        // 图片搜索功能
+        if (functionId === 'image-search') {
+            return <ImageSearch />;
+        }
+
         // 简历筛选助手使用全屏iframe
         if (functionId === 'more' as FunctionIdType) {
             /* 注释掉简历筛选助手iframe
@@ -828,6 +847,7 @@ const ChatLayout: React.FC = () => {
                     <Route path="/chat/product" element={renderFunctionPage('product')} />
                     <Route path="/chat/model" element={renderFunctionPage('model')} />
                     <Route path="/chat/more" element={renderFunctionPage('more')} />
+                    <Route path="/chat/image-search" element={renderFunctionPage('image-search')} />
                     <Route path="/chat/:appId/:sessionId" element={renderChatPage()} />
                     <Route path="*" element={
                         // 只有在会话数据加载完成且确实找不到匹配的会话时才重定向
