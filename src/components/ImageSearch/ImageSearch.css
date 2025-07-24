@@ -261,15 +261,18 @@
     gap: 20px;
     padding: 10px 0;
     min-height: 0;
+    grid-auto-rows: max-content;
 }
 
 .result-card {
     background-color: white;
     border-radius: var(--border-radius);
     box-shadow: var(--box-shadow);
-    overflow: hidden;
+    overflow: visible;
     transition: var(--transition);
     border: 1px solid #e0e0e0;
+    height: auto;
+    min-height: fit-content;
 }
 
 .result-card:hover {
@@ -380,8 +383,11 @@
 
 .result-description {
     color: var(--dark-color);
-    line-height: 1.4;
+    line-height: 1.5;
     font-size: 0.9rem;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    white-space: normal;
 }
 
 .no-results {
